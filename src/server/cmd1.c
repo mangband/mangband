@@ -23,7 +23,7 @@ bool test_hit_fire(int chance, int ac, int vis)
 	int k;
 
 	/* Percentile dice */
-	k = rand_int(100);
+	k = randint0(100);
 
 	/* Hack -- Instant miss or hit */
 	if (k < 10) return (k < 5);
@@ -35,7 +35,7 @@ bool test_hit_fire(int chance, int ac, int vis)
 	if (!vis) chance = (chance + 1) / 2;
 
 	/* Power competes against armor */
-	if (rand_int(chance) < (ac * 3 / 4)) return (FALSE);
+	if (randint0(chance) < (ac * 3 / 4)) return (FALSE);
 
 	/* Assume hit */
 	return (TRUE);
@@ -53,7 +53,7 @@ bool test_hit_norm(int chance, int ac, int vis)
 	int k;
 
 	/* Percentile dice */
-	k = rand_int(100);
+	k = randint0(100);
 
 	/* Hack -- Instant miss or hit */
 	if (k < 10) return (k < 5);
@@ -65,7 +65,7 @@ bool test_hit_norm(int chance, int ac, int vis)
 	if (!vis) chance = (chance + 1) / 2;
 
 	/* Power must defeat armor */
-	if (rand_int(chance) < (ac * 3 / 4)) return (FALSE);
+	if (randint0(chance) < (ac * 3 / 4)) return (FALSE);
 
 	/* Assume hit */
 	return (TRUE);
@@ -528,7 +528,7 @@ void search(player_type *p_ptr)
 		for (x = (p_ptr->px - 1); x <= (p_ptr->px + 1); x++)
 		{
 			/* Sometimes, notice things */
-			if (rand_int(100) < chance)
+			if (randint0(100) < chance)
 			{
 				/* Access the grid */
 				c_ptr = &cave[Depth][y][x];
@@ -865,7 +865,7 @@ static int check_hit(player_type *p_ptr, int power)
 	int k, ac;
 
 	/* Percentile dice */
-	k = rand_int(100);
+	k = randint0(100);
 
 	/* Hack -- 5% hit, 5% miss */
 	if (k < 10) return (k < 5);
@@ -988,7 +988,7 @@ static void hit_trap(player_type *p_ptr)
 				dam = damroll(2, 6);
 
 				/* Extra spike damage */
-				if (rand_int(100) < 50)
+				if (randint0(100) < 50)
 				{
 					msg_print(p_ptr, "You are impaled!");
 
@@ -1018,7 +1018,7 @@ static void hit_trap(player_type *p_ptr)
 				dam = damroll(2, 6);
 
 				/* Extra spike damage */
-				if (rand_int(100) < 50)
+				if (randint0(100) < 50)
 				{
 					msg_print(p_ptr, "You are impaled on poisonous spikes!");
 
@@ -1090,7 +1090,7 @@ static void hit_trap(player_type *p_ptr)
 				msg_print(p_ptr, "A small dart hits you!");
 				dam = damroll(1, 4);
 				take_hit(p_ptr, dam, name);
-				(void)set_slow(p_ptr, p_ptr->slow + rand_int(20) + 20);
+				(void)set_slow(p_ptr, p_ptr->slow + randint0(20) + 20);
 			}
 			else
 			{
@@ -1152,7 +1152,7 @@ static void hit_trap(player_type *p_ptr)
 			msg_print(p_ptr, "A black gas surrounds you!");
 			if (!p_ptr->resist_blind)
 			{
-				(void)set_blind(p_ptr, p_ptr->blind + rand_int(50) + 25);
+				(void)set_blind(p_ptr, p_ptr->blind + randint0(50) + 25);
 			}
 			break;
 		}
@@ -1162,7 +1162,7 @@ static void hit_trap(player_type *p_ptr)
 			msg_print(p_ptr, "A gas of scintillating colors surrounds you!");
 			if (!p_ptr->resist_conf)
 			{
-				(void)set_confused(p_ptr, p_ptr->confused + rand_int(20) + 10);
+				(void)set_confused(p_ptr, p_ptr->confused + randint0(20) + 10);
 			}
 			break;
 		}
@@ -1172,7 +1172,7 @@ static void hit_trap(player_type *p_ptr)
 			msg_print(p_ptr, "A pungent green gas surrounds you!");
 			if (!p_ptr->resist_pois && !p_ptr->oppose_pois)
 			{
-				(void)set_poisoned(p_ptr, p_ptr->poisoned + rand_int(20) + 10);
+				(void)set_poisoned(p_ptr, p_ptr->poisoned + randint0(20) + 10);
 			}
 			break;
 		}
@@ -1182,7 +1182,7 @@ static void hit_trap(player_type *p_ptr)
 			msg_print(p_ptr, "A strange white mist surrounds you!");
 			if (!p_ptr->free_act)
 			{
-				(void)set_paralyzed(p_ptr, p_ptr->paralyzed + rand_int(10) + 5);
+				(void)set_paralyzed(p_ptr, p_ptr->paralyzed + randint0(10) + 5);
 			}
 			break;
 		}
@@ -1307,14 +1307,14 @@ void py_attack_player(player_type *p_ptr, int y, int x)
 				{
 					msg_format(p_ptr, "%^s is unaffected.", pvp_name);
 				}
-				else if (rand_int(100) < q_ptr->lev)
+				else if (randint0(100) < q_ptr->lev)
 				{
 					msg_format(p_ptr, "%^s is unaffected.", pvp_name);
 				}
 				else
 				{
 					msg_format(p_ptr, "%^s appears confused.", pvp_name);
-					set_confused(q_ptr, q_ptr->confused + 10 + rand_int(p_ptr->lev) / 5);
+					set_confused(q_ptr, q_ptr->confused + 10 + randint0(p_ptr->lev) / 5);
 				}
 			}
 
@@ -1323,10 +1323,10 @@ void py_attack_player(player_type *p_ptr, int y, int x)
 			{
 				int fear_chance = 50 + (p_ptr->lev - q_ptr->lev) * 5;
 
-				if (rand_int(100) < fear_chance)
+				if (randint0(100) < fear_chance)
 				{
 					msg_format(p_ptr, "%^s appears afraid.", pvp_name);
-					set_afraid(q_ptr, q_ptr->afraid + 4 + rand_int(p_ptr->lev) / 5);
+					set_afraid(q_ptr, q_ptr->afraid + 4 + randint0(p_ptr->lev) / 5);
 				}
 			}
 		}
@@ -1507,14 +1507,14 @@ void py_attack_mon(player_type *p_ptr, int y, int x)
 					if (p_ptr->mon_vis[c_ptr->m_idx]) l_ptr->flags3 |= RF3_NO_CONF;
 					msg_format(p_ptr, "%^s is unaffected.", m_name);
 				}
-				else if (rand_int(100) < r_ptr->level)
+				else if (randint0(100) < r_ptr->level)
 				{
 					msg_format(p_ptr, "%^s is unaffected.", m_name);
 				}
 				else
 				{
 					msg_format(p_ptr, "%^s appears confused.", m_name);
-					m_ptr->confused += 10 + rand_int(p_ptr->lev) / 5;
+					m_ptr->confused += 10 + randint0(p_ptr->lev) / 5;
 				}
 			}
 
@@ -1523,10 +1523,10 @@ void py_attack_mon(player_type *p_ptr, int y, int x)
 			{
 				int fear_chance = 50 + (p_ptr->lev - r_ptr->level) * 5;
 
-				if (!(r_ptr->flags3 & RF3_NO_FEAR) && rand_int(100) < fear_chance)
+				if (!(r_ptr->flags3 & RF3_NO_FEAR) && randint0(100) < fear_chance)
 				{
 					msg_format(p_ptr, "%^s appears afraid.", m_name);
-					m_ptr->monfear = m_ptr->monfear + 4 + rand_int(p_ptr->lev) / 5;
+					m_ptr->monfear = m_ptr->monfear + 4 + randint0(p_ptr->lev) / 5;
 				}
 			}
 
@@ -1640,7 +1640,7 @@ void move_player(player_type *p_ptr, int dir, int do_pickup)
 			if (!Depth && (cfg_town_wall || cfg_ironman))
 			{
 				if (!cfg_town_wall)
-					switch(rand_int(5))
+					switch(randint0(5))
 					{
 						case 0: msg_print(p_ptr, "You don't feel like going to pick flowers right now."); break;
 						case 1: msg_print(p_ptr, "Where do you think you are going?"); break; /* [Warrior] */
@@ -2011,7 +2011,7 @@ void move_player(player_type *p_ptr, int dir, int do_pickup)
 
 		/* Spontaneous Searching */
 		if ((p_ptr->skill_fos >= 50) ||
-		    (0 == rand_int(50 - p_ptr->skill_fos)))
+		    (0 == randint0(50 - p_ptr->skill_fos)))
 		{
 			search(p_ptr);
 		}

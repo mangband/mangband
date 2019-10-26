@@ -660,7 +660,7 @@ s16b get_obj_num(int level)
 	if (level > 0)
 	{
 		/* Occasional "boost" */
-		if (rand_int(GREAT_OBJ) == 0)
+		if (randint0(GREAT_OBJ) == 0)
 		{
 			/* What a bizarre calculation */
 			level = 1 + (level * MAX_DEPTH / randint(MAX_DEPTH));
@@ -701,7 +701,7 @@ s16b get_obj_num(int level)
 
 
 	/* Pick an object */
-	value = rand_int(total);
+	value = randint0(total);
 
 	/* Find the object */
 	for (i = 0; i < alloc_kind_size; i++)
@@ -715,7 +715,7 @@ s16b get_obj_num(int level)
 
 
 	/* Power boost */
-	p = rand_int(100);
+	p = randint0(100);
 
 	/* Try for a "better" object once (50%) or twice (10%) */
 	if (p < 60)
@@ -724,7 +724,7 @@ s16b get_obj_num(int level)
 		j = i;
 
 		/* Pick a object */
-		value = rand_int(total);
+		value = randint0(total);
 
 		/* Find the monster */
 		for (i = 0; i < alloc_kind_size; i++)
@@ -747,7 +747,7 @@ s16b get_obj_num(int level)
 		j = i;
 
 		/* Pick a object */
-		value = rand_int(total);
+		value = randint0(total);
 
 		/* Find the object */
 		for (i = 0; i < alloc_kind_size; i++)
@@ -2040,7 +2040,7 @@ static s16b m_bonus(int max, int level)
 	extra = ((max * level) % MAX_DEPTH);
 
 	/* Hack -- simulate floating point computations */
-	if (rand_int(MAX_DEPTH) < extra) bonus++;
+	if (randint0(MAX_DEPTH) < extra) bonus++;
 
 
 	/* The "stand" is equal to one quarter of the max */
@@ -2050,7 +2050,7 @@ static s16b m_bonus(int max, int level)
 	extra = (max % 4);
 
 	/* Hack -- simulate floating point computations */
-	if (rand_int(4) < extra) stand++;
+	if (randint0(4) < extra) stand++;
 
 
 	/* Choose an "interesting" value */
@@ -2148,7 +2148,7 @@ static bool make_artifact_special(int Depth, object_type *o_ptr)
 			int d = (a_ptr->level - Depth) * 2;
 
 			/* Roll for out-of-depth creation */
-			if (rand_int(d) != 0) continue;
+			if (randint0(d) != 0) continue;
 		}
 
 		/* XXX XXX Enforce maximum "depth" (loosely) */
@@ -2158,11 +2158,11 @@ static bool make_artifact_special(int Depth, object_type *o_ptr)
 			int d = (a_ptr->level - Depth) * 2;
 
 			/* Roll for out-of-depth creation */
-			if (rand_int(d) != 0) continue;
+			if (randint0(d) != 0) continue;
 		}
 
 		/* Artifact "rarity roll" */
-	if (rand_int(a_ptr->rarity) != 0) continue;
+	if (randint0(a_ptr->rarity) != 0) continue;
 
 		/* Find the base object */
 		k_idx = lookup_kind(a_ptr->tval, a_ptr->sval);
@@ -2174,7 +2174,7 @@ static bool make_artifact_special(int Depth, object_type *o_ptr)
 			int d = (k_info[k_idx].level - object_level) * 5;
 
 			/* Roll for out-of-depth creation */
-			if (rand_int(d) != 0) continue;
+			if (randint0(d) != 0) continue;
 		}
 
 		/* Assign the template */
@@ -2236,11 +2236,11 @@ static bool make_artifact(int Depth, object_type *o_ptr)
 			int d = (a_ptr->level - Depth) * 2;
 printf("Out of depth?\n");
 			/* Roll for out-of-depth creation */
-			if (rand_int(d) != 0) continue;
+			if (randint0(d) != 0) continue;
 		}
 printf("Art rarity roll...\n");
 		/* We must make the "rarity roll" */
-		if (rand_int(a_ptr->rarity) != 0) continue;
+		if (randint0(a_ptr->rarity) != 0) continue;
 printf("Passed!\n");
 		/* MEGA-HACK! GAMEPLAY BREAKER! */
 		for (j = 1; j <= NumPlayers; j++)
@@ -2268,13 +2268,13 @@ printf("Passed!\n");
 
 #if defined(RANDART)
     /* An extra chance at being a randart */
-    if (cfg_random_artifacts && !rand_int(RANDART_RARITY))
+    if (cfg_random_artifacts && !randint0(RANDART_RARITY))
     {
 	o_ptr->name1 = ART_RANDART;
 
 	/* Piece together a 32-bit random seed */
-	o_ptr->name3 = rand_int(0xFFFF) << 16;
-	o_ptr->name3 += rand_int(0xFFFF);
+	o_ptr->name3 = randint0(0xFFFF) << 16;
+	o_ptr->name3 += randint0(0xFFFF);
 	/* Check the tval is allowed */
 	if (randart_make(o_ptr) == NULL)
 	{
@@ -2403,7 +2403,7 @@ static void charge_staff(object_type *o_ptr)
 		return FALSE;
 		
 	/* check rarity */
-	if (rand_int(e_ptr->rarity) != 0)
+	if (randint0(e_ptr->rarity) != 0)
 		return FALSE;
 		
 	/* check cursed egos */
@@ -2504,7 +2504,7 @@ static void a_m_aux_1(object_type *o_ptr, int level, int power)
 			{
 				/* Hack -- Super-charge the damage dice */
 				while ((o_ptr->dd * o_ptr->ds > 0) &&
-				       (rand_int(10L * o_ptr->dd * o_ptr->ds) == 0))
+				       (randint0(10L * o_ptr->dd * o_ptr->ds) == 0))
 				{
 					o_ptr->dd++;
 				}
@@ -2526,7 +2526,7 @@ static void a_m_aux_1(object_type *o_ptr, int level, int power)
 			{
 				/* Hack -- super-charge the damage dice */
 				while ((o_ptr->dd * o_ptr->ds > 0) &&
-				       (rand_int(10L * o_ptr->dd * o_ptr->ds) == 0))
+				       (randint0(10L * o_ptr->dd * o_ptr->ds) == 0))
 				{
 					o_ptr->dd++;
 				}
@@ -2545,7 +2545,7 @@ static void a_m_aux_1(object_type *o_ptr, int level, int power)
     /* Retrieve an ego item randomly */
     while (--nbtries)
     {
-    	idx = rand_int(z_info->e_max);
+    	idx = randint0(z_info->e_max);
     	
     	/* check ego */
     	if (check_ego(o_ptr, level, power, idx))
@@ -2652,7 +2652,7 @@ static void a_m_aux_2(object_type *o_ptr, int level, int power)
     /* Retrieve an ego item randomly */
     while (--nbtries)
     {
-    	idx = rand_int(z_info->e_max);
+    	idx = randint0(z_info->e_max);
     	
     	/* check ego */
     	if (check_ego(o_ptr, level, power, idx))
@@ -2714,7 +2714,7 @@ static void a_m_aux_3(object_type *o_ptr, int level, int power)
 					o_ptr->pval = randint(5) + m_bonus(5, level);
 
 					/* Super-charge the ring */
-					while (rand_int(100) < 50) o_ptr->pval++;
+					while (randint0(100) < 50) o_ptr->pval++;
 
 					/* Cursed Ring */
 					if (power < 0)
@@ -2995,7 +2995,7 @@ static void a_m_aux_3(object_type *o_ptr, int level, int power)
 					o_ptr->pval = randint(5) + m_bonus(5, level);
 
 					o_ptr->xtra1 = OBJECT_XTRA_TYPE_POWER;
-					o_ptr->xtra2 = (byte)rand_int(OBJECT_XTRA_SIZE_POWER);
+					o_ptr->xtra2 = (byte)randint0(OBJECT_XTRA_SIZE_POWER);
 					break;
 				}
 
@@ -3145,7 +3145,7 @@ static void a_m_aux_4(object_type *o_ptr, int level, int power)
 		o_ptr->pval = randint(k_info[o_ptr->k_idx].level);
 
 		/* Never exceed "difficulty" of 55 to 59 */
-		if (o_ptr->pval > 55) o_ptr->pval = 55 + rand_int(5);
+		if (o_ptr->pval > 55) o_ptr->pval = 55 + randint0(5);
 
 		break;
 	}
@@ -3347,7 +3347,7 @@ void apply_magic(int Depth, object_type *o_ptr, int lev, bool okay, bool good, b
 		case TV_RING:
 		case TV_AMULET:
 		{
-			if (!power && (rand_int(100) < 50)) power = -1;
+			if (!power && (randint0(100) < 50)) power = -1;
 			a_m_aux_3(o_ptr, lev, power);
 			break;
 		}
@@ -3373,19 +3373,19 @@ void apply_magic(int Depth, object_type *o_ptr, int lev, bool okay, bool good, b
 			{
 				case OBJECT_XTRA_TYPE_SUSTAIN:
 				{
-					o_ptr->xtra2 = (byte)rand_int(OBJECT_XTRA_SIZE_SUSTAIN);
+					o_ptr->xtra2 = (byte)randint0(OBJECT_XTRA_SIZE_SUSTAIN);
 					break;
 				}
 
 				case OBJECT_XTRA_TYPE_RESIST:
 				{
-					o_ptr->xtra2 = (byte)rand_int(OBJECT_XTRA_SIZE_RESIST);
+					o_ptr->xtra2 = (byte)randint0(OBJECT_XTRA_SIZE_RESIST);
 					break;
 				}
 
 				case OBJECT_XTRA_TYPE_POWER:
 				{
-					o_ptr->xtra2 = (byte)rand_int(OBJECT_XTRA_SIZE_POWER);
+					o_ptr->xtra2 = (byte)randint0(OBJECT_XTRA_SIZE_POWER);
 					break;
 				}
 			}
@@ -3648,7 +3648,7 @@ object_type* place_object(int Depth, int y, int x, bool good, bool great, byte o
 	invwipe(&forge);
 
 	/* Generate a special object, or a normal object */
-	if ((rand_int(prob) != 0) || !make_artifact_special(Depth, &forge))
+	if ((randint0(prob) != 0) || !make_artifact_special(Depth, &forge))
 	{
 		int k_idx;
 
@@ -3878,7 +3878,7 @@ void place_gold(int Depth, int y, int x)
 	i = ((randint(object_level + 2) + 2) / 2) - 1;
 
 	/* Apply "extra" magic */
-	if (rand_int(GREAT_OBJ) == 0)
+	if (randint0(GREAT_OBJ) == 0)
 	{
 		i += randint(object_level + 1);
 	}
@@ -3977,7 +3977,7 @@ void drop_near(object_type *o_ptr, int chance, int Depth, int y, int x)
 	ny = y1 = y;  nx = x1 = x;
 
 	/* See if the object "survives" the fall */
-	if (artifact_p(o_ptr) || (rand_int(100) >= chance))
+	if (artifact_p(o_ptr) || (randint0(100) >= chance))
 	{
 		/* Start at the drop point */
 		ny = y1 = y; nx = x1 = x;
@@ -4180,7 +4180,7 @@ void pick_trap(int Depth, int y, int x)
 	while (1)
 	{
 		/* Hack -- pick a trap */
-		feat = FEAT_TRAP_HEAD + rand_int(16);
+		feat = FEAT_TRAP_HEAD + randint0(16);
 
 		/* Hack -- no trap doors on quest levels */
 		if ((feat == FEAT_TRAP_HEAD + 0x00) && is_quest(Depth)) continue;

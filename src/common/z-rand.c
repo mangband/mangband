@@ -24,7 +24,7 @@
  * and is much less subject to low-bit-non-randomness problems.
  *
  * You can select your favorite flavor by proper definition of the
- * "rand_int()" macro in the "defines.h" file.
+ * "randint0()" macro in the "defines.h" file.
  *
  * Note that, in Angband 2.8.0, the "state" table will be saved in the
  * savefile, so a special "initialization" phase will be necessary.
@@ -299,7 +299,7 @@ s16b randnor(int mean, int stand)
 	if (stand < 1) return (mean);
 
 	/* Roll for probability */
-	tmp = rand_int(32768);
+	tmp = randint0(32768);
 
 	/* Binary Search */
 	while (low < high)
@@ -323,7 +323,7 @@ s16b randnor(int mean, int stand)
 	offset = (long)stand * (long)low / RANDNOR_STD;
 
 	/* One half should be negative */
-	if (rand_int(100) < 50) return (mean - offset);
+	if (randint0(100) < 50) return (mean - offset);
 
 	/* One half should be positive */
 	return (mean + offset);
@@ -388,7 +388,7 @@ u32b Rand_simple(u32b m)
 	}
 
 	/* Get a random number */
-	result = rand_int(m);
+	result = randint0(m);
 
 	/* Store the new seed */
 	simple_rand_value = Rand_value;

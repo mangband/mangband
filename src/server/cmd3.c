@@ -1185,10 +1185,10 @@ void do_cmd_steal(player_type *p_ptr, int dir)
 	if (success < 2) success = 2;
 
 	/* Check for success */
-	if (rand_int(100) < success)
+	if (randint0(100) < success)
 	{
 		/* Steal gold 25% of the time */
-		if (rand_int(100) < 25)
+		if (randint0(100) < 25)
 		{
 			int amt = q_ptr->au / 10;
 
@@ -1207,7 +1207,7 @@ void do_cmd_steal(player_type *p_ptr, int dir)
 				msg_format(p_ptr, "You steal %ld gold.", amt);
 
 				/* Check for target noticing */
-				if (rand_int(100) < notice)
+				if (randint0(100) < notice)
 				{
 					/* Make target hostile */
 					add_hostility(q_ptr, p_ptr->name);
@@ -1226,7 +1226,7 @@ void do_cmd_steal(player_type *p_ptr, int dir)
 			char o_name[80];
 
 			/* Steal an item */
-			item = rand_int(q_ptr->inven_cnt);
+			item = randint0(q_ptr->inven_cnt);
 
 			/* Get object */
 			o_ptr = &q_ptr->inventory[item];
@@ -1258,7 +1258,7 @@ void do_cmd_steal(player_type *p_ptr, int dir)
 				notice += forge.weight;
 	
 				/* Check for target noticing */
-				if (rand_int(100) < notice)
+				if (randint0(100) < notice)
 				{
 					/* Make target hostile */
 					add_hostility(q_ptr, p_ptr->name);
@@ -1278,7 +1278,7 @@ void do_cmd_steal(player_type *p_ptr, int dir)
 		msg_print(p_ptr, "You fail to steal anything.");
 
 		/* Easier to notice a failed attempt */
-		if (rand_int(100) < notice + 50)
+		if (randint0(100) < notice + 50)
 		{
 			/* Make target hostile */
 			add_hostility(q_ptr, p_ptr->name);

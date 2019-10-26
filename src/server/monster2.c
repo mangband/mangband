@@ -264,7 +264,7 @@ void compact_monsters(int size)
 			if (!m_ptr->dun_depth) chance = 70;
 
 			/* All monsters get a saving throw */
-			if (rand_int(100) < chance) continue;
+			if (randint0(100) < chance) continue;
 
 			/* Delete the monster */
 			delete_monster_idx(i);
@@ -560,7 +560,7 @@ s16b get_mon_num(int level)
 	{
 
 		/* Occasional "nasty" monster */
-		if (rand_int(NASTY_MON) == 0)
+		if (randint0(NASTY_MON) == 0)
 		{
 			/* Pick a level bonus */
 			d1 = level / 4 + 2;
@@ -570,7 +570,7 @@ s16b get_mon_num(int level)
 		}
 
 		/* Occasional "nasty" monster */
-		if (rand_int(NASTY_MON) == 0)
+		if (randint0(NASTY_MON) == 0)
 		{
 			/* Pick a level bonus */
 			d2 = level / 4 + 2;
@@ -650,7 +650,7 @@ s16b get_mon_num(int level)
 
 
 	/* Pick a monster */
-	value = rand_int(total);
+	value = randint0(total);
 
 	/* Find the monster */
 	for (i = 0; i < alloc_race_size; i++)
@@ -664,7 +664,7 @@ s16b get_mon_num(int level)
 
 
 	/* Power boost */
-	p = rand_int(100);
+	p = randint0(100);
 
 	/* Try for a "harder" monster once (50%) or twice (10%) */
 	if (p < 60)
@@ -673,7 +673,7 @@ s16b get_mon_num(int level)
 		j = i;
 
 		/* Pick a monster */
-		value = rand_int(total);
+		value = randint0(total);
 
 		/* Find the monster */
 		for (i = 0; i < alloc_race_size; i++)
@@ -696,7 +696,7 @@ s16b get_mon_num(int level)
 		j = i;
 
 		/* Pick a monster */
-		value = rand_int(total);
+		value = randint0(total);
 
 		/* Find the monster */
 		for (i = 0; i < alloc_race_size; i++)
@@ -1083,7 +1083,7 @@ bool monster_can_carry(int m_idx)
 	 *	If he reached the limit, he will not pick up 
 	 *	XXX XXX XXX -- double chance && strict limit 		
 	 */
-	if ((rand_int(MAX_MONSTER_BAG) * 2 > total_number) && (total_number < MAX_MONSTER_BAG))
+	if ((randint0(MAX_MONSTER_BAG) * 2 > total_number) && (total_number < MAX_MONSTER_BAG))
 		return TRUE;
 	
 	return FALSE;
@@ -1936,13 +1936,13 @@ static bool place_monster_one(int Depth, int y, int x, int r_idx, bool slp)
 
 
 	/* Give a random starting energy */
-	m_ptr->energy = rand_int(level_speed(0));
+	m_ptr->energy = randint0(level_speed(0));
 
 	/* Hack -- Reduce risk of "instant death by breath weapons" */
 	if (r_ptr->flags1 & RF1_FORCE_SLEEP)
 	{
 		/* Start out with minimal energy */
-		m_ptr->energy = rand_int(level_speed(0) >> 4);
+		m_ptr->energy = randint0(level_speed(0) >> 4);
 	}
 
 	/* Hack -- Mimics pretend to be objects */
@@ -2324,8 +2324,8 @@ bool alloc_monster(int Depth, int dis, int slp)
 		tries++;
 
 		/* Pick a location */
-		y = rand_int(Depth ? MAX_HGT : MAX_HGT);
-		x = rand_int(Depth ? MAX_WID : MAX_WID);
+		y = randint0(Depth ? MAX_HGT : MAX_HGT);
+		x = randint0(Depth ? MAX_WID : MAX_WID);
 
 		/* Require "naked" floor grid */
 		if (!cave_naked_bold(Depth, y, x)) continue;
@@ -2635,8 +2635,8 @@ bool summon_specific_race_somewhere(int Depth, int r_idx, unsigned char size)
 		tries++;
 
 		/* Pick a location */
-		y = rand_int(Depth ? MAX_HGT : MAX_HGT);
-		x = rand_int(Depth ? MAX_WID : MAX_WID);
+		y = randint0(Depth ? MAX_HGT : MAX_HGT);
+		x = randint0(Depth ? MAX_WID : MAX_WID);
 
 		/* Require "naked" floor grid */
 		if (!cave_naked_bold(Depth, y, x)) continue;
@@ -2681,8 +2681,8 @@ bool multiply_monster(int m_idx)
 	{
 		int d = 1;
 		/* 
-		y+=rand_int(10);
-		x+=rand_int(10);
+		y+=randint0(10);
+		x+=randint0(10);
 		*/
 
 		/* Pick a location */
@@ -2838,7 +2838,7 @@ void update_smart_learn(int m_idx, int what)
 	if (r_ptr->flags2 & RF2_STUPID) return;
 
 	/* Not intelligent, only learn sometimes */
-	if (!(r_ptr->flags2 & RF2_SMART) && (rand_int(100) < 50)) return;
+	if (!(r_ptr->flags2 & RF2_SMART) && (randint0(100) < 50)) return;
 
 
 	/* XXX XXX XXX */

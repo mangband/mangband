@@ -74,7 +74,7 @@ static int monster_critical(int dice, int sides, int dam)
 	if (dam < total * 19 / 20) return (0);
 
 	/* Weak blows rarely work */
-	if ((dam < 20) && (rand_int(100) >= dam)) return (0);
+	if ((dam < 20) && (randint0(100) >= dam)) return (0);
 
 	/* Perfect damage */
 	if (dam == total) max++;
@@ -82,7 +82,7 @@ static int monster_critical(int dice, int sides, int dam)
 	/* Super-charge */
 	if (dam >= 20)
 	{
-		while (rand_int(100) < 2) max++;
+		while (randint0(100) < 2) max++;
 	}
 
 	/* Critical damage */
@@ -108,7 +108,7 @@ static int check_hit(player_type *p_ptr, int power, int level)
 	int i, k, ac;
 
 	/* Percentile dice */
-	k = rand_int(100);
+	k = randint0(100);
 
 	/* Hack -- Always miss or hit */
 	if (k < 10) return (k < 5);
@@ -283,7 +283,7 @@ bool make_attack_normal(player_type *p_ptr, int m_idx)
 			if ((p_ptr->protevil > 0) &&
 			    (r_ptr->flags3 & RF3_EVIL) &&
 			    (p_ptr->lev >= rlev) &&
-			    ((rand_int(100) + p_ptr->lev) > 50))
+			    ((randint0(100) + p_ptr->lev) > 50))
 			{
 				/* Remember the Evil-ness */
 				if (p_ptr->mon_vis[m_idx]) l_ptr->flags3 |= RF3_EVIL;
@@ -457,14 +457,14 @@ bool make_attack_normal(player_type *p_ptr, int m_idx)
 
 				case RBM_INSULT:
 				{
-					act = desc_insult[rand_int(8)];
+					act = desc_insult[randint0(8)];
 					sound_msg = MSG_MON_INSULT;
 					break;
 				}
 
 				case RBM_MOAN:
 				{
-					act = desc_moan[rand_int(4)];
+					act = desc_moan[randint0(4)];
 					sound_msg = MSG_MON_MOAN;
 					break;
 				}
@@ -562,7 +562,7 @@ bool make_attack_normal(player_type *p_ptr, int m_idx)
 					for (k = 0; k < 10; k++)
 					{
 						/* Pick an item */
-						i = rand_int(INVEN_PACK);
+						i = randint0(INVEN_PACK);
 
 						/* Obtain the item */
 						o_ptr = &p_ptr->inventory[i];
@@ -616,14 +616,14 @@ bool make_attack_normal(player_type *p_ptr, int m_idx)
 
 					/* Saving throw (unless paralyzed) based on dex and level */
 					if (!p_ptr->paralyzed &&
-					    (rand_int(100) < (adj_dex_safe[p_ptr->stat_ind[A_DEX]] +
+					    (randint0(100) < (adj_dex_safe[p_ptr->stat_ind[A_DEX]] +
 					                      p_ptr->lev)))
 					{
 						/* Saving throw message */
 						msg_print(p_ptr, "You quickly protect your money pouch!");
 
 						/* Occasional blink anyway */
-						if (rand_int(3)) blinked = 2;
+						if (randint0(3)) blinked = 2;
 					}
 
 					/* Eat gold */
@@ -669,7 +669,7 @@ bool make_attack_normal(player_type *p_ptr, int m_idx)
 
 					/* Saving throw (unless paralyzed) based on dex and level */
 					if (!p_ptr->paralyzed &&
-					    (rand_int(100) < (adj_dex_safe[p_ptr->stat_ind[A_DEX]] +
+					    (randint0(100) < (adj_dex_safe[p_ptr->stat_ind[A_DEX]] +
 					                      p_ptr->lev)))
 					{
 						/* Saving throw message */
@@ -693,7 +693,7 @@ bool make_attack_normal(player_type *p_ptr, int m_idx)
 						object_type object_type_body;					
 					
 						/* Pick an item */
-						i = rand_int(INVEN_PACK);
+						i = randint0(INVEN_PACK);
 
 						/* Obtain the item */
 						o_ptr = &p_ptr->inventory[i];
@@ -759,7 +759,7 @@ bool make_attack_normal(player_type *p_ptr, int m_idx)
 					for (k = 0; k < 10; k++)
 					{
 						/* Pick an item from the pack */
-						i = rand_int(INVEN_PACK);
+						i = randint0(INVEN_PACK);
 
 						/* Get the item */
 						o_ptr = &p_ptr->inventory[i];
@@ -940,7 +940,7 @@ bool make_attack_normal(player_type *p_ptr, int m_idx)
 						msg_print(p_ptr, "You stand your ground!");
 						obvious = TRUE;
 					}
-					else if (rand_int(100) < p_ptr->skill_sav)
+					else if (randint0(100) < p_ptr->skill_sav)
 					{
 						msg_print(p_ptr, "You stand your ground!");
 						obvious = TRUE;
@@ -970,7 +970,7 @@ bool make_attack_normal(player_type *p_ptr, int m_idx)
 						msg_print(p_ptr, "You are unaffected!");
 						obvious = TRUE;
 					}
-					else if (rand_int(100) < p_ptr->skill_sav)
+					else if (randint0(100) < p_ptr->skill_sav)
 					{
 						msg_print(p_ptr, "You resist the effects!");
 						obvious = TRUE;
@@ -1099,7 +1099,7 @@ bool make_attack_normal(player_type *p_ptr, int m_idx)
 					/* Take damage */
 					take_hit(p_ptr, damage, ddesc);
 
-					if (p_ptr->hold_life && (rand_int(100) < 95))
+					if (p_ptr->hold_life && (randint0(100) < 95))
 					{
 						msg_print(p_ptr, "You keep hold of your life force!");
 					}
@@ -1128,7 +1128,7 @@ bool make_attack_normal(player_type *p_ptr, int m_idx)
 					/* Take damage */
 					take_hit(p_ptr, damage, ddesc);
 
-					if (p_ptr->hold_life && (rand_int(100) < 90))
+					if (p_ptr->hold_life && (randint0(100) < 90))
 					{
 						msg_print(p_ptr, "You keep hold of your life force!");
 					}
@@ -1157,7 +1157,7 @@ bool make_attack_normal(player_type *p_ptr, int m_idx)
 					/* Take damage */
 					take_hit(p_ptr, damage, ddesc);
 
-					if (p_ptr->hold_life && (rand_int(100) < 75))
+					if (p_ptr->hold_life && (randint0(100) < 75))
 					{
 						msg_print(p_ptr, "You keep hold of your life force!");
 					}
@@ -1186,7 +1186,7 @@ bool make_attack_normal(player_type *p_ptr, int m_idx)
 					/* Take damage */
 					take_hit(p_ptr, damage, ddesc);
 
-					if (p_ptr->hold_life && (rand_int(100) < 50))
+					if (p_ptr->hold_life && (randint0(100) < 50))
 					{
 						msg_print(p_ptr, "You keep hold of your life force!");
 					}
@@ -1228,7 +1228,7 @@ bool make_attack_normal(player_type *p_ptr, int m_idx)
 			if (do_cut && do_stun)
 			{
 				/* Cancel cut */
-				if (rand_int(100) < 50)
+				if (randint0(100) < 50)
 				{
 					do_cut = 0;
 				}

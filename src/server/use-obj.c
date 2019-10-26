@@ -20,7 +20,7 @@ static bool eat_food(player_type *p_ptr, object_type *o_ptr, bool *ident)
 		{
 			if (!(p_ptr->resist_pois || p_ptr->oppose_pois))
 			{
-				if (set_poisoned(p_ptr, p_ptr->poisoned + rand_int(10) + 10))
+				if (set_poisoned(p_ptr, p_ptr->poisoned + randint0(10) + 10))
 				{
 					*ident = TRUE;
 				}
@@ -32,7 +32,7 @@ static bool eat_food(player_type *p_ptr, object_type *o_ptr, bool *ident)
 		{
 			if (!p_ptr->resist_blind)
 			{
-				if (set_blind(p_ptr, p_ptr->blind + rand_int(200) + 200))
+				if (set_blind(p_ptr, p_ptr->blind + randint0(200) + 200))
 				{
 					*ident = TRUE;
 				}
@@ -44,7 +44,7 @@ static bool eat_food(player_type *p_ptr, object_type *o_ptr, bool *ident)
 		{
 			if (!p_ptr->resist_fear)
 			{
-				if (set_afraid(p_ptr, p_ptr->afraid + rand_int(10) + 10))
+				if (set_afraid(p_ptr, p_ptr->afraid + randint0(10) + 10))
 				{
 					*ident = TRUE;
 				}
@@ -56,7 +56,7 @@ static bool eat_food(player_type *p_ptr, object_type *o_ptr, bool *ident)
 		{
 			if (!p_ptr->resist_conf)
 			{
-				if (set_confused(p_ptr, p_ptr->confused + rand_int(10) + 10))
+				if (set_confused(p_ptr, p_ptr->confused + randint0(10) + 10))
 				{
 					*ident = TRUE;
 				}
@@ -68,7 +68,7 @@ static bool eat_food(player_type *p_ptr, object_type *o_ptr, bool *ident)
 		{
 			if (!p_ptr->resist_chaos)
 			{
-				if (set_image(p_ptr, p_ptr->image + rand_int(250) + 250))
+				if (set_image(p_ptr, p_ptr->image + randint0(250) + 250))
 				{
 					*ident = TRUE;
 				}
@@ -80,7 +80,7 @@ static bool eat_food(player_type *p_ptr, object_type *o_ptr, bool *ident)
 		{
 			if (!p_ptr->free_act)
 			{
-				if (set_paralyzed(p_ptr, p_ptr->paralyzed + rand_int(10) + 10))
+				if (set_paralyzed(p_ptr, p_ptr->paralyzed + randint0(10) + 10))
 				{
 					*ident = TRUE;
 				}
@@ -273,7 +273,7 @@ static bool quaff_potion(player_type *p_ptr, object_type *o_ptr, bool *ident)
 		{
 			if (!(p_ptr->resist_pois || p_ptr->oppose_pois))
 			{
-				if (set_poisoned(p_ptr, p_ptr->poisoned + rand_int(15) + 10))
+				if (set_poisoned(p_ptr, p_ptr->poisoned + randint0(15) + 10))
 				{
 					*ident = TRUE;
 				}
@@ -285,7 +285,7 @@ static bool quaff_potion(player_type *p_ptr, object_type *o_ptr, bool *ident)
 		{
 			if (!p_ptr->resist_blind)
 			{
-				if (set_blind(p_ptr, p_ptr->blind + rand_int(100) + 100))
+				if (set_blind(p_ptr, p_ptr->blind + randint0(100) + 100))
 				{
 					*ident = TRUE;
 				}
@@ -297,7 +297,7 @@ static bool quaff_potion(player_type *p_ptr, object_type *o_ptr, bool *ident)
 		{
 			if (!p_ptr->resist_conf)
 			{
-				if (set_confused(p_ptr, p_ptr->confused + rand_int(20) + 15))
+				if (set_confused(p_ptr, p_ptr->confused + randint0(20) + 15))
 				{
 					*ident = TRUE;
 				}
@@ -309,7 +309,7 @@ static bool quaff_potion(player_type *p_ptr, object_type *o_ptr, bool *ident)
 		{
 			if (!p_ptr->free_act)
 			{
-				if (set_paralyzed(p_ptr, p_ptr->paralyzed + rand_int(4) + 4))
+				if (set_paralyzed(p_ptr, p_ptr->paralyzed + randint0(4) + 4))
 				{
 					*ident = TRUE;
 				}
@@ -1362,7 +1362,7 @@ static bool aim_wand(player_type *p_ptr, object_type *o_ptr, bool *ident)
 	chance = chance - ((lev > 50) ? 50 : lev);
 
 	/* Give everyone a (slight) chance */
-	if ((chance < USE_DEVICE) && (rand_int(USE_DEVICE - chance + 1) == 0))
+	if ((chance < USE_DEVICE) && (randint0(USE_DEVICE - chance + 1) == 0))
 	{
 		chance = USE_DEVICE;
 	}
@@ -1405,7 +1405,7 @@ static bool aim_wand(player_type *p_ptr, object_type *o_ptr, bool *ident)
 	sval = o_ptr->sval;
 
 	/* XXX Hack -- Wand of wonder can do anything before it */
-	if (sval == SV_WAND_WONDER) sval = rand_int(SV_WAND_WONDER);
+	if (sval == SV_WAND_WONDER) sval = randint0(SV_WAND_WONDER);
 
 	/* Analyze the wand */
 	switch (sval)
@@ -1687,7 +1687,7 @@ static bool zap_rod(player_type *p_ptr, object_type *o_ptr, bool *ident)
 	chance = chance - ((lev > 50) ? 50 : lev);
 
 	/* Give everyone a (slight) chance */
-	if ((chance < USE_DEVICE) && (rand_int(USE_DEVICE - chance + 1) == 0))
+	if ((chance < USE_DEVICE) && (randint0(USE_DEVICE - chance + 1) == 0))
 	{
 		chance = USE_DEVICE;
 	}
@@ -2405,7 +2405,7 @@ static bool activate_object(player_type *p_ptr, object_type *o_ptr, bool *ident)
 				(void)set_oppose_cold(p_ptr, p_ptr->oppose_cold + randint(40) + 40);
 				(void)set_oppose_pois(p_ptr, p_ptr->oppose_pois + randint(40) + 40);
 
-				o_ptr->timeout = rand_int(50) + 150;
+				o_ptr->timeout = randint0(50) + 150;
 				break;
 			}
 		}
@@ -2431,7 +2431,7 @@ static bool activate_object(player_type *p_ptr, object_type *o_ptr, bool *ident)
 				sound(p_ptr, MSG_BR_ELEC);
 				msg_print(p_ptr, "You breathe lightning.");
 				fire_ball(p_ptr, GF_ELEC, dir, 100, 2);
-				o_ptr->timeout = rand_int(450) + 450;
+				o_ptr->timeout = randint0(450) + 450;
 				break;
 			}
 
@@ -2440,7 +2440,7 @@ static bool activate_object(player_type *p_ptr, object_type *o_ptr, bool *ident)
 				sound(p_ptr, MSG_BR_FROST);
 				msg_print(p_ptr, "You breathe frost.");
 				fire_ball(p_ptr, GF_COLD, dir, 110, 2);
-				o_ptr->timeout = rand_int(450) + 450;
+				o_ptr->timeout = randint0(450) + 450;
 				break;
 			}
 
@@ -2449,7 +2449,7 @@ static bool activate_object(player_type *p_ptr, object_type *o_ptr, bool *ident)
 				sound(p_ptr, MSG_BR_ACID);
 				msg_print(p_ptr, "You breathe acid.");
 				fire_ball(p_ptr, GF_ACID, dir, 130, 2);
-				o_ptr->timeout = rand_int(450) + 450;
+				o_ptr->timeout = randint0(450) + 450;
 				break;
 			}
 
@@ -2458,7 +2458,7 @@ static bool activate_object(player_type *p_ptr, object_type *o_ptr, bool *ident)
 				sound(p_ptr, MSG_BR_GAS);
 				msg_print(p_ptr, "You breathe poison gas.");
 				fire_ball(p_ptr, GF_POIS, dir, 150, 2);
-				o_ptr->timeout = rand_int(450) + 450;
+				o_ptr->timeout = randint0(450) + 450;
 				break;
 			}
 
@@ -2467,13 +2467,13 @@ static bool activate_object(player_type *p_ptr, object_type *o_ptr, bool *ident)
 				sound(p_ptr, MSG_BR_FIRE);
 				msg_print(p_ptr, "You breathe fire.");
 				fire_ball(p_ptr, GF_FIRE, dir, 200, 2);
-				o_ptr->timeout = rand_int(450) + 450;
+				o_ptr->timeout = randint0(450) + 450;
 				break;
 			}
 
 			case SV_DRAGON_MULTIHUED:
 			{
-				chance = rand_int(5);
+				chance = randint0(5);
 				sound(p_ptr, ((chance == 1) ? MSG_BR_ELEC :
 				            ((chance == 2) ? MSG_BR_FROST :
 				             ((chance == 3) ? MSG_BR_ACID :
@@ -2488,7 +2488,7 @@ static bool activate_object(player_type *p_ptr, object_type *o_ptr, bool *ident)
 				            ((chance == 3) ? GF_ACID :
 				             ((chance == 4) ? GF_POIS : GF_FIRE)))),
 				          dir, 250, 2);
-				o_ptr->timeout = rand_int(225) + 225;
+				o_ptr->timeout = randint0(225) + 225;
 				break;
 			}
 
@@ -2497,7 +2497,7 @@ static bool activate_object(player_type *p_ptr, object_type *o_ptr, bool *ident)
 				sound(p_ptr, MSG_BR_CONF);
 				msg_print(p_ptr, "You breathe confusion.");
 				fire_ball(p_ptr, GF_CONFUSION, dir, 120, 2);
-				o_ptr->timeout = rand_int(450) + 450;
+				o_ptr->timeout = randint0(450) + 450;
 				break;
 			}
 
@@ -2506,37 +2506,37 @@ static bool activate_object(player_type *p_ptr, object_type *o_ptr, bool *ident)
 				sound(p_ptr, MSG_BR_SOUND);
 				msg_print(p_ptr, "You breathe sound.");
 				fire_ball(p_ptr, GF_SOUND, dir, 130, 2);
-				o_ptr->timeout = rand_int(450) + 450;
+				o_ptr->timeout = randint0(450) + 450;
 				break;
 			}
 
 			case SV_DRAGON_CHAOS:
 			{
-				chance = rand_int(2);
+				chance = randint0(2);
 				sound(p_ptr, ((chance == 1 ? MSG_BR_CHAOS : MSG_BR_DISENCHANT)));
 				msg_format(p_ptr, "You breathe %s.",
 				           ((chance == 1 ? "chaos" : "disenchantment")));
 				fire_ball(p_ptr, (chance == 1 ? GF_CHAOS : GF_DISENCHANT),
 				          dir, 220, 2);
-				o_ptr->timeout = rand_int(300) + 300;
+				o_ptr->timeout = randint0(300) + 300;
 				break;
 			}
 
 			case SV_DRAGON_LAW:
 			{
-				chance = rand_int(2);
+				chance = randint0(2);
 				sound(p_ptr, ((chance == 1 ? MSG_BR_SOUND : MSG_BR_SHARDS)));
 				msg_format(p_ptr, "You breathe %s.",
 				           ((chance == 1 ? "sound" : "shards")));
 				fire_ball(p_ptr, (chance == 1 ? GF_SOUND : GF_SHARDS),
 				          dir, 230, 2);
-				o_ptr->timeout = rand_int(300) + 300;
+				o_ptr->timeout = randint0(300) + 300;
 				break;
 			}
 
 			case SV_DRAGON_BALANCE:
 			{
-				chance = rand_int(4);
+				chance = randint0(4);
 				msg_format(p_ptr, "You breathe %s.",
 				           ((chance == 1) ? "chaos" :
 				            ((chance == 2) ? "disenchantment" :
@@ -2545,18 +2545,18 @@ static bool activate_object(player_type *p_ptr, object_type *o_ptr, bool *ident)
 				           ((chance == 2) ? GF_DISENCHANT :
 				            ((chance == 3) ? GF_SOUND : GF_SHARDS))),
 				          dir, 250, 2);
-				o_ptr->timeout = rand_int(300) + 300;
+				o_ptr->timeout = randint0(300) + 300;
 				break;
 			}
 
 			case SV_DRAGON_SHINING:
 			{
-				chance = rand_int(2);
+				chance = randint0(2);
 				sound(p_ptr, ((chance == 0 ? MSG_BR_LIGHT : MSG_BR_DARK)));
 				msg_format(p_ptr, "You breathe %s.",
 				           ((chance == 0 ? "light" : "darkness")));
 				fire_ball(p_ptr, (chance == 0 ? GF_LITE : GF_DARK), dir, 200, 2);
-				o_ptr->timeout = rand_int(300) + 300;
+				o_ptr->timeout = randint0(300) + 300;
 				break;
 			}
 
@@ -2565,7 +2565,7 @@ static bool activate_object(player_type *p_ptr, object_type *o_ptr, bool *ident)
 				sound(p_ptr, MSG_BR_ELEMENTS);
 				msg_print(p_ptr, "You breathe the elements.");
 				fire_ball(p_ptr, GF_MISSILE, dir, 300, 2);
-				o_ptr->timeout = rand_int(300) + 300;
+				o_ptr->timeout = randint0(300) + 300;
 				break;
 			}
 		}
@@ -2579,7 +2579,7 @@ static bool activate_object(player_type *p_ptr, object_type *o_ptr, bool *ident)
 	{
 		msg_print(p_ptr, "Your amulet glows a deep blue...");
 		sleep_monsters(p_ptr);
-		o_ptr->timeout = rand_int(100) + 100;
+		o_ptr->timeout = randint0(100) + 100;
 		
 		/* Update equipment window */
 		p_ptr->window |= PW_EQUIP;
@@ -2601,7 +2601,7 @@ static bool activate_object(player_type *p_ptr, object_type *o_ptr, bool *ident)
 			{
 				fire_ball(p_ptr, GF_ACID, dir, 70, 2);
 				set_oppose_acid(p_ptr, p_ptr->oppose_acid + randint(20) + 20);
-				o_ptr->timeout = rand_int(50) + 50;
+				o_ptr->timeout = randint0(50) + 50;
 				break;
 			}
 
@@ -2609,7 +2609,7 @@ static bool activate_object(player_type *p_ptr, object_type *o_ptr, bool *ident)
 			{
 				fire_ball(p_ptr, GF_FIRE, dir, 80, 2);
 				set_oppose_fire(p_ptr, p_ptr->oppose_fire + randint(20) + 20);
-				o_ptr->timeout = rand_int(50) + 50;
+				o_ptr->timeout = randint0(50) + 50;
 				break;
 			}
 
@@ -2617,7 +2617,7 @@ static bool activate_object(player_type *p_ptr, object_type *o_ptr, bool *ident)
 			{
 				fire_ball(p_ptr, GF_COLD, dir, 75, 2);
 				set_oppose_cold(p_ptr, p_ptr->oppose_cold + randint(20) + 20);
-				o_ptr->timeout = rand_int(50) + 50;
+				o_ptr->timeout = randint0(50) + 50;
 				break;
 			}
 
@@ -2625,7 +2625,7 @@ static bool activate_object(player_type *p_ptr, object_type *o_ptr, bool *ident)
 			{
 				fire_ball(p_ptr, GF_ELEC, dir, 85, 2);
 				set_oppose_elec(p_ptr, p_ptr->oppose_elec + randint(20) + 20);
-				o_ptr->timeout = rand_int(50) + 50;
+				o_ptr->timeout = randint0(50) + 50;
 				break;
 			}
 		}

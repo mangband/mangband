@@ -48,10 +48,10 @@ typedef struct random {
 /*
  * Generates a random long integer X where A<=X<=B
  * The integer X falls along a uniform distribution.
- * Note: rand_range(0,N-1) == rand_int(N)
+ * Note: rand_range(0,N-1) == randint0(N)
  */
 #define rand_range(A,B) \
-	((A) + (rand_int(1+(B)-(A))))
+	((A) + (randint0(1+(B)-(A))))
 
 /*
  * Generate a random long integer X where A-D<=X<=A+D
@@ -59,7 +59,7 @@ typedef struct random {
  * Note: rand_spread(A,D) == rand_range(A-D,A+D)
  */
 #define rand_spread(A,D) \
-	((A) + (rand_int(1+(D)+(D))) - (D))
+	((A) + (randint0(1+(D)+(D))) - (D))
 
 
 /*
@@ -67,7 +67,7 @@ typedef struct random {
  * Also, "correctly" handle the case of M<=1
  */
 #define randint1(M) \
-	(rand_int(M) + 1)
+	(randint0(M) + 1)
 
 
 /**
@@ -88,7 +88,7 @@ typedef struct random {
  * Evaluate to TRUE "P" percent of the time
  */
 #define magik(P) \
-	(rand_int(100) < (P))
+	(randint0(100) < (P))
 
 
 

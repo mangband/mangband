@@ -1188,7 +1188,7 @@ void set_recall(player_type *p_ptr, object_type * o_ptr)
 		}
 	
 		p_ptr->recall_depth = recall_depth;
-		p_ptr->word_recall = (s16b)rand_int(20) + 15;
+		p_ptr->word_recall = (s16b)randint0(20) + 15;
 		msg_print(p_ptr, "The air about you becomes charged...");
 		msg_format_complex_near(p_ptr, p_ptr, MSG_PY_MISC, "The air about %s becomes charged...", p_ptr->name);
 	}
@@ -2110,7 +2110,7 @@ void stair_creation(player_type *p_ptr)
 	{
 		c_ptr->feat = FEAT_LESS;
 	}
-	else if (rand_int(100) < 50)
+	else if (randint0(100) < 50)
 	{
 		c_ptr->feat = FEAT_MORE;
 	}
@@ -2199,7 +2199,7 @@ bool curse_armor(player_type *p_ptr)
 	object_desc(p_ptr, o_name, sizeof(o_name), o_ptr, FALSE, 3);
 
 	/* Attempt a saving throw for artifacts */
-	if (artifact_p(o_ptr) && (rand_int(100) < 50))
+	if (artifact_p(o_ptr) && (randint0(100) < 50))
 	{
 		/* Cool */
 		msg_format(p_ptr, "A %s tries to %s, but your %s resists the effects!",
@@ -2270,7 +2270,7 @@ bool curse_weapon(player_type *p_ptr)
 	object_desc(p_ptr, o_name, sizeof(o_name), o_ptr, FALSE, 3);
 
 	/* Attempt a saving throw */
-	if (artifact_p(o_ptr) && (rand_int(100) < 50))
+	if (artifact_p(o_ptr) && (randint0(100) < 50))
 	{
 		/* Cool */
 		msg_format(p_ptr, "A %s tries to %s, but your %s resists the effects!",
@@ -2367,7 +2367,7 @@ bool brand_object(player_type *p_ptr, object_type *o_ptr, byte brand_type)
 		p_ptr->notice |= (PN_COMBINE | PN_REORDER);
 
 		/* Enchant */
-		enchant(p_ptr, o_ptr, rand_int(3) + 4, ENCH_TOHIT | ENCH_TODAM);
+		enchant(p_ptr, o_ptr, randint0(3) + 4, ENCH_TOHIT | ENCH_TODAM);
 	}
 	else
 	{
@@ -2433,7 +2433,7 @@ void brand_ammo(player_type *p_ptr, int item, bool discount)
 			return;
 	}
 
-	r = rand_int(100);
+	r = randint0(100);
 
 	/* Select the brand */
 	if (r < 33)
@@ -2469,7 +2469,7 @@ void brand_weapon(player_type *p_ptr, bool discount)
     o_ptr = &p_ptr->inventory[INVEN_WIELD];
     
     /* Select a brand */
-	 if (rand_int(100) < 25)
+	 if (randint0(100) < 25)
 		brand_type = EGO_BRAND_FIRE;
 	 else
 		brand_type = EGO_BRAND_COLD;
@@ -2541,7 +2541,7 @@ bool enchant(player_type *p_ptr, object_type *o_ptr, int n, int eflag)
 	for (i=0; i<n; i++)
 	{
 		/* Hack -- Roll for pile resistance */
-		if (rand_int(prob) >= 100) continue;
+		if (randint0(prob) >= 100) continue;
 
 		/* Enchant to hit */
 		if (eflag & ENCH_TOHIT)
@@ -2550,7 +2550,7 @@ bool enchant(player_type *p_ptr, object_type *o_ptr, int n, int eflag)
 			else if (o_ptr->to_h > 15) chance = 1000;
 			else chance = enchant_table[o_ptr->to_h];
 
-			if ((randint(1000) > chance) && (!a || (rand_int(100) < 50)))
+			if ((randint(1000) > chance) && (!a || (randint0(100) < 50)))
 			{
 				o_ptr->to_h++;
 				res = TRUE;
@@ -2558,7 +2558,7 @@ bool enchant(player_type *p_ptr, object_type *o_ptr, int n, int eflag)
 				/* only when you get it above -1 -CFT */
 				if (cursed_p(o_ptr) &&
 				    (!(f3 & TR3_PERMA_CURSE)) &&
-				    (o_ptr->to_h >= 0) && (rand_int(100) < 25))
+				    (o_ptr->to_h >= 0) && (randint0(100) < 25))
 				{
 					msg_print(p_ptr, "The curse is broken!");
 					o_ptr->ident &= ~ID_CURSED;
@@ -2575,7 +2575,7 @@ bool enchant(player_type *p_ptr, object_type *o_ptr, int n, int eflag)
 			else if (o_ptr->to_d > 15) chance = 1000;
 			else chance = enchant_table[o_ptr->to_d];
 
-			if ((randint(1000) > chance) && (!a || (rand_int(100) < 50)))
+			if ((randint(1000) > chance) && (!a || (randint0(100) < 50)))
 			{
 				o_ptr->to_d++;
 				res = TRUE;
@@ -2583,7 +2583,7 @@ bool enchant(player_type *p_ptr, object_type *o_ptr, int n, int eflag)
 				/* only when you get it above -1 -CFT */
 				if (cursed_p(o_ptr) &&
 				    (!(f3 & TR3_PERMA_CURSE)) &&
-				    (o_ptr->to_d >= 0) && (rand_int(100) < 25))
+				    (o_ptr->to_d >= 0) && (randint0(100) < 25))
 				{
 					msg_print(p_ptr, "The curse is broken!");
 					o_ptr->ident &= ~ID_CURSED;
@@ -2600,7 +2600,7 @@ bool enchant(player_type *p_ptr, object_type *o_ptr, int n, int eflag)
 			else if (o_ptr->to_a > 15) chance = 1000;
 			else chance = enchant_table[o_ptr->to_a];
 
-			if ((randint(1000) > chance) && (!a || (rand_int(100) < 50)))
+			if ((randint(1000) > chance) && (!a || (randint0(100) < 50)))
 			{
 				o_ptr->to_a++;
 				res = TRUE;
@@ -2608,7 +2608,7 @@ bool enchant(player_type *p_ptr, object_type *o_ptr, int n, int eflag)
 				/* only when you get it above -1 -CFT */
 				if (cursed_p(o_ptr) &&
 				    (!(f3 & TR3_PERMA_CURSE)) &&
-				    (o_ptr->to_a >= 0) && (rand_int(100) < 25))
+				    (o_ptr->to_a >= 0) && (randint0(100) < 25))
 				{
 					msg_print(p_ptr, "The curse is broken!");
 					o_ptr->ident &= ~ID_CURSED;
@@ -2698,8 +2698,8 @@ bool create_artifact_aux(player_type *p_ptr, int item)
 	o_ptr->name1 = ART_RANDART;
 
 	/* Piece together a 32-bit random seed */
-	o_ptr->name3 = rand_int(0xFFFF) << 16;
-	o_ptr->name3 += rand_int(0xFFFF);
+	o_ptr->name3 = randint0(0xFFFF) << 16;
+	o_ptr->name3 += randint0(0xFFFF);
 
 	/* Check the tval is allowed */
 	if (randart_make(o_ptr) == NULL)
@@ -3710,7 +3710,7 @@ void destroy_area(int Depth, int y1, int x1, int r, bool full)
 				delete_object(Depth, y, x);
 
 				/* Wall (or floor) type */
-				t = rand_int(200);
+				t = randint0(200);
 
 				/* Granite */
 				if (t < 20)
@@ -3931,7 +3931,7 @@ void earthquake(int Depth, int cy, int cx, int r)
 			if (!dx && !dy) continue;
 
 			/* Skip most grids */
-			if (rand_int(100) < 85) continue;
+			if (randint0(100) < 85) continue;
 
 			/* Damage this grid */
 			map[16+yy-cy][16+xx-cx] = TRUE;
@@ -3970,7 +3970,7 @@ void earthquake(int Depth, int cy, int cx, int r)
 			if (map[16+y-cy][16+x-cx]) continue;
 
 			/* Count "safe" grids, apply the randomizer */
-			if ((++sn > 1) && (rand_int(sn) != 0)) continue;
+			if ((++sn > 1) && (randint0(sn) != 0)) continue;
 
 			/* Save the safe location */
 			sy = y; sx = x;
@@ -4097,7 +4097,7 @@ void earthquake(int Depth, int cy, int cx, int r)
 							if (map[16+y-cy][16+x-cx]) continue;
 
 							/* Count "safe" grids, apply the randomizer */
-							if ((++sn > 1) && (rand_int(sn) != 0)) continue;
+							if ((++sn > 1) && (randint0(sn) != 0)) continue;
 
 							/* Save the safe grid */
 							sy = y; sx = x;
@@ -4205,7 +4205,7 @@ void earthquake(int Depth, int cy, int cx, int r)
 				delete_object(Depth, yy, xx);
 
 				/* Wall (or floor) type */
-				t = (floor ? rand_int(100) : 200);
+				t = (floor ? randint0(100) : 200);
 
 				/* Granite */
 				if (t < 20)
@@ -4338,7 +4338,7 @@ static void cave_temp_room_lite(player_type *p_ptr)
 			if (r_ptr->flags2 & RF2_SMART) chance = 100;
 
 			/* Sometimes monsters wake up */
-			if (m_ptr->csleep && (rand_int(100) < chance))
+			if (m_ptr->csleep && (randint0(100) < chance))
 			{
 				/* Wake up! */
 				m_ptr->csleep = 0;
@@ -4707,7 +4707,7 @@ bool fire_beam(player_type *p_ptr, int typ, int dir, int dam)
  */
 bool fire_bolt_or_beam(player_type *p_ptr, int prob, int typ, int dir, int dam)
 {
-	if (rand_int(100) < prob)
+	if (randint0(100) < prob)
 	{
 		return (fire_beam(p_ptr, typ, dir, dam));
 	}
@@ -4855,7 +4855,7 @@ bool alter_reality(player_type *p_ptr, bool power)
 				if (p_ptr->party && p_ptr->party == q_ptr->party) continue;
 
 				/* Saving throw: perception (harder if hostile) */
-				if (rand_int(127) < q_ptr->skill_fos * (pvp_okay(p_ptr, q_ptr, 0) ? 6 : 4))
+				if (randint0(127) < q_ptr->skill_fos * (pvp_okay(p_ptr, q_ptr, 0) ? 6 : 4))
 				{
 					msg_format(p_ptr, "%s sustains reality.", (p_ptr->play_los[i] ? q_ptr->name : "Someone"));
 					msg_format(q_ptr, "You resist %s's attempt to alter reality.", (q_ptr->play_los[p_ptr->Ind] ? p_ptr->name : "someone") );
@@ -4957,7 +4957,7 @@ bool brand_bolts(player_type *p_ptr, bool discount)
 		if (cursed_p(o_ptr) || broken_p(o_ptr)) continue;
 
 		/* Randomize */
-		if (rand_int(100) < 75) continue;
+		if (randint0(100) < 75) continue;
 
 		/* Message */
 		msg_print(p_ptr, "Your bolts are covered in a fiery aura!");
@@ -4966,7 +4966,7 @@ bool brand_bolts(player_type *p_ptr, bool discount)
 		o_ptr->name2 = EGO_FLAME;
 
 		/* Enchant */
-		enchant(p_ptr, o_ptr, rand_int(3) + 4, ENCH_TOHIT | ENCH_TODAM);
+		enchant(p_ptr, o_ptr, randint0(3) + 4, ENCH_TOHIT | ENCH_TODAM);
 
 		/* Apply discount */
 		if (discount) apply_discount_hack(o_ptr);

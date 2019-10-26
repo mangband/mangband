@@ -30,7 +30,7 @@ static cptr comment_1[MAX_COMMENT_1] =
  */
 static void say_comment_1(player_type *p_ptr)
 {
-	msg_print(p_ptr, comment_1[rand_int(MAX_COMMENT_1)]);
+	msg_print(p_ptr, comment_1[randint0(MAX_COMMENT_1)]);
 }
 
 
@@ -76,7 +76,7 @@ static const char *comment_great[] =
 };
 
 /* Randomly select one of the entries in an array */
-#define ONE_OF(x) x[rand_int(N_ELEMENTS(x))]
+#define ONE_OF(x) x[randint0(N_ELEMENTS(x))]
 
 
 /*
@@ -256,7 +256,7 @@ static s32b price_item(player_type *p_ptr, object_type *o_ptr, int greed, bool f
 static int mass_roll(int num, int max)
 {
 	int i, t = 0;
-	for (i = 0; i < num; i++) t += rand_int(max);
+	for (i = 0; i < num; i++) t += randint0(max);
 	return (t);
 }
 
@@ -340,19 +340,19 @@ static void mass_produce(object_type *o_ptr)
 	{
 		discount = 0;
 	}
-	else if (rand_int(50) == 0)
+	else if (randint0(50) == 0)
 	{
 		discount = 25;
 	}
-	else if (rand_int(300) == 0)
+	else if (randint0(300) == 0)
 	{
 		discount = 50;
 	}
-	else if (rand_int(600) == 0)
+	else if (randint0(600) == 0)
 	{
 		discount = 75;
 	}
-	else if (rand_int(1000) == 0)
+	else if (randint0(1000) == 0)
 	{
 		discount = 90;
 	}
@@ -896,7 +896,7 @@ static void store_delete(int st)
 	object_type *o_ptr;
 
 	/* Pick a random slot */
-	what = rand_int(st_ptr->stock_num);
+	what = randint0(st_ptr->stock_num);
 
 	/* Get the object */
 	o_ptr = &st_ptr->stock[what];
@@ -905,10 +905,10 @@ static void store_delete(int st)
 	num = st_ptr->stock[what].number;
 
 	/* Hack -- sometimes, only destroy half the items */
-	if (rand_int(100) < 50) num = (num + 1) / 2;
+	if (randint0(100) < 50) num = (num + 1) / 2;
 
 	/* Hack -- sometimes, only destroy a single item */
-	if (rand_int(100) < 50) num = 1;
+	if (randint0(100) < 50) num = 1;
 
 	/* Hack -- preserve artifacts */
 	if (true_artifact_p(&st_ptr->stock[what]))
@@ -958,7 +958,7 @@ static void store_create(int st)
 		if (store_num == 6 && randint0(25))
 		{
 			/* Pick a level for object/magic */
-			level = 30 + rand_int(25);
+			level = 30 + randint0(25);
 			//level = 25;
 
 			/* Random item (usually of given level) */
@@ -972,7 +972,7 @@ static void store_create(int st)
 		else
 		{
 			/* Hack -- Pick an item to sell */
-			i = st_ptr->table[rand_int(st_ptr->table_num)];
+			i = st_ptr->table[randint0(st_ptr->table_num)];
 
 			/* Hack -- fake level for apply_magic() */
 			level = rand_range(1, STORE_OBJ_LEVEL);
@@ -1888,7 +1888,7 @@ void store_purchase(player_type *p_ptr, int item, int amt, cptr checksum)
 				if (st_ptr->stock_num == 0)
 				{
 					/* Shuffle */
-					if (rand_int(STORE_SHUFFLE) == 0)
+					if (randint0(STORE_SHUFFLE) == 0)
 					{
 						/* Message */
 						sprintf(buf, "The shopkeeper retires.");
@@ -2299,7 +2299,7 @@ void store_shuffle(int which)
 	/* Pick a new owner */
 	for (j = st_ptr->owner; j == st_ptr->owner; )
 	{
-		st_ptr->owner = (byte)rand_int(MAX_OWNERS);
+		st_ptr->owner = (byte)randint0(MAX_OWNERS);
 	}
 
 	/* Activate the new owner */
@@ -2317,7 +2317,7 @@ void store_shuffle(int which)
 	for (i = 0; i < st_ptr->stock_num; i++)
 	{
 		/* Chance of putting items up for sale */
-		if (rand_int(10) == 0)
+		if (randint0(10) == 0)
 		{
 			object_type *o_ptr;
 
@@ -2448,7 +2448,7 @@ void store_init(int which)
 
 
 	/* Pick an owner */
-	st_ptr->owner = (byte)rand_int(MAX_OWNERS);
+	st_ptr->owner = (byte)randint0(MAX_OWNERS);
 
 	/* Activate the new owner */
 	ot_ptr = &b_info[(store_num * z_info->b_max) + st_ptr->owner];

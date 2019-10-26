@@ -374,8 +374,8 @@ void wild_add_monster(int Depth)
 	/* find a legal, unoccupied space */
 	while (tries < 50)
 	{
-		monst_x = rand_int(MAX_WID);
-		monst_y = rand_int(MAX_HGT);
+		monst_x = randint0(MAX_WID);
+		monst_y = randint0(MAX_HGT);
 		
 		if (cave_naked_bold(Depth, monst_y, monst_x)) break;
 		tries++;
@@ -414,12 +414,12 @@ void reserve_building_plot(int Depth, int *x1, int *y1, int *x2, int *y2, int xl
 		{
 #ifdef DEVEL_TOWN_COMPATIBILITY
 			/* the upper left corner */
-			*x1 = rand_int(MAX_WID-xlen-3)+1;
-			*y1 = rand_int(MAX_HGT-ylen-3)+1;
+			*x1 = randint0(MAX_WID-xlen-3)+1;
+			*y1 = randint0(MAX_HGT-ylen-3)+1;
 #else
 			/* the upper left corner */
-			*x1 = rand_int(MAX_WID-xlen-4)+2;
-			*y1 = rand_int(MAX_HGT-ylen-4)+2;
+			*x1 = randint0(MAX_WID-xlen-4)+2;
+			*y1 = randint0(MAX_HGT-ylen-4)+2;
 #endif
 			/* the lower right corner */
 			*x2 = *x1 + xlen-1;
@@ -601,7 +601,7 @@ void wild_grow_crop(int Depth, int y, int x)
 	if (feat == FEAT_CROP)
 	{
 		/* choose type of garden it is */
-		type = rand_int(7);
+		type = randint0(7);
 	}
 	/* Specific crop type */
 	else if (feat >= FEAT_CROP_HEAD && feat <= FEAT_CROP_TAIL)
@@ -642,7 +642,7 @@ void wild_grow_crop(int Depth, int y, int x)
 
 		/* hack -- useful mushrooms are rare */
 		case WILD_CROP_MUSHROOM:
-			invcopy(&food, lookup_kind(TV_FOOD, rand_int(rand_int(20))));
+			invcopy(&food, lookup_kind(TV_FOOD, randint0(randint0(20))));
 			break;
 
 		default:
@@ -651,7 +651,7 @@ void wild_grow_crop(int Depth, int y, int x)
 	}
 	/* Hack -- only drop food the first time */
 	/* Hack -- or regenerate occasionally (1 in 16) */
-	if (!(w_ptr->flags & WILD_F_GENERATED) || (rand_int(16) < 1))
+	if (!(w_ptr->flags & WILD_F_GENERATED) || (randint0(16) < 1))
 	{
 		drop_near(&food, -1, Depth, y, x);
 	}
@@ -672,12 +672,12 @@ static void wild_add_garden(int Depth, int x, int y)
 	x1 = x2 = y1 = y2 = -1;
 
 	/* choose which type of garden it is */
-	type = rand_int(7);
+	type = randint0(7);
 
 	/* choose a 'good' location for the garden */
 
-	xlen = rand_int(rand_int(60)) + 15;
-	ylen = rand_int(rand_int(20)) + 7;
+	xlen = randint0(randint0(60)) + 15;
+	ylen = randint0(randint0(20)) + 7;
 
 	reserve_building_plot(Depth, &x1,&y1, &x2,&y2, xlen, ylen, -1, -1);
 
@@ -685,7 +685,7 @@ static void wild_add_garden(int Depth, int x, int y)
 	if (x1 < 0) return;
 
 	/* whether the crop rows are horizontal or vertical */
-	orientation = rand_int(2);
+	orientation = randint0(2);
 
 	/* initially fill with a layer of dirt */
 	for (y = y1; y <= y2; y++)
@@ -711,7 +711,7 @@ static void wild_add_garden(int Depth, int x, int y)
 				cave[Depth][y][x].feat = FEAT_CROP;
 
 				/* random chance of food */
-				if (rand_int(100) < 40)
+				if (randint0(100) < 40)
 				{
 					wild_grow_crop(Depth, y, x);
 				}
@@ -807,7 +807,7 @@ void wild_furnish_dwelling(int Depth, int x1, int y1, int x2, int y2, int type)
 	inhabited = at_home = taken_over = FALSE;
 
 	/* hack -- 75% of buildings are inhabited */
-	if (rand_int(100) < 75) inhabited = TRUE;
+	if (randint0(100) < 75) inhabited = TRUE;
 
 	switch (type)
 	{
@@ -817,7 +817,7 @@ void wild_furnish_dwelling(int Depth, int x1, int y1, int x2, int y2, int type)
 			if (w_ptr->radius > 1)
 			{
 				/* are we a farmer? */
-				if (rand_int(100) < 50) wild_add_garden(Depth, (x1+x2)/2,(y1+y2)/2);
+				if (randint0(100) < 50) wild_add_garden(Depth, (x1+x2)/2,(y1+y2)/2);
 			}
 			break;
 
@@ -826,7 +826,7 @@ void wild_furnish_dwelling(int Depth, int x1, int y1, int x2, int y2, int type)
 			if (w_ptr->radius > 1)
 			{
 				/* are we a farmer? */
-				if (rand_int(100) < 40) wild_add_garden(Depth, (x1+x2)/2,(y1+y2)/2);
+				if (randint0(100) < 40) wild_add_garden(Depth, (x1+x2)/2,(y1+y2)/2);
 			}
 			break;
 
@@ -834,29 +834,29 @@ void wild_furnish_dwelling(int Depth, int x1, int y1, int x2, int y2, int type)
 			if (inhabited)
 			{
 				/* is someone to be found at this house */
-				if (rand_int(100) < 80) at_home = TRUE;
+				if (randint0(100) < 80) at_home = TRUE;
 
 				/* is there any food inside */
-				if (rand_int(100) < 80) num_food = rand_int(rand_int(20));
+				if (randint0(100) < 80) num_food = randint0(randint0(20));
 
 				/* is there any cash inside */
-				if (rand_int(100) < 40) cash = rand_int(10);
+				if (randint0(100) < 40) cash = randint0(10);
 
 				/* are there objects to be found */
-				if (rand_int(100) < 50) num_objects = rand_int(rand_int(10));
+				if (randint0(100) < 50) num_objects = randint0(randint0(10));
 			}
 			else
 			{
-				if (rand_int(100) < 50) 
+				if (randint0(100) < 50) 
 				{
 					/* taken over! */
 					taken_over = TRUE;
-					if (rand_int(100) < 40) cash = rand_int(20);
-					if (rand_int(100) < 50) num_objects = rand_int(rand_int(10));
-					if (rand_int(100) < 33) num_food = rand_int(3);
-					num_bones = rand_int(20);
+					if (randint0(100) < 40) cash = randint0(20);
+					if (randint0(100) < 50) num_objects = randint0(randint0(10));
+					if (randint0(100) < 33) num_food = randint0(3);
+					num_bones = randint0(20);
 				}
-				num_bones = rand_int(rand_int(1));
+				num_bones = randint0(randint0(1));
 			}
 			break;
 	}
@@ -919,7 +919,7 @@ void wild_furnish_dwelling(int Depth, int x1, int y1, int x2, int y2, int type)
 
 		if (cave_clean_bold(Depth,y,x))
 		{
-			food_sval = SV_FOOD_MIN_FOOD+rand_int(12);
+			food_sval = SV_FOOD_MIN_FOOD+randint0(12);
 			/* hack -- currently no food svals between 25 and 32 */
 			if (food_sval > 25) food_sval += 6;
 			/* hack -- currently no sval 34 */
@@ -974,8 +974,8 @@ void wild_furnish_dwelling(int Depth, int x1, int y1, int x2, int y2, int type)
 		r_idx = get_mon_num(w_ptr->radius);
 
 		/* get the owners location */
-		x = rand_range(x1,x2)+rand_int(40)-20;
-		y = rand_range(y1,y2)+rand_int(16)-8;
+		x = rand_range(x1,x2)+randint0(40)-20;
+		y = rand_range(y1,y2)+randint0(16)-8;
 
 		/* place the owner */
 		place_monster_aux(Depth, y,x, r_idx, FALSE, FALSE);
@@ -1039,31 +1039,31 @@ static void wild_add_dwelling(int Depth, int x, int y)
 	/* Rand_value = seed_town + (Depth * 600) + (w_ptr->dwellings * 200);*/
 
 #ifdef DEVEL_TOWN_COMPATIBILITY
-	house_xlen = rand_int(10) + 3;
-	house_ylen = rand_int(5) + 3;
+	house_xlen = randint0(10) + 3;
+	house_ylen = randint0(5) + 3;
 	plot_xlen = house_xlen;
 	plot_ylen = house_ylen;
 #else
 	/* find the dimensions of the house */
 	/* chance of being a "large" house */
-	if (!rand_int(2))
+	if (!randint0(2))
 	{
-		house_xlen = rand_int(10) + rand_int(rand_int(10)) + 9+rand_bonus;
-		house_ylen = rand_int(5) + rand_int(rand_int(5)) + 6+rand_bonus;
+		house_xlen = randint0(10) + randint0(randint0(10)) + 9+rand_bonus;
+		house_ylen = randint0(5) + randint0(randint0(5)) + 6+rand_bonus;
 	}
 	/* chance of being a "small" house */
 /*
-	else if (!rand_int(2))
+	else if (!randint0(2))
 	{
-		house_xlen = rand_int(4) + 3+rand_bonus;
-		house_ylen = rand_int(2) + 3+rand_bonus;
+		house_xlen = randint0(4) + 3+rand_bonus;
+		house_ylen = randint0(2) + 3+rand_bonus;
 	}
 */
 	/* a "normal" house */
 	else
 	{
-		house_xlen = rand_int(10) + 3+rand_bonus;
-		house_ylen = rand_int(5) + 3+rand_bonus;
+		house_xlen = randint0(10) + 3+rand_bonus;
+		house_ylen = randint0(5) + 3+rand_bonus;
 	}
 	area = (house_xlen-2) * (house_ylen-2);
 
@@ -1087,10 +1087,10 @@ static void wild_add_dwelling(int Depth, int x, int y)
 	}
 
 	/* Hack -- sometimes large buildings get moats */
-	if ((area >= 70) && (!rand_int(16))) has_moat = 1;
-	if ((area >= 80) && (!rand_int(6))) has_moat = 1;
-	if ((area >= 100) && (!rand_int(2))) has_moat = 1;
-	if ((area >= 130) && (rand_int(4) < 3)) has_moat = 1;
+	if ((area >= 70) && (!randint0(16))) has_moat = 1;
+	if ((area >= 80) && (!randint0(6))) has_moat = 1;
+	if ((area >= 100) && (!randint0(2))) has_moat = 1;
+	if ((area >= 130) && (randint0(4) < 3)) has_moat = 1;
 	if (has_moat) plot_xlen += 8;
 	if (has_moat) plot_ylen += 8;
 #endif
@@ -1109,8 +1109,8 @@ static void wild_add_dwelling(int Depth, int x, int y)
 	y = (h_y1 + h_y2) / 2;
 
 	/* determine what kind of building it is */
-	if (rand_int(100) < 60) type = WILD_LOG_CABIN;
-	else if (rand_int(100) < 8) type = WILD_PERM_HOME;
+	if (randint0(100) < 60) type = WILD_LOG_CABIN;
+	else if (randint0(100) < 8) type = WILD_PERM_HOME;
 	else type = WILD_ROCK_HOME;
 
 	/* hack -- add extra "for sale" homes near the town */
@@ -1119,24 +1119,24 @@ static void wild_add_dwelling(int Depth, int x, int y)
 		/* hack -- not many log cabins near town */
 		if (type == WILD_LOG_CABIN)
 		{
-			if (rand_int(100) < 80) type = WILD_ROCK_HOME;
+			if (randint0(100) < 80) type = WILD_ROCK_HOME;
 		}
 #ifdef DEVEL_TOWN_COMPATIBILITY
-		if (rand_int(100) < 40) type = WILD_TOWN_HOME;
+		if (randint0(100) < 40) type = WILD_TOWN_HOME;
 #else
-		if (rand_int(100) < 90) type = WILD_TOWN_HOME;
+		if (randint0(100) < 90) type = WILD_TOWN_HOME;
 #endif
 	}
 	if (w_ptr->radius == 2) 
 #ifdef DEVEL_TOWN_COMPATIBILITY
-		if (rand_int(100) < 10) type = WILD_TOWN_HOME;
+		if (randint0(100) < 10) type = WILD_TOWN_HOME;
 #else
-		if (rand_int(100) < 80) type = WILD_TOWN_HOME;
+		if (randint0(100) < 80) type = WILD_TOWN_HOME;
 #endif
 	/* hack -- sometimes large houses turn into arenas */
 	if (!has_moat && area >= 70 && num_houses < MAX_HOUSES)
 	{
-		if (rand_int(100) < 30) type = WILD_ARENA; 
+		if (randint0(100) < 30) type = WILD_ARENA; 
 	}
 
 	switch (type)
@@ -1145,7 +1145,7 @@ static void wild_add_dwelling(int Depth, int x, int y)
 			wall_feature = FEAT_LOGS;
 
 			/* doors are locked 1/3 of the time */
-			if (rand_int(100) < 33) door_feature = FEAT_DOOR_HEAD + rand_int(7);
+			if (randint0(100) < 33) door_feature = FEAT_DOOR_HEAD + randint0(7);
 			else door_feature = FEAT_DOOR_HEAD;
 
 			break;
@@ -1153,14 +1153,14 @@ static void wild_add_dwelling(int Depth, int x, int y)
 			wall_feature = FEAT_PERM_EXTRA;
 
 			/* doors are locked 90% of the time */
-			if (rand_int(100) < 90) door_feature = FEAT_DOOR_HEAD + rand_int(7);
+			if (randint0(100) < 90) door_feature = FEAT_DOOR_HEAD + randint0(7);
 			else door_feature = FEAT_DOOR_HEAD;
 			break;
 		case WILD_ROCK_HOME:
 			wall_feature = FEAT_WALL_EXTRA;
 
 			/* doors are locked 60% of the time */
-			if (rand_int(100) < 60) door_feature = FEAT_DOOR_HEAD + rand_int(7);
+			if (randint0(100) < 60) door_feature = FEAT_DOOR_HEAD + randint0(7);
 			else door_feature = FEAT_DOOR_HEAD;
 			break;
 		case WILD_ARENA:
@@ -1192,7 +1192,7 @@ static void wild_add_dwelling(int Depth, int x, int y)
 			// This is the dominant term for medium houses
 			price += area*area*33;
 			// This is the dominant term for small houses
-			price += area * (900 + rand_int(200)); 
+			price += area * (900 + randint0(200)); 
 #endif
 
 			/* Remember price */
@@ -1216,7 +1216,7 @@ static void wild_add_dwelling(int Depth, int x, int y)
 	do
 	{
 		/* Pick a door direction (S,N,E,W) */
-		tmp = rand_int(4);
+		tmp = randint0(4);
 	
 		/* Extract a "door location" */
 		switch (tmp)
@@ -1397,12 +1397,12 @@ int wild_clone_closed_loop_total(int cur_depth)
 		Rand_value = seed_town + cur_depth * 600;
 		/* HACK -- the second rand after the seed is used for the beginning of the clone
 		   directions (see below function).  This rand sets things up. */
-		   rand_int(100);
+		   randint0(100);
 
 		/* get a valid neighbor location */
 		do
 		{
-			neigh_idx = neighbor_index(cur_depth, (char)rand_int(4));
+			neigh_idx = neighbor_index(cur_depth, (char)randint0(4));
 		} while ((neigh_idx >= 0) || (neigh_idx <= -MAX_WILD));
 
 		/* move to this new location */
@@ -1468,19 +1468,19 @@ int determine_wilderness_type(int Depth)
 	"large" features from forming, but the resulting terrain is still rather
 	pleasing.
 	*/
-	if ((rand_int(100) <  101) && (w_ptr->type != WILD_CLONE)) w_ptr->type = WILD_CLONE;
-	else if (rand_int(100) < 3) w_ptr->type = WILD_WASTELAND;
-	else if (rand_int(100) < 5) w_ptr->type = WILD_DENSEFOREST;
-	else if (rand_int(100) < 40) w_ptr->type = WILD_FOREST;
-	else if (rand_int(100) < 10) w_ptr->type = WILD_SWAMP;
-	else if (rand_int(100) < 15) w_ptr->type = WILD_LAKE;
+	if ((randint0(100) <  101) && (w_ptr->type != WILD_CLONE)) w_ptr->type = WILD_CLONE;
+	else if (randint0(100) < 3) w_ptr->type = WILD_WASTELAND;
+	else if (randint0(100) < 5) w_ptr->type = WILD_DENSEFOREST;
+	else if (randint0(100) < 40) w_ptr->type = WILD_FOREST;
+	else if (randint0(100) < 10) w_ptr->type = WILD_SWAMP;
+	else if (randint0(100) < 15) w_ptr->type = WILD_LAKE;
 	else w_ptr->type = WILD_GRASSLAND;
 
 
 #ifdef DEVEL_TOWN_COMPATIBILITY
 	/* hack -- grassland is likely next to the town */
 	if (closed_loop > -20)
-		if (rand_int(100) < 60) w_ptr->type = WILD_GRASSLAND;
+		if (randint0(100) < 60) w_ptr->type = WILD_GRASSLAND;
 #endif
 
 	/* if a "clone", copy the terrain type from a neighbor, and recurse if neccecary. */
@@ -1494,7 +1494,7 @@ int determine_wilderness_type(int Depth)
 		while ((neighbor_idx >= 0) || (neighbor_idx <= -MAX_WILD))
 		{
 			/* pick a random direction */
-			neighbor_idx = neighbor_index(Depth, (char)rand_int(4));
+			neighbor_idx = neighbor_index(Depth, (char)randint0(4));
 		}
 		
 		/* recursively figure out our terrain type */
@@ -1509,13 +1509,13 @@ int determine_wilderness_type(int Depth)
 					w_ptr->type = WILD_GRASSLAND; break;
 				/* dense forest is rarly next to town */
 				case WILD_DENSEFOREST : 
-					if (rand_int(100) < 80) w_ptr->type = WILD_GRASSLAND; break;
+					if (randint0(100) < 80) w_ptr->type = WILD_GRASSLAND; break;
 				/* people usually don't build towns next to a swamp */
 				case WILD_SWAMP : 
-					if (rand_int(100) < 50) w_ptr->type = WILD_GRASSLAND; break;
+					if (randint0(100) < 50) w_ptr->type = WILD_GRASSLAND; break;
 				/* forest is slightly less common near a town */
 				case WILD_FOREST : 
-					if (rand_int(100) < 30) w_ptr->type = WILD_GRASSLAND; break;
+					if (randint0(100) < 30) w_ptr->type = WILD_GRASSLAND; break;
 			}
 #endif
 	}
@@ -1555,24 +1555,24 @@ void init_terrain(terrain_type *t_ptr, int radius)
 		/* wasteland */
 		case WILD_WASTELAND:
 		{
-			t_ptr->grass = rand_int(100);
+			t_ptr->grass = randint0(100);
 			t_ptr->tree = 0;
 			t_ptr->water = 0;
 			t_ptr->dwelling = 0;
-			t_ptr->eviltree = rand_int(4);
-			t_ptr->hotspot = rand_int(15) + 4;
+			t_ptr->eviltree = randint0(4);
+			t_ptr->hotspot = randint0(15) + 4;
 			t_ptr->monst_lev = 20 + (radius / 2); break;
 			break;
 		}
 		/*  dense forest */
 		case WILD_DENSEFOREST:
 		{
-			t_ptr->grass = rand_int(100)+850;
-			t_ptr->tree = rand_int(150)+600;
-			t_ptr->eviltree = rand_int(10)+5;
-			t_ptr->water = rand_int(15);
+			t_ptr->grass = randint0(100)+850;
+			t_ptr->tree = randint0(150)+600;
+			t_ptr->eviltree = randint0(10)+5;
+			t_ptr->water = randint0(15);
 			t_ptr->dwelling = 8;
-			t_ptr->hotspot = rand_int(15) +4;
+			t_ptr->hotspot = randint0(15) +4;
 			t_ptr->monst_lev = 15 + (radius / 2);
 			/* you don't want to go into an evil forst at night */
 			if (IS_NIGHT) t_ptr->monst_lev += 10;
@@ -1581,24 +1581,24 @@ void init_terrain(terrain_type *t_ptr, int radius)
 		/*  normal forest */
 		case WILD_FOREST:
 		{
-			t_ptr->grass = rand_int(400)+500;
-			t_ptr->tree = rand_int(200)+100;
-			t_ptr->water = rand_int(20);
-			/*t_ptr->mud = rand_int(5);*/
+			t_ptr->grass = randint0(400)+500;
+			t_ptr->tree = randint0(200)+100;
+			t_ptr->water = randint0(20);
+			/*t_ptr->mud = randint0(5);*/
 			t_ptr->dwelling = 37;
-			t_ptr->hotspot = rand_int(rand_int(10));
+			t_ptr->hotspot = randint0(randint0(10));
 			t_ptr->monst_lev = 5 + (radius / 2);
 			break;
 		}
 		/* swamp */
 		case WILD_SWAMP:
 		{
-			t_ptr->grass = rand_int(900);
-			t_ptr->tree = rand_int(500);
-			t_ptr->water = rand_int(450) + 300;
-			/*t_ptr->mud = rand_int(100);*/
+			t_ptr->grass = randint0(900);
+			t_ptr->tree = randint0(500);
+			t_ptr->water = randint0(450) + 300;
+			/*t_ptr->mud = randint0(100);*/
 			t_ptr->dwelling = 8;
-			t_ptr->hotspot = rand_int(15) + 4;
+			t_ptr->hotspot = randint0(15) + 4;
 			t_ptr->monst_lev = 12 + (radius / 2);
 			/* you really don't want to go into swamps at night */
 			if (IS_NIGHT) t_ptr->monst_lev *= 2;
@@ -1607,11 +1607,11 @@ void init_terrain(terrain_type *t_ptr, int radius)
 		/* lake */
 		case WILD_LAKE:
 		{
-			t_ptr->grass = rand_int(900);
-			t_ptr->tree = rand_int(400);
-			t_ptr->water = rand_int(4) + 996;
+			t_ptr->grass = randint0(900);
+			t_ptr->tree = randint0(400);
+			t_ptr->water = randint0(4) + 996;
 			t_ptr->dwelling = 25;
-			t_ptr->hotspot = rand_int(15) + 4;
+			t_ptr->hotspot = randint0(15) + 4;
 			t_ptr->monst_lev = 1 + (radius / 2);
 			break;
 		}
@@ -1621,11 +1621,11 @@ void init_terrain(terrain_type *t_ptr, int radius)
 			/* paranoia */
 			t_ptr->type = WILD_GRASSLAND;
 			
-			t_ptr->grass = rand_int(200) + 850;
-			t_ptr->tree = rand_int(15);
-			t_ptr->water = rand_int(10);
+			t_ptr->grass = randint0(200) + 850;
+			t_ptr->tree = randint0(15);
+			t_ptr->water = randint0(10);
 			t_ptr->dwelling = 100;
-			t_ptr->hotspot = rand_int(rand_int(6));
+			t_ptr->hotspot = randint0(randint0(6));
 			t_ptr->monst_lev = 1 + (radius / 2);
 			break;
 		}
@@ -1643,11 +1643,11 @@ char terrain_spot(terrain_type * terrain)
 	
 	feat = FEAT_DIRT;
 
-	if (rand_int(1000) < terrain->grass) feat = FEAT_GRASS;
-	if (rand_int(1000) < terrain->tree) feat = FEAT_TREE;
-	if (rand_int(1000) < terrain->eviltree) feat = FEAT_EVIL_TREE;
-	if (rand_int(1000) < terrain->water) feat = FEAT_WATER;
-	if (rand_int(1000) < terrain->mud) feat = FEAT_MUD;
+	if (randint0(1000) < terrain->grass) feat = FEAT_GRASS;
+	if (randint0(1000) < terrain->tree) feat = FEAT_TREE;
+	if (randint0(1000) < terrain->eviltree) feat = FEAT_EVIL_TREE;
+	if (randint0(1000) < terrain->water) feat = FEAT_WATER;
+	if (randint0(1000) < terrain->mud) feat = FEAT_MUD;
 	return feat;
 }
 
@@ -1675,8 +1675,8 @@ static void wild_add_hotspot(int Depth)
 	while (magnitude < 3)
 	{
 		/* determine the rough "coordinates" of the feature */
-		x_cen = rand_int(MAX_WID-11) + 5;
-		y_cen = rand_int(MAX_HGT-11) + 5;		
+		x_cen = randint0(MAX_WID-11) + 5;
+		y_cen = randint0(MAX_HGT-11) + 5;		
 	
 		/* determine the maximum size of the feature, which is its distance to
 		its closest edge.
@@ -1689,14 +1689,14 @@ static void wild_add_hotspot(int Depth)
 		/* determine the magnitude of the feature.  the triple rand is done to
 		keep most features small, but have a rare large one. */
 
-		magnitude = rand_int(rand_int(rand_int(max_mag)));
+		magnitude = randint0(randint0(randint0(max_mag)));
 	}
 
 	/* hack -- take the square to avoid square roots */
 	magsqr = magnitude * magnitude;
 
 	/* the "roughness" of the hotspot */
-	chopiness = 2 * magsqr / (rand_int(5) + 1);
+	chopiness = 2 * magsqr / (randint0(5) + 1);
 
 	/* for each point in the square enclosing the circle 
 	   this algorithm could probably use some optimization
@@ -1705,61 +1705,61 @@ static void wild_add_hotspot(int Depth)
 	{
 		case WILD_GRASSLAND:
 			/* sometimes a pond */
-			if (rand_int(100) < 50) 
+			if (randint0(100) < 50) 
 			{
 				hot_terrain.water = 1000;
 			}
 			/* otherwise a glade */
 			else
 			{
-				hot_terrain.grass = rand_int(200) + 850;
-				hot_terrain.tree = rand_int(600) + 300;
+				hot_terrain.grass = randint0(200) + 850;
+				hot_terrain.tree = randint0(600) + 300;
 			}
 			break;
 		case WILD_FOREST:
 			/* sometimes a pond */
-			if (rand_int(100) < 60)
+			if (randint0(100) < 60)
 			{
 				hot_terrain.water = 1000;
 			}
 			/* otherwise a clearing */
 			else
 			{
-				hot_terrain.grass = rand_int(150)+900;
-				hot_terrain.tree = rand_int(6)-3;
+				hot_terrain.grass = randint0(150)+900;
+				hot_terrain.tree = randint0(6)-3;
 				
 				/* if a large clearing, maybe a house */
 				if (magnitude > 8)
 				{
-					if (rand_int(100) < 25) add_dwelling = TRUE;
+					if (randint0(100) < 25) add_dwelling = TRUE;
 				}
 			}
 			break;
 		case WILD_DENSEFOREST:
 			/* 80% chance of being nothing */
-			if (rand_int(100) < 80)
+			if (randint0(100) < 80)
 			{
 			}
 			/* otherwise 70% chance of being a pond */
-			else if (rand_int(100) < 70)
+			else if (randint0(100) < 70)
 			{
 				hot_terrain.water = 1000;
 			}
 			/* otherwise a rare clearing */
 			else
 			{
-				hot_terrain.tree = rand_int(30)+7;
+				hot_terrain.tree = randint0(30)+7;
 				
 				/* sometimes a dwelling. wood-elves? */
 				if (magnitude > 8)
 				{
-					if (rand_int(100) < 50) add_dwelling = TRUE;
+					if (randint0(100) < 50) add_dwelling = TRUE;
 				}
 			}
 			break;
 		case WILD_SWAMP:
 			/* sometimes a pond */
-			if (rand_int(100) < 40)
+			if (randint0(100) < 40)
 			{
 				hot_terrain.water = 1000;
 			}
@@ -1768,7 +1768,7 @@ static void wild_add_hotspot(int Depth)
 			{
 				hot_terrain.type = WILD_SWAMP;
 				init_terrain(&hot_terrain, w_ptr->radius);
-				hot_terrain.mud = rand_int(150) + 700;
+				hot_terrain.mud = randint0(150) + 700;
 			}
 			break;
 
@@ -1778,7 +1778,7 @@ static void wild_add_hotspot(int Depth)
 			init_terrain(&hot_terrain, w_ptr->radius);
 			break;
 
-		default: hot_terrain.eviltree = rand_int(800)+100;
+		default: hot_terrain.eviltree = randint0(800)+100;
 	}
 
 	/* create the hotspot */
@@ -1788,7 +1788,7 @@ static void wild_add_hotspot(int Depth)
 		{
 			/* a^2 + b^2 = c^2... the rand makes the edge less defined */
 			/* HACK -- multiply the y's by 4 to "squash" the shape */
-			if (((x - x_cen) * (x - x_cen)) + (((y - y_cen) * (y - y_cen))*4) < magsqr + rand_int(chopiness))
+			if (((x - x_cen) * (x - x_cen)) + (((y - y_cen) * (y - y_cen))*4) < magsqr + randint0(chopiness))
 			{
 				cave[Depth][y][x].feat = terrain_spot(&hot_terrain);
 			}
@@ -1819,7 +1819,7 @@ void wild_gen_bleedmap_aux(int *bleedmap, int span, char dir)
 
 			noise_mag = (dir%2) ? 70 : 25;
 			/* randomness proportional to span */
-			rand_noise = ((rand_int(noise_mag*2) - noise_mag) * span)/64;
+			rand_noise = ((randint0(noise_mag*2) - noise_mag) * span)/64;
 			bleedmag = ((above + below) / 2) + rand_noise;
 
 			/* bounds checking */
@@ -1852,9 +1852,9 @@ void wild_gen_bleedmap(int *bleedmap, char dir, int start, int end)
 	}
 
 	/* initialize the "top" and "bottom" */
-	if (start < 0) bleedmap[0] = rand_int(((dir%2) ? 70 : 25));
+	if (start < 0) bleedmap[0] = randint0(((dir%2) ? 70 : 25));
 	else bleedmap[0] = start;
-	if (end < 0) bleedmap[256] = rand_int(((dir%2) ? 70 : 25));
+	if (end < 0) bleedmap[256] = randint0(((dir%2) ? 70 : 25));
 	else
 	{
 		bound = (dir%2) ? MAX_HGT-3 : MAX_WID-3;
@@ -1866,12 +1866,12 @@ void wild_gen_bleedmap(int *bleedmap, char dir, int start, int end)
 	if ((!start) && (!end))
 	{
 		/* east or west */
-		if (dir%2) bleedmap[32] = rand_int(40) + 15;
+		if (dir%2) bleedmap[32] = randint0(40) + 15;
 		/* north or south */
 		else
 		{
-			bleedmap[64] = rand_int(20) + 8;
-			bleedmap[128] = rand_int(20) + 8;
+			bleedmap[64] = randint0(20) + 8;
+			bleedmap[128] = randint0(20) + 8;
 		}
 	}
 
@@ -1886,7 +1886,7 @@ void wild_gen_bleedmap(int *bleedmap, char dir, int start, int end)
 	/* middle */
 	for (c = 8; c < bound - 8; c++) 
 	{
-		if (bleedmap[c] < 8) bleedmap[c] = rand_int(3) + 8;
+		if (bleedmap[c] < 8) bleedmap[c] = randint0(3) + 8;
 	}
 	/* middle to end */
 	for (c = bound - 8; c < bound; c++)
@@ -2011,7 +2011,7 @@ bool should_we_bleed(int Depth, char dir)
 		{
 			/* determine whether to bleed or not */
 			Rand_value = seed_town + (Depth + neigh_idx) * (93754);
-			tmp = rand_int(2);
+			tmp = randint0(2);
 			if (tmp && (Depth < neigh_idx)) return TRUE;
 			else if (!tmp && (Depth > neigh_idx)) return TRUE;
 			else return FALSE;
@@ -2114,7 +2114,7 @@ void bleed_with_neighbors(int Depth)
 							/* share a point */
 							/* seed the number generator */
 							Rand_value = seed_town + (Depth + neigh_idx[side[d]]) * (89791);
-							share_point[c][d] = rand_int(((c%2) ? 70 : 25));
+							share_point[c][d] = randint0(((c%2) ? 70 : 25));
 						}
 						else share_point[c][d] = 0;
 					}
@@ -2225,9 +2225,9 @@ static void wilderness_gen_hack(int Depth)
 #ifndef DEVEL_TOWN_COMPATIBILITY
 	/* Hack -- 50% of the time on a radius 1 level there will be a "park" which will make
 	 * the rest of the level more densly packed together */
-	if ((w_ptr->radius == 1) && !rand_int(2))
+	if ((w_ptr->radius == 1) && !randint0(2))
 	{
-		reserve_building_plot(Depth, &x1,&y1, &x2,&y2, rand_int(30)+15, rand_int(20)+10, -1, -1);
+		reserve_building_plot(Depth, &x1,&y1, &x2,&y2, randint0(30)+15, randint0(20)+10, -1, -1);
 	}
 #endif
 		
@@ -2236,7 +2236,7 @@ static void wilderness_gen_hack(int Depth)
 	/* hack -- the number of dwellings is proportional to their chance of existing */
 	while (terrain.dwelling > 0)
 	{
-		if (rand_int(1000) < terrain.dwelling)
+		if (randint0(1000) < terrain.dwelling)
 		{
 			wild_add_dwelling(Depth, -1, -1);
 		}

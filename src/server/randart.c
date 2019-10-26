@@ -103,10 +103,10 @@ static void do_curse (artifact_type *a_ptr)
 	if ((a_ptr->to_d > 0) && (rand_int (4) == 0)) a_ptr->to_d = -a_ptr->to_d;
 
 	/* Some chance of making bad bonuses worse */
-	if ((a_ptr->pval < 0) && (rand_int (2) == 0)) a_ptr->pval -= rand_int(2);
-	if ((a_ptr->to_a < 0) && (rand_int (2) == 0)) a_ptr->to_a -= 3 + rand_int(10);
-	if ((a_ptr->to_h < 0) && (rand_int (2) == 0)) a_ptr->to_h -= 3 + rand_int(6);
-	if ((a_ptr->to_d < 0) && (rand_int (4) == 0)) a_ptr->to_d -= 3 + rand_int(6);
+	if ((a_ptr->pval < 0) && (rand_int (2) == 0)) a_ptr->pval -= randint0(2);
+	if ((a_ptr->to_a < 0) && (rand_int (2) == 0)) a_ptr->to_a -= 3 + randint0(10);
+	if ((a_ptr->to_h < 0) && (rand_int (2) == 0)) a_ptr->to_h -= 3 + randint0(6);
+	if ((a_ptr->to_d < 0) && (rand_int (4) == 0)) a_ptr->to_d -= 3 + randint0(6);
 
 	/* If it is cursed, we can heavily curse it */
 	if (a_ptr->flags3 & TR3_LIGHT_CURSE)
@@ -445,12 +445,12 @@ static void add_ability (artifact_type *a_ptr)
 				{
 					a_ptr->flags1 |= TR1_MIGHT;
 				}
-				else if (r < 70) a_ptr->to_h += 4 + rand_int(4);
-				else if (r < 90) a_ptr->to_d += 4 + rand_int(4);
+				else if (r < 70) a_ptr->to_h += 4 + randint0(4);
+				else if (r < 90) a_ptr->to_d += 4 + randint0(4);
 				else
                                 {
-					a_ptr->to_h += 4 + rand_int(4);
-					a_ptr->to_d += 4 + rand_int(4);
+					a_ptr->to_h += 4 + randint0(4);
+					a_ptr->to_d += 4 + randint0(4);
 				}
 
 				break;
@@ -1103,9 +1103,9 @@ artifact_type *randart_make(const object_type *o_ptr)
 	 * 90% of normal items are good
 	 * cursed items are always bad
 	 */
-	if (rand_int(10) && !cursed_p(o_ptr))
+	if (randint0(10) && !cursed_p(o_ptr))
 	{
-		power = rand_int(80) + RANDART_QUALITY;
+		power = randint0(80) + RANDART_QUALITY;
 	
 		/* Really powerful items should aggravate. */
 		/* Chance = 60% for max power 120 */
@@ -1161,8 +1161,8 @@ artifact_type *randart_make(const object_type *o_ptr)
 	    (a_ptr->tval==TV_SWORD) ||
 	    (a_ptr->tval==TV_BOW))
 	{
-		a_ptr->to_d += 1 + rand_int(20);
-		a_ptr->to_h += 1 + rand_int(20);
+		a_ptr->to_d += 1 + randint0(20);
+		a_ptr->to_h += 1 + randint0(20);
 	}
 	
 	/* Ensure armour has some bonus to ac */
@@ -1176,7 +1176,7 @@ artifact_type *randart_make(const object_type *o_ptr)
 	    (k_ptr->tval==TV_DRAG_ARMOR) ||
 	    (k_ptr->tval==TV_HARD_ARMOR))
 	{
-		a_ptr->to_a += 1 + rand_int(17);
+		a_ptr->to_a += 1 + randint0(17);
 	}
 	
 	/* Process ammo */
@@ -1364,7 +1364,7 @@ void randart_name(const object_type *o_ptr, char *buffer)
 	
 	/* Either "sword of something" or
 	 * "sword 'something'" form */
-	if (rand_int(2))
+	if (randint0(2))
 	{
 		sprintf(buffer, "of %s", tmp);
 	}

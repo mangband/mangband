@@ -430,7 +430,7 @@ static void image_monster(player_type *p_ptr, byte *ap, char *cp)
 	if (p_ptr) image_rng_push(p_ptr, &oldrng);
 
 	/* Random symbol from set above */
-	(*cp) = (image_monster_hack[rand_int(n)]);
+	(*cp) = (image_monster_hack[randint0(n)]);
 
 	/* Random color */
 	(*ap) = randint(15);
@@ -456,7 +456,7 @@ static void image_object(player_type *p_ptr, byte *ap, char *cp)
 	if (p_ptr) image_rng_push(p_ptr, &oldrng);
 
 	/* Random symbol from set above */
-	(*cp) = (image_object_hack[rand_int(n)]);
+	(*cp) = (image_object_hack[randint0(n)]);
 
 	/* Random color */
 	(*ap) = randint(15);
@@ -474,7 +474,7 @@ static void image_random(player_type *p_ptr, byte *ap, char *cp)
 	if (p_ptr) image_rng_push(p_ptr, &oldrng);
 
 	/* Normally, assume monsters */
-	if (rand_int(100) < 75)
+	if (randint0(100) < 75)
 	{
 		image_monster(p_ptr, ap, cp);
 	}
@@ -494,7 +494,7 @@ static bool image_random_chance(player_type *p_ptr)
 	bool hallucinate = FALSE;
 	if (p_ptr) image_rng_push(p_ptr, &oldrng);
 
-	if (!rand_int(256)) hallucinate = TRUE;
+	if (!randint0(256)) hallucinate = TRUE;
 
 	if (p_ptr && hallucinate) p_ptr->hallu_offset += randint0(64);
 

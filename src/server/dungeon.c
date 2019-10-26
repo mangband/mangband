@@ -168,12 +168,12 @@ static void sense_inventory(player_type *p_ptr)
 
 	if (p_ptr->cp_ptr->flags & CF_PSEUDO_ID_IMPROV)
 	{
-		if (0 != rand_int(p_ptr->cp_ptr->sense_base / (plev * plev + p_ptr->cp_ptr->sense_div)))
+		if (0 != randint0(p_ptr->cp_ptr->sense_base / (plev * plev + p_ptr->cp_ptr->sense_div)))
 			return;
 	}
 	else
 	{
-		if (0 != rand_int(p_ptr->cp_ptr->sense_base / (plev + p_ptr->cp_ptr->sense_div)))
+		if (0 != randint0(p_ptr->cp_ptr->sense_base / (plev + p_ptr->cp_ptr->sense_div)))
 			return;
 	}
 
@@ -226,7 +226,7 @@ static void sense_inventory(player_type *p_ptr)
 		if (object_known_p(p_ptr, o_ptr)) continue;
 
 		/* Occasional failure on inventory items */
-		if ((i < INVEN_WIELD) && (0 != rand_int(5))) continue;
+		if ((i < INVEN_WIELD) && (0 != randint0(5))) continue;
 
 		/* Check for a feeling */
 		feel = (heavy ? value_check_aux1(o_ptr) : value_check_aux2(o_ptr));
@@ -613,7 +613,7 @@ static void process_world(player_type *p_ptr)
 	 */
 
 	/* Check for creature generation */
-	if (rand_int(MAX_M_ALLOC_CHANCE) == 0)
+	if (randint0(MAX_M_ALLOC_CHANCE) == 0)
 	{
 		/* Set the monster generation depth */
 		if (p_ptr->dun_depth >= 0)
@@ -851,7 +851,7 @@ static int auto_retaliate(player_type *p_ptr)
 	else
 	{
 		/* Pick one of the available targets */
-		target = rand_int(targets);
+		target = randint0(targets);
 		ax = p_ptr->px + ddx_ddd[targetlist[target]];
 		ay = p_ptr->py + ddy_ddd[targetlist[target]];
 	}
@@ -988,7 +988,7 @@ static void process_player_begin(player_type *p_ptr)
 		p_ptr->energy = 0;
 
 	/* Mega-Hack -- Random teleportation XXX XXX XXX */
-	if ((p_ptr->teleport) && (rand_int(100) < 1))
+	if ((p_ptr->teleport) && (randint0(100) < 1))
 	{
 		/* Teleport player */
 		teleport_player(p_ptr, 40);
@@ -1257,14 +1257,14 @@ static void process_player_end(player_type *p_ptr)
 			if (!p_ptr->ghost && p_ptr->food < PY_FOOD_FAINT)
 			{
 				/* Faint occasionally */
-				if (!p_ptr->paralyzed && (rand_int(100) < 10))
+				if (!p_ptr->paralyzed && (randint0(100) < 10))
 				{
 					/* Message */
 					msg_print(p_ptr, "You faint from the lack of food.");
 					disturb(p_ptr, 1, 0);
 
 					/* Hack -- faint (bypass free action) */
-					(void)set_paralyzed(p_ptr, p_ptr->paralyzed + 1 + rand_int(5));
+					(void)set_paralyzed(p_ptr, p_ptr->paralyzed + 1 + randint0(5));
 				}
 			}
 		}
@@ -1521,7 +1521,7 @@ static void process_player_end(player_type *p_ptr)
 		/* Handle experience draining */
 		if (p_ptr->exp_drain)
 		{
-			if ((rand_int(100) < 10) && (p_ptr->exp > 0))
+			if ((randint0(100) < 10) && (p_ptr->exp > 0))
 			{
 				p_ptr->exp--;
 				p_ptr->max_exp--;
@@ -1842,7 +1842,7 @@ static void process_various(void)
 					{
 						// random chance of the level unstaticing
 						// the chance is one in (base_chance * depth)/250 feet.
-						if (!rand_int(((cfg_level_unstatic_chance * (i+5))/5)-1))
+						if (!randint0(((cfg_level_unstatic_chance * (i+5))/5)-1))
 						{
 							// unstatic the level
 							players_on_depth[i] = 0;
@@ -1910,10 +1910,10 @@ static void process_various(void)
 		}
 
 		/* Sometimes, shuffle the shopkeepers */
-		if (rand_int(STORE_SHUFFLE) == 0)
+		if (randint0(STORE_SHUFFLE) == 0)
 		{
 			/* Shuffle a random shop (except home and higher) */
-			store_shuffle(rand_int(MAX_STORES - 2));
+			store_shuffle(randint0(MAX_STORES - 2));
 		}
 	}
 
@@ -2151,8 +2151,8 @@ void dungeon(void)
 				/* make sure we aren't in an "icky" location */
 				do
 				{
-					starty = rand_int(MAX_HGT-3)+1;
-					startx = rand_int(MAX_WID-3)+1;
+					starty = randint0(MAX_HGT-3)+1;
+					startx = randint0(MAX_WID-3)+1;
 				}
 				while (  (cave[Depth][starty][startx].info & CAVE_ICKY)
 				      || (!cave_floor_bold(Depth, starty, startx)) );
@@ -2444,10 +2444,10 @@ void play_game(bool new_game)
 		/*dun_level = 0;*/
 
 		/* Hack -- seed for flavors */
-		seed_flavor = rand_int(0x10000000);
+		seed_flavor = randint0(0x10000000);
 
 		/* Hack -- seed for town layout */
-		seed_town = rand_int(0x10000000);
+		seed_town = randint0(0x10000000);
 
 		/* Initialize server state information */
 		/*player_birth();*/

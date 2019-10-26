@@ -483,7 +483,7 @@ void do_cmd_use_staff(player_type *p_ptr, int item)
 	chance = chance - ((lev > 50) ? 50 : lev);
 
 	/* Give everyone a (slight) chance */
-	if ((chance < USE_DEVICE) && (rand_int(USE_DEVICE - chance + 1) == 0))
+	if ((chance < USE_DEVICE) && (randint0(USE_DEVICE - chance + 1) == 0))
 	{
 		chance = USE_DEVICE;
 	}
@@ -993,7 +993,7 @@ void do_cmd_activate(player_type *p_ptr, int item)
 	chance = chance - ((lev > 50) ? 50 : lev);
 
 	/* Give everyone a (slight) chance */
-	if ((chance < USE_DEVICE) && (rand_int(USE_DEVICE - chance + 1) == 0))
+	if ((chance < USE_DEVICE) && (randint0(USE_DEVICE - chance + 1) == 0))
 	{
 		chance = USE_DEVICE;
 	}
@@ -1077,13 +1077,13 @@ void do_cmd_refill_potion(player_type *p_ptr, int item)
 	if (cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].feat == FEAT_WATER)
 	{
 		/* Better chance result is water bottle */
-		if (rand_int(100) < 70)
+		if (randint0(100) < 70)
 			good = TRUE;
 	}
 	else if (cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].feat == FEAT_MUD)
 	{
 		/* Better chance result is bad */
-		if (rand_int(100) < 30)
+		if (randint0(100) < 30)
 			good = TRUE;
 	}
 	else /* No water with which to fill bottle */
@@ -1100,26 +1100,26 @@ void do_cmd_refill_potion(player_type *p_ptr, int item)
 	new_sval = SV_POTION_SLIME_MOLD; /* some default */
 	if (good)
 	{
-		if (rand_int(100) < 5)
+		if (randint0(100) < 5)
 			new_sval = SV_POTION_CURE_CRITICAL;
 		else
 			new_sval = SV_POTION_WATER;
 	}
 	else
 	{
-		if (rand_int(100) < 50)
+		if (randint0(100) < 50)
 			new_sval = SV_POTION_SLIME_MOLD;
-		else if (rand_int(100) < 50)
+		else if (randint0(100) < 50)
 			new_sval = SV_POTION_SALT_WATER;
-		else if (rand_int(100) < 50)
+		else if (randint0(100) < 50)
 			new_sval = SV_POTION_SLEEP;
-		else if (rand_int(100) < 50)
+		else if (randint0(100) < 50)
 			new_sval = SV_POTION_CONFUSION;
-		else if (rand_int(100) < 30)
+		else if (randint0(100) < 30)
 			new_sval = SV_POTION_BLINDNESS;
-		else if (rand_int(100) < 50)
+		else if (randint0(100) < 50)
 			new_sval = SV_POTION_POISON;
-		else if (rand_int(100) < 70)
+		else if (randint0(100) < 70)
 			new_sval = SV_POTION_LOSE_MEMORIES;
 		else
 			new_sval = SV_POTION_DEATH;

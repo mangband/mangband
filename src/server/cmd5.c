@@ -414,7 +414,7 @@ void do_cmd_study(player_type *p_ptr, int book, int spell)
 			if (!spell_okay(p_ptr, index, FALSE)) continue;
 
 			/* Hack -- Apply the randomizer */
-			if ((++k > 1) && (rand_int(k) != 0)) continue;
+			if ((++k > 1) && (randint0(k) != 0)) continue;
 
 			/* Track it */
 			gift = index;
@@ -620,7 +620,7 @@ void do_cmd_cast(player_type *p_ptr, int book, int spell)
 	}
 
 	/* Failed spell */
-	if (rand_int(100) < chance)
+	if (randint0(100) < chance)
 	{
 		/*if (flush_failure) flush();*/
 		msg_print(p_ptr, "You failed to get the spell off!");
@@ -685,9 +685,9 @@ void do_cmd_cast_fin(player_type *p_ptr, bool tried)
 		(void)set_paralyzed(p_ptr, p_ptr->paralyzed + randint(5 * oops + 1));
 
 		/* Damage CON (possibly permanently) */
-		if (rand_int(100) < 50)
+		if (randint0(100) < 50)
 		{
-			bool perm = (rand_int(100) < 25);
+			bool perm = (randint0(100) < 25);
 
 			/* Message */
 			msg_print(p_ptr, "You have damaged your health!");
@@ -850,7 +850,7 @@ void do_cmd_pray(player_type *p_ptr, int book, int spell)
 	}
 
 	/* Check for failure */
-	if (rand_int(100) < chance)
+	if (randint0(100) < chance)
 	{
 		/*if (flush_failure) flush();*/
 		msg_print(p_ptr, "You failed to concentrate hard enough!");

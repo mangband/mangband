@@ -1627,13 +1627,13 @@ static bool cast_mage_spell(player_type *p_ptr, int spell)
 
 		case SPELL_ENCHANT_ARMOR: /* enchant armor */
 		{
-			return enchant_spell(p_ptr, 0, 0, rand_int(3) + plev / 20, TRUE);
+			return enchant_spell(p_ptr, 0, 0, randint0(3) + plev / 20, TRUE);
 		}
 
 		case SPELL_ENCHANT_WEAPON: /* enchant weapon */
 		{
-			return enchant_spell(p_ptr, rand_int(4) + plev / 20,
-			                          rand_int(4) + plev / 20, 0, TRUE);
+			return enchant_spell(p_ptr, randint0(4) + plev / 20,
+			                          randint0(4) + plev / 20, 0, TRUE);
 		}
 	}
 	
@@ -2063,12 +2063,12 @@ static bool cast_priest_spell(player_type *p_ptr, int spell)
 
 		case PRAYER_ENCHANT_WEAPON:
 		{
-			return enchant_spell(p_ptr, rand_int(4) + 1, rand_int(4) + 1, 0, TRUE);
+			return enchant_spell(p_ptr, randint0(4) + 1, randint0(4) + 1, 0, TRUE);
 		}
 
 		case PRAYER_ENCHANT_ARMOUR:
 		{
-			return enchant_spell(p_ptr, 0, 0, rand_int(3) + 2, TRUE);
+			return enchant_spell(p_ptr, 0, 0, randint0(3) + 2, TRUE);
 		}
 
 		case PRAYER_ELEMENTAL_BRAND:

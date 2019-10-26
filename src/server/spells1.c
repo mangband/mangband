@@ -376,7 +376,7 @@ void teleport_player_level(player_type *p_ptr)
 	}
 	
 	/* sometimes go down */
-	if ((!Depth) || ((rand_int(100) < 50) && (Depth < MAX_DEPTH-1) && !is_quest_level(p_ptr, Depth)))
+	if ((!Depth) || ((randint0(100) < 50) && (Depth < MAX_DEPTH-1) && !is_quest_level(p_ptr, Depth)))
 	{
 		new_depth = Depth+1;
 		msg = "You sink through the floor.";
@@ -397,7 +397,7 @@ void teleport_player_level(player_type *p_ptr)
 		/* get a valid neighbor */
 		do
 		{	
-			switch (rand_int(4))
+			switch (randint0(4))
 			{
 				case DIR_NORTH:
 					new_depth = world_index(w_ptr->world_x,w_ptr->world_y+1);
@@ -879,7 +879,7 @@ static int inven_damage(player_type *p_ptr, inven_func typ, int perc)
 			/* Count the casualties */
 			for (amt = j = 0; j < o_ptr->number; ++j)
 			{
-				if (rand_int(100) < perc) amt++;
+				if (randint0(100) < perc) amt++;
 			}
 
 			/* Some casualities */
@@ -1099,7 +1099,7 @@ bool inc_stat(player_type *p_ptr, int stat)
 		/* Gain one (sometimes two) points */
 		if (value < 18)
 		{
-			gain = ((rand_int(100) < 75) ? 1 : 2);
+			gain = ((randint0(100) < 75) ? 1 : 2);
 			value += gain;
 		}
 
@@ -1346,7 +1346,7 @@ bool apply_disenchant(player_type *p_ptr, int mode)
 
 
 	/* Artifacts have 60% chance to resist */
-	if (artifact_p(o_ptr) && (rand_int(100) < 60))
+	if (artifact_p(o_ptr) && (randint0(100) < 60))
 	{
 		/* Message */
 		msg_format(p_ptr, "Your %s (%c) resist%s disenchantment!",
@@ -1362,17 +1362,17 @@ bool apply_disenchant(player_type *p_ptr, int mode)
 	{
 		/* Disenchant to-hit */
 		if (o_ptr->to_h > 0) o_ptr->to_h--;
-		if ((o_ptr->to_h > 5) && (rand_int(100) < 20)) o_ptr->to_h--;
+		if ((o_ptr->to_h > 5) && (randint0(100) < 20)) o_ptr->to_h--;
 
 		/* Disenchant to-dam */
 		if (o_ptr->to_d > 0) o_ptr->to_d--;
-		if ((o_ptr->to_d > 5) && (rand_int(100) < 20)) o_ptr->to_d--;
+		if ((o_ptr->to_d > 5) && (randint0(100) < 20)) o_ptr->to_d--;
 	}
 	else
 	{
 		/* Disenchant to-ac */
 		if (o_ptr->to_a > 0) o_ptr->to_a--;
-		if ((o_ptr->to_a > 5) && (rand_int(100) < 20)) o_ptr->to_a--;
+		if ((o_ptr->to_a > 5) && (randint0(100) < 20)) o_ptr->to_a--;
 	}
 
 	/* Message */
@@ -1417,7 +1417,7 @@ static void apply_nexus(player_type *p_ptr, monster_type *m_ptr)
 
 		case 6:
 		{
-			if (rand_int(100) < p_ptr->skill_sav)
+			if (randint0(100) < p_ptr->skill_sav)
 			{
 				msg_print(p_ptr, "You resist the effects!");
 				break;
@@ -1430,7 +1430,7 @@ static void apply_nexus(player_type *p_ptr, monster_type *m_ptr)
 
 		case 7:
 		{
-			if (rand_int(100) < p_ptr->skill_sav)
+			if (randint0(100) < p_ptr->skill_sav)
 			{
 				msg_print(p_ptr, "You resist the effects!");
 				break;
@@ -1439,8 +1439,8 @@ static void apply_nexus(player_type *p_ptr, monster_type *m_ptr)
 			msg_print(p_ptr, "Your body starts to scramble...");
 
 			/* Pick a pair of stats */
-			ii = rand_int(6);
-			for (jj = ii; jj == ii; jj = rand_int(6)) /* loop */;
+			ii = randint0(6);
+			for (jj = ii; jj == ii; jj = randint0(6)) /* loop */;
 
 			max1 = p_ptr->stat_max[ii];
 			cur1 = p_ptr->stat_cur[ii];
@@ -1479,7 +1479,7 @@ static void apply_morph(player_type *p_ptr, int power, char * killer)
 		/*case 1: msg_print(p_ptr, "You resist the effects!"); break;*/
 		case 1:
 		{
-			if (rand_int(40 + power*2) < p_ptr->skill_sav)
+			if (randint0(40 + power*2) < p_ptr->skill_sav)
 			{
 				msg_print(p_ptr, "You resist the effects!");
 				break;
@@ -1488,8 +1488,8 @@ static void apply_morph(player_type *p_ptr, int power, char * killer)
 			msg_print(p_ptr, "Your body starts to scramble...");
 
 			/* Pick a pair of stats */
-			ii = rand_int(A_MAX);
-			for (jj = ii; jj == ii; jj = rand_int(A_MAX)) /* loop */;
+			ii = randint0(A_MAX);
+			for (jj = ii; jj == ii; jj = randint0(A_MAX)) /* loop */;
 
 			max1 = p_ptr->stat_max[ii];
 			cur1 = p_ptr->stat_cur[ii];
@@ -1510,7 +1510,7 @@ static void apply_morph(player_type *p_ptr, int power, char * killer)
 			if (!p_ptr->fruit_bat)
 			{
 		
-				if (rand_int(10 + power * 4) < p_ptr->skill_sav)
+				if (randint0(10 + power * 4) < p_ptr->skill_sav)
 				{
 					msg_print(p_ptr, "You resist the effects!");
 				}
@@ -1814,7 +1814,7 @@ static bool project_f(int who, int r, int Depth, int y, int x, int dam, int typ)
 					cave_set_feat(Depth, y, x, FEAT_MUD);
 
 				/* Hack -- place an object */
-				if (rand_int(100) < 10)
+				if (randint0(100) < 10)
 				{
 					/* Found something */
 					if (!quiet && player_can_see_bold(p_ptr, y, x))
@@ -3644,7 +3644,7 @@ static bool project_p(player_type *p_ptr, int who, int r, int Depth, int y, int 
 		take_hit(p_ptr, dam, killer);
 		if (!(p_ptr->resist_pois || p_ptr->oppose_pois))
 		{
-			(void)set_poisoned(p_ptr, p_ptr->poisoned + rand_int(dam) + 10);
+			(void)set_poisoned(p_ptr, p_ptr->poisoned + randint0(dam) + 10);
 		}
 		break;
 
@@ -3687,7 +3687,7 @@ static bool project_p(player_type *p_ptr, int who, int r, int Depth, int y, int 
 		}
 		else
 		{
-			if (p_ptr->hold_life && (rand_int(100) < 75))
+			if (p_ptr->hold_life && (randint0(100) < 75))
 			{
 				msg_print(p_ptr, "You keep hold of your life force!");
 			}
@@ -3728,7 +3728,7 @@ static bool project_p(player_type *p_ptr, int who, int r, int Depth, int y, int 
 		}
 		if (!p_ptr->resist_conf && !p_ptr->resist_chaos)
 		{
-			(void)set_confused(p_ptr, p_ptr->confused + rand_int(20) + 10);
+			(void)set_confused(p_ptr, p_ptr->confused + randint0(20) + 10);
 		}
 		if (!p_ptr->resist_chaos)
 		{
@@ -3736,7 +3736,7 @@ static bool project_p(player_type *p_ptr, int who, int r, int Depth, int y, int 
 		}
 		if (!p_ptr->resist_neth && !p_ptr->resist_chaos)
 		{
-			if (p_ptr->hold_life && (rand_int(100) < 75))
+			if (p_ptr->hold_life && (randint0(100) < 75))
 			{
 				msg_print(p_ptr, "You keep hold of your life force!");
 			}
@@ -3838,7 +3838,7 @@ static bool project_p(player_type *p_ptr, int who, int r, int Depth, int y, int 
 		/* Inertia -- slowness */
 		case GF_INERT:
 		if (fuzzy) msg_print(p_ptr, "You are hit by something strange!");
-		(void)set_slow(p_ptr, p_ptr->slow + rand_int(4) + 4);
+		(void)set_slow(p_ptr, p_ptr->slow + randint0(4) + 4);
 		take_hit(p_ptr, dam, killer);
 		break;
 
@@ -3922,7 +3922,7 @@ static bool project_p(player_type *p_ptr, int who, int r, int Depth, int y, int 
 		if (randint(127) > p_ptr->lev)
 			teleport_player(p_ptr, 5);		
 
-		(void)set_slow(p_ptr, p_ptr->slow + rand_int(4) + 4);
+		(void)set_slow(p_ptr, p_ptr->slow + randint0(4) + 4);
 		if (!p_ptr->resist_sound)
 		{
 			int k = (randint((dam > 90) ? 35 : (dam / 3 + 5)));
@@ -4007,7 +4007,7 @@ static bool project_p(player_type *p_ptr, int who, int r, int Depth, int y, int 
 		{
 			msg_print(p_ptr, "You disbelieve the feeble spell.");
 		}
-		else if (rand_int(100 + dam*6) < p_ptr->skill_sav)
+		else if (randint0(100 + dam*6) < p_ptr->skill_sav)
 		{
 			msg_print(p_ptr, "You disbelieve the feeble spell.");
 		}
@@ -4024,7 +4024,7 @@ static bool project_p(player_type *p_ptr, int who, int r, int Depth, int y, int 
 		{
 			msg_print(p_ptr, "You are unaffected!");
 		}
-		else if (rand_int(100 + dam*6) < p_ptr->skill_sav)
+		else if (randint0(100 + dam*6) < p_ptr->skill_sav)
 		{
 			msg_print(p_ptr, "You resist the effects!");
 		}
@@ -4041,7 +4041,7 @@ static bool project_p(player_type *p_ptr, int who, int r, int Depth, int y, int 
 		{
 			msg_print(p_ptr, "You are unaffected!");
 		}
-		else if (rand_int(100) < p_ptr->skill_sav)
+		else if (randint0(100) < p_ptr->skill_sav)
 		{
 			msg_print(p_ptr, "You resist the effects!");
 		}
@@ -4058,7 +4058,7 @@ static bool project_p(player_type *p_ptr, int who, int r, int Depth, int y, int 
 		{
 			msg_print(p_ptr, "You refuse to be frightened.");
 		}
-		else if (rand_int(100 + dam*6) < p_ptr->skill_sav)
+		else if (randint0(100 + dam*6) < p_ptr->skill_sav)
 		{
 			msg_print(p_ptr, "You refuse to be frightened.");
 		}

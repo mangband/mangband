@@ -320,7 +320,7 @@ static void chest_death(player_type *p_ptr, int y, int x, object_type *o_ptr)
 				object_level = ABS(o_ptr->pval) + 10;
 
 				/* Small chests often drop gold */
-				if (small_ && (rand_int(100) < 75))
+				if (small_ && (randint0(100) < 75))
 				{
 					place_gold(Depth, ny, nx);
 				}
@@ -976,7 +976,7 @@ static bool do_cmd_open_chest(player_type *p_ptr, int y, int x, s16b o_idx)
 		if (j < 2) j = 2;
 
 		/* Success -- May still have traps */
-		if (rand_int(100) < j)
+		if (randint0(100) < j)
 		{
 			msg_print_aux(p_ptr, "You have picked the lock.", MSG_LOCKPICK);
 			sound(p_ptr, MSG_LOCKPICK);
@@ -1057,7 +1057,7 @@ static bool do_cmd_disarm_chest(player_type *p_ptr, int y, int x, s16b o_idx)
 	}
 
 	/* Success (get a lot of experience) */
-	else if (rand_int(100) < j)
+	else if (randint0(100) < j)
 	{
 		msg_print_aux(p_ptr, "You have disarmed the chest.", MSG_DISARM);
 		sound(p_ptr, MSG_DISARM);
@@ -1309,7 +1309,7 @@ static bool do_cmd_open_aux(player_type *p_ptr, int y, int x)
 		if (j < 2) j = 2;
 
 		/* Success */
-		if (rand_int(100) < j)
+		if (randint0(100) < j)
 		{
 			/* Message */
 			msg_print_aux(p_ptr, "You have picked the lock.", MSG_LOCKPICK);
@@ -1824,7 +1824,7 @@ static bool do_cmd_tunnel_aux(player_type *p_ptr, int y, int x)
 	if (c_ptr->feat == FEAT_TREE)
 	{
 		/* Mow down the vegetation */
-		if ((p_ptr->skill_dig + wielding_cut_p(p_ptr) * 10 > rand_int(400)) && twall(p_ptr, y, x))
+		if ((p_ptr->skill_dig + wielding_cut_p(p_ptr) * 10 > randint0(400)) && twall(p_ptr, y, x))
 		{
 			if (Depth == 0) trees_in_town--;
 		
@@ -1842,7 +1842,7 @@ static bool do_cmd_tunnel_aux(player_type *p_ptr, int y, int x)
 	else if (c_ptr->feat == FEAT_EVIL_TREE)
 	{
 		/* Mow down the vegetation */
-		if ((p_ptr->skill_dig + wielding_cut_p(p_ptr) * 10 > rand_int(600)) && twall(p_ptr, y, x))
+		if ((p_ptr->skill_dig + wielding_cut_p(p_ptr) * 10 > randint0(600)) && twall(p_ptr, y, x))
 		{
 			/* Message */
 			msg_print(p_ptr, "You hack your way through the vegetation.");
@@ -1865,7 +1865,7 @@ static bool do_cmd_tunnel_aux(player_type *p_ptr, int y, int x)
 	else if (c_ptr->feat >= FEAT_WALL_EXTRA)
 	{
 		/* Tunnel */
-		if ((p_ptr->skill_dig > 40 + rand_int(1600)) && twall(p_ptr, y, x))
+		if ((p_ptr->skill_dig > 40 + randint0(1600)) && twall(p_ptr, y, x))
 		{
 			msg_print(p_ptr, "You have finished the tunnel.");
 		}
@@ -1901,13 +1901,13 @@ static bool do_cmd_tunnel_aux(player_type *p_ptr, int y, int x)
 		/* Quartz */
 		if (hard)
 		{
-			okay = (p_ptr->skill_dig > 20 + rand_int(800));
+			okay = (p_ptr->skill_dig > 20 + randint0(800));
 		}
 
 		/* Magma */
 		else
 		{
-			okay = (p_ptr->skill_dig > 10 + rand_int(400));
+			okay = (p_ptr->skill_dig > 10 + randint0(400));
 		}
 
 		/* Success */
@@ -1952,13 +1952,13 @@ static bool do_cmd_tunnel_aux(player_type *p_ptr, int y, int x)
 	else if (c_ptr->feat == FEAT_RUBBLE)
 	{
 		/* Remove the rubble */
-		if ((p_ptr->skill_dig > rand_int(200)) && twall(p_ptr, y, x))
+		if ((p_ptr->skill_dig > randint0(200)) && twall(p_ptr, y, x))
 		{
 			/* Message */
 			msg_print(p_ptr, "You have removed the rubble.");
 
 			/* Hack -- place an object */
-			if (rand_int(100) < 10)
+			if (randint0(100) < 10)
 			{
 				/* Create a simple object */
 				place_object(Depth, y, x, FALSE, FALSE, ORIGIN_RUBBLE);
@@ -1983,7 +1983,7 @@ static bool do_cmd_tunnel_aux(player_type *p_ptr, int y, int x)
 	else if (c_ptr->feat >= FEAT_SECRET)
 	{
 		/* Tunnel */
-		if ((p_ptr->skill_dig > 30 + rand_int(1200)) && twall(p_ptr, y, x))
+		if ((p_ptr->skill_dig > 30 + randint0(1200)) && twall(p_ptr, y, x))
 		{
 			msg_print(p_ptr, "You have finished the tunnel.");
 		}
@@ -1996,7 +1996,7 @@ static bool do_cmd_tunnel_aux(player_type *p_ptr, int y, int x)
 			more = TRUE;
 
 			/* Occasional Search XXX XXX */
-			if (rand_int(100) < 25) search(p_ptr);
+			if (randint0(100) < 25) search(p_ptr);
 		}
 	}
 	
@@ -2004,7 +2004,7 @@ static bool do_cmd_tunnel_aux(player_type *p_ptr, int y, int x)
 	else
 	{
 		/* Tunnel */
-		if ((p_ptr->skill_dig > 30 + rand_int(1200)) && twall(p_ptr, y, x))
+		if ((p_ptr->skill_dig > 30 + randint0(1200)) && twall(p_ptr, y, x))
 		{
 			msg_print(p_ptr, "You have finished the tunnel.");
 		}
@@ -2209,7 +2209,7 @@ static bool do_cmd_disarm_aux(player_type *p_ptr, int y, int x, int dir)
 	if (j < 2) j = 2;
 
 	/* Success */
-	if (rand_int(100) < j)
+	if (randint0(100) < j)
 	{
 		/* Message */
 		msg_format_type(p_ptr, MSG_DISARM, "You have disarmed the %s.", name);
@@ -2486,14 +2486,14 @@ static bool do_cmd_bash_aux(player_type *p_ptr, int y, int x)
 	if (temp < 1) temp = 1;
 
 	/* Hack -- attempt to bash down the door */
-	if (rand_int(100) < temp)
+	if (randint0(100) < temp)
 	{
 		/* Message */
 		msg_print_aux(p_ptr, "The door crashes open!", MSG_OPENDOOR);
 		sound(p_ptr, MSG_OPENDOOR);
 
 		/* Break down the door */
-		if (rand_int(100) < 50)
+		if (randint0(100) < 50)
 		{
 			c_ptr->feat = FEAT_BROKEN;
 		}
@@ -2519,7 +2519,7 @@ static bool do_cmd_bash_aux(player_type *p_ptr, int y, int x)
 	}
 
 	/* Saving throw against stun */
-	else if (rand_int(100) < adj_dex_safe[p_ptr->stat_ind[A_DEX]] +
+	else if (randint0(100) < adj_dex_safe[p_ptr->stat_ind[A_DEX]] +
 	         p_ptr->lev)
 	{
 		/* Message */
@@ -2536,7 +2536,7 @@ static bool do_cmd_bash_aux(player_type *p_ptr, int y, int x)
 		msg_print(p_ptr, "You are off-balance.");
 
 		/* Hack -- Lose balance ala paralysis */
-		(void)set_paralyzed(p_ptr, p_ptr->paralyzed + 2 + rand_int(2));
+		(void)set_paralyzed(p_ptr, p_ptr->paralyzed + 2 + randint0(2));
 	}
 
 	/* Result */
@@ -2987,7 +2987,7 @@ void do_cmd_walk(player_type *p_ptr, int dir, int pickup)
 
 			/* Prevent walking nowhere */
 			while (dir == 5)
-				dir = ddd[rand_int(8)];
+				dir = ddd[randint0(8)];
 		}
 
 		/* Handle the "easy_alter" option */
@@ -3184,7 +3184,7 @@ void do_cmd_hold_or_stay(player_type *p_ptr, int pickup, int take_stairs)
 
 
 	/* Spontaneous Searching */
-	if ((p_ptr->skill_fos >= 50) || (0 == rand_int(50 - p_ptr->skill_fos)))
+	if ((p_ptr->skill_fos >= 50) || (0 == randint0(50 - p_ptr->skill_fos)))
 	{
 		search(p_ptr);
 	}

@@ -2474,7 +2474,7 @@ static errr xtraTermHook(int n, int v) {
 #ifdef USE_SOUND
 		/* Make a sound */
 		i = sound_count(v);
-		if (i) sdl_play_sound(v, rand_int(i));
+		if (i) sdl_play_sound(v, randint0(i));
 #endif
 		return 0;
 	case TERM_XTRA_BORED:

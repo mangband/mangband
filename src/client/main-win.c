@@ -1814,7 +1814,7 @@ static errr Term_xtra_win_sound(int v)
 	if (!s) return (-1);
 
 	/* Random sample */
-	s = rand_int(s);
+	s = randint0(s);
 
 	/* Build the path */
 	path_build(buf, sizeof(buf), ANGBAND_DIR_XTRA_SOUND, sound_file[v][s]);

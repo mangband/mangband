@@ -591,7 +591,7 @@ static void flavor_assign_random(byte tval)
 		if (!flavor_count) quit_fmt("Not enough flavors for tval %d.", tval);
 
 		/* Select a flavor */
-		choice = rand_int(flavor_count);
+		choice = randint0(flavor_count);
 	
 		/* Find and store the flavor */
 		for (j = 0; j < z_info->flavor_max; j++)
@@ -713,13 +713,13 @@ void flavor_init(void)
 				tmp[0] = '\0';
 
 				/* Choose one or two syllables */
-				s = ((rand_int(100) < 30) ? 1 : 2);
+				s = ((randint0(100) < 30) ? 1 : 2);
 
 				/* Add a one or two syllable word */
 				for (q = 0; q < s; q++)
 				{
 					/* Add the syllable */
-					my_strcat(tmp, syllables[rand_int(MAX_SYLLABLES)], sizeof(tmp));
+					my_strcat(tmp, syllables[randint0(MAX_SYLLABLES)], sizeof(tmp));
 				}
 
 				/* Stop before getting too long */
