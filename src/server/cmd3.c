@@ -521,7 +521,13 @@ void do_cmd_wield(player_type *p_ptr, int item)
 	p_ptr->redraw |= (PR_PLUSSES | PR_OFLAGS);
 
 	/* Redraw slot */
-	p_ptr->redraw_inven |= (1LL << slot);
+	player_redraw_item(p_ptr, slot);
+
+	/* Update fuel items */
+	if (slot == INVEN_LITE)
+	{
+		player_redraw_fuel_items(p_ptr);
+	}
 
 	/* Window stuff */
 	p_ptr->window |= (PW_PLAYER);

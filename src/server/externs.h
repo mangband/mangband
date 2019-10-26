@@ -805,6 +805,7 @@ extern void wipe_o_list(int Depth);
 extern s16b o_pop(void);
 extern errr get_obj_num_prep(void);
 extern s16b get_obj_num(int level);
+extern bool object_is_fuel(player_type *p_ptr, object_type *o_ptr, bool *fits);
 extern byte object_tester_flag(player_type *p_ptr, object_type *o_ptr, byte *secondary_tester);
 extern void object_known(object_type *o_ptr);
 extern void object_aware(player_type *p_ptr, object_type *o_ptr);
@@ -835,7 +836,9 @@ extern void object_audit(player_type *p_ptr, object_type *o_ptr, int amt);
 extern void object_own(player_type *p_ptr, object_type *o_ptr);
 extern void artifact_notify(player_type *p_ptr, object_type *o_ptr);
 extern object_type* player_get_item(player_type *p_ptr, int item, int *idx);
+extern object_type* player_get_floor_item(player_type *p_ptr, int *idx);
 extern void player_redraw_item(player_type *p_ptr, int item);
+extern void player_redraw_fuel_items(player_type *p_ptr);
 extern u16b rand_tval_kind(int tval);
 extern void display_itemlist(player_type *p_ptr);
 

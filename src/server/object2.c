@@ -791,6 +791,51 @@ s16b get_obj_num(int level)
 	case ACT_DRAIN_LIFE1: \
 	case ACT_MANA_BOLT:
 
+/* Returns TRUE if object *could be used* as fuel.
+ * "fits" is set to TRUE, if it is to be used with
+ * currently wielded light source. */
+bool object_is_fuel(player_type *p_ptr, object_type *o_ptr, bool *fits)
+{
+	object_type *lamp_o_ptr;
+	bool is_fuel = TRUE;
+	bool has_torch = FALSE;
+	bool has_lantern = FALSE;
+
+	*fits = FALSE;
+
+	/* See what a player is wielding. */
+	lamp_o_ptr = &(p_ptr->inventory[INVEN_LITE]);
+	if (lamp_o_ptr->tval == TV_LITE)
+	{
+		/* It's a lamp */
+		if (lamp_o_ptr->sval == SV_LITE_LANTERN)
+		{
+			has_lantern = TRUE;
+		}
+		/* It's a torch */
+		if (lamp_o_ptr->sval == SV_LITE_TORCH)
+		{
+			has_torch = TRUE;
+		}
+	}
+
+	/* item_tester_refill_lantern: */
+	if (!o_ptr->name3 &&
+	     (o_ptr->tval == TV_FLASK ||
+	     (o_ptr->tval == TV_LITE && o_ptr->sval == SV_LITE_LANTERN)))
+	{
+		is_fuel = TRUE;
+		if (has_lantern) *fits = TRUE;
+	}
+	/* item_tester_refill_torch: */
+	else if (o_ptr->tval == TV_LITE && o_ptr->sval == SV_LITE_TORCH)
+	{
+		is_fuel = TRUE;
+		if (has_torch) *fits = TRUE;
+	}
+	return is_fuel;
+}
+
 /*
  * This function determines primary item tester and use flag for a given object.
  * It uses hardcoded TVALs/SVALs, similarly to how all our code does.
@@ -801,7 +846,7 @@ byte object_tester_flag(player_type *p_ptr, object_type *o_ptr, byte *secondary_
 {
 	byte flag = 0;
 	u32b f1, f2, f3;
-	object_type *lamp_o_ptr;
+	bool relevant_fuel = FALSE;
 	
 	bool aware = object_aware_p(p_ptr, o_ptr);
 	*secondary_tester = 0;
@@ -908,31 +953,14 @@ byte object_tester_flag(player_type *p_ptr, object_type *o_ptr, byte *secondary_
 	}
 	
 	/* refill light ? */
-	lamp_o_ptr = &(p_ptr->inventory[INVEN_LITE]);
-	if (lamp_o_ptr->tval == TV_LITE)
+	if (object_is_fuel(p_ptr, o_ptr, &relevant_fuel))
 	{
-		/* It's a lamp */
-		if (lamp_o_ptr->sval == SV_LITE_LANTERN)
+		/* torch matching torch or flask matching lantern */
+		if (relevant_fuel)
 		{
-			/* item_tester_refill_lantern: */
-			if (!o_ptr->name3 &&
-				(o_ptr->tval == TV_FLASK ||
-				(o_ptr->tval == TV_LITE && o_ptr->sval == SV_LITE_LANTERN)))
-			{
-				flag |= ITF_FUEL;
-			}
-		}
-		/* It's a torch */
-		if (lamp_o_ptr->sval == SV_LITE_TORCH)
-		{
-			/* item_tester_refill_torch: */
-			if (o_ptr->tval == TV_LITE && o_ptr->sval == SV_LITE_TORCH)
-			{	
-				flag |= ITF_FUEL;
-			}
+			flag |= ITF_FUEL;
 		}
 	}
-
 	
 	/* Return Flag */
 	return flag;
@@ -4249,6 +4277,12 @@ void inven_item_increase(player_type *p_ptr, int item, int num)
 		a_info[o_ptr->name1].owner_name = 0;
 		a_info[o_ptr->name1].owner_id = 0;
 	}
+
+	/* Hack -- redraw fuel items */
+	if ((item == INVEN_LITE) && (num < 0))
+	{
+		player_redraw_fuel_items(p_ptr);
+	}
 }
 
 
@@ -5189,6 +5223,22 @@ void object_own(player_type *p_ptr, object_type *o_ptr)
 	o_ptr->owner_name = quark_add(p_ptr->name);
 }
 
+/* Return pointer to a floor object, if any, or NULL */
+object_type* player_get_floor_item(player_type *p_ptr, int *idx)
+{
+	object_type *o_ptr = NULL;
+	int o_idx;
+
+	o_idx = cave[p_ptr->dun_depth][p_ptr->py][p_ptr->px].o_idx;
+	if (o_idx > 0)
+	{
+		*idx = 0 - o_idx;
+		o_ptr = &o_list[o_idx];
+	}
+
+	return o_ptr;
+}
+
 /*
  * Select an item from an index provided by Player.
  *
@@ -5202,7 +5252,7 @@ void object_own(player_type *p_ptr, object_type *o_ptr)
  */
 object_type* player_get_item(player_type *p_ptr, int item, int *idx)
 {
-	object_type *o_ptr;
+	object_type *o_ptr = NULL;
 	int o_idx;
 
 	/* Get the item (in the pack) */
@@ -5244,6 +5294,32 @@ void player_redraw_item(player_type *p_ptr, int item)
 	if (item >= 0) p_ptr->redraw_inven |= (1LL << item);
 	/* Floor */
 	else p_ptr->redraw |= (PR_FLOOR);
+}
+
+/* After changing the lightsource from torch to lantern,
+ * update all flags for fuel objects. */
+void player_redraw_fuel_items(player_type *p_ptr)
+{
+	object_type *o_ptr;
+	bool fits;
+	int item;
+	/* Inventory */
+	for (item = 0; item < INVEN_WIELD; item++)
+	{
+		o_ptr = &p_ptr->inventory[item];
+		if (object_is_fuel(p_ptr, o_ptr, &fits))
+		{
+			player_redraw_item(p_ptr, item);
+		}
+	}
+	/* And the floor object */
+	if ((o_ptr = player_get_floor_item(p_ptr, &item)))
+	{
+		if (object_is_fuel(p_ptr, o_ptr, &fits))
+		{
+			player_redraw_item(p_ptr, FLOOR_INDEX);
+		}
+	}
 }
 
 /*
