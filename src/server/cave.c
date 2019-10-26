@@ -433,7 +433,7 @@ static void image_monster(player_type *p_ptr, byte *ap, char *cp)
 	(*cp) = (image_monster_hack[randint0(n)]);
 
 	/* Random color */
-	(*ap) = randint(15);
+	(*ap) = randint1(15);
 
 	if (p_ptr) image_rng_pop(oldrng);
 }
@@ -459,7 +459,7 @@ static void image_object(player_type *p_ptr, byte *ap, char *cp)
 	(*cp) = (image_object_hack[randint0(n)]);
 
 	/* Random color */
-	(*ap) = randint(15);
+	(*ap) = randint1(15);
 
 	if (p_ptr) image_rng_pop(oldrng);
 }
@@ -1278,7 +1278,7 @@ void map_info(player_type *p_ptr, int y, int x, byte *ap, char *cp, byte *tap, c
 				(*cp) = c;
 
 				/* Multi-hued attr */
-				(*ap) = randint(15);
+				(*ap) = randint1(15);
 			}
 
 			/* Normal monster (not "clear" in any way) */

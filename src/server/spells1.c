@@ -30,8 +30,8 @@ s16b poly_r_idx(int r_idx)
 	if (r_ptr->flags1 & RF1_UNIQUE) return (r_idx);
 
 	/* Allowable range of "levels" for resulting monster */
-	lev1 = r_ptr->level - ((randint(20)/randint(9))+1);
-	lev2 = r_ptr->level + ((randint(20)/randint(9))+1);
+	lev1 = r_ptr->level - ((randint1(20)/randint1(9))+1);
+	lev2 = r_ptr->level + ((randint1(20)/randint1(9))+1);
 
 	/* Pick a (possibly new) non-unique race */
 	for (i = 0; i < 1000; i++)
@@ -175,7 +175,7 @@ void teleport_player(player_type *p_ptr, int dis)
 	if (p_ptr->arena_num != -1)
 	{
 		i = p_ptr->arena_num;
-		teleport_player_to(p_ptr, arenas[i].y_1+1+randint(arenas[i].y_2-arenas[i].y_1-2) , arenas[i].x_1+1+randint(arenas[i].x_2-arenas[i].x_1-2) );
+		teleport_player_to(p_ptr, arenas[i].y_1+1+randint1(arenas[i].y_2-arenas[i].y_1-2) , arenas[i].x_1+1+randint1(arenas[i].x_2-arenas[i].x_1-2) );
 		return;
 	}
 
@@ -476,7 +476,7 @@ void teleport_player_level(player_type *p_ptr)
  */
 static byte mh_attr(void)
 {
-	switch (randint(9))
+	switch (randint1(9))
 	{
 		case 1: return (TERM_RED);
 		case 2: return (TERM_GREEN);
@@ -932,7 +932,7 @@ static int minus_ac(player_type *p_ptr)
 	int item;
 
 	/* Pick a (possibly empty) inventory slot */
-	item = randint(6);
+	item = randint1(6);
 	switch (item)
 	{
 		case 1: o_ptr = &p_ptr->inventory[INVEN_BODY]; break;
@@ -1113,7 +1113,7 @@ bool inc_stat(player_type *p_ptr, int stat)
 			if (gain < 1) gain = 1;
 
 			/* Apply the bonus */
-			value += randint(gain) + gain / 2;
+			value += randint1(gain) + gain / 2;
 
 			/* Maximal value */
 			if (value > 18+99) value = 18 + 99;
@@ -1195,7 +1195,7 @@ bool dec_stat(player_type *p_ptr, int stat, int amount, int permanent)
 			if (loss < 1) loss = 1;
 
 			/* Randomize the loss */
-			loss = ((randint(loss) + loss) * amount) / 100;
+			loss = ((randint1(loss) + loss) * amount) / 100;
 
 			/* Maximal loss */
 			if (loss < amount/2) loss = amount/2;
@@ -1233,7 +1233,7 @@ bool dec_stat(player_type *p_ptr, int stat, int amount, int permanent)
 			/* and one-half of the stat bonus times the percentage, with a */
 			/* minimum damage of half the percentage. -CWS */
 			loss = (((max-18) / 2 + 1) / 2 + 1);
-			loss = ((randint(loss) + loss) * amount) / 100;
+			loss = ((randint1(loss) + loss) * amount) / 100;
 			if (loss < amount/2) loss = amount/2;
 
 			/* Lose some points */
@@ -1314,7 +1314,7 @@ bool apply_disenchant(player_type *p_ptr, int mode)
 
 
 	/* Pick a random slot */
-	switch (randint(8))
+	switch (randint1(8))
 	{
 		case 1: t = INVEN_WIELD; break;
 		case 2: t = INVEN_BOW; break;
@@ -1401,7 +1401,7 @@ static void apply_nexus(player_type *p_ptr, monster_type *m_ptr)
 {
 	int max1, cur1, max2, cur2, ii, jj;
 
-	switch (randint(7))
+	switch (randint1(7))
 	{
 		case 1: case 2: case 3:
 		{
@@ -1474,7 +1474,7 @@ static void apply_morph(player_type *p_ptr, int power, char * killer)
 {
 	int max1, cur1, max2, cur2, ii, jj;
 
-	switch (randint(2))
+	switch (randint1(2))
 	{
 		/*case 1: msg_print(p_ptr, "You resist the effects!"); break;*/
 		case 1:
@@ -2281,15 +2281,15 @@ static bool project_i(int who, int r, int Depth, int y, int x, int dam, int typ)
  * and hurts evil less.  If can breath nether, then it resists it as well.
  *
  * Damage reductions use the following formulas:
- *   Note that "dam = dam * 6 / (randint(6) + 6);"
+ *   Note that "dam = dam * 6 / (randint1(6) + 6);"
  *     gives avg damage of .655, ranging from .858 to .500
- *   Note that "dam = dam * 5 / (randint(6) + 6);"
+ *   Note that "dam = dam * 5 / (randint1(6) + 6);"
  *     gives avg damage of .544, ranging from .714 to .417
- *   Note that "dam = dam * 4 / (randint(6) + 6);"
+ *   Note that "dam = dam * 4 / (randint1(6) + 6);"
  *     gives avg damage of .444, ranging from .556 to .333
- *   Note that "dam = dam * 3 / (randint(6) + 6);"
+ *   Note that "dam = dam * 3 / (randint1(6) + 6);"
  *     gives avg damage of .327, ranging from .427 to .250
- *   Note that "dam = dam * 2 / (randint(6) + 6);"
+ *   Note that "dam = dam * 2 / (randint1(6) + 6);"
  *     gives something simple.
  *
  * In this function, "result" messages are postponed until the end, where
@@ -2508,7 +2508,7 @@ static bool project_m(int who, int r, int Depth, int y, int x, int dam, int typ)
 			    (r_ptr->flags4 & RF4_BR_PLAS))
 			{
 				note = " resists.";
-				dam *= 3; dam /= (randint(6)+6);
+				dam *= 3; dam /= (randint1(6)+6);
 			}
 			break;
 		}
@@ -2526,7 +2526,7 @@ static bool project_m(int who, int r, int Depth, int y, int x, int dam, int typ)
 			else if (r_ptr->flags4 & RF4_BR_NETH)
 			{
 				note = " resists.";
-				dam *= 3; dam /= (randint(6)+6);
+				dam *= 3; dam /= (randint1(6)+6);
 			}
 			else if (r_ptr->flags3 & RF3_EVIL)
 			{
@@ -2554,11 +2554,11 @@ static bool project_m(int who, int r, int Depth, int y, int x, int dam, int typ)
 		{
 			if (seen) obvious = TRUE;
 			do_poly = TRUE;
-			do_conf = (5 + randint(11)) / div;
+			do_conf = (5 + randint1(11)) / div;
 			if (r_ptr->flags4 & RF4_BR_CHAO)
 			{
 				note = " resists.";
-				dam *= 3; dam /= (randint(6)+6);
+				dam *= 3; dam /= (randint1(6)+6);
 				do_poly = FALSE;
 			}
 			break;
@@ -2571,7 +2571,7 @@ static bool project_m(int who, int r, int Depth, int y, int x, int dam, int typ)
 			if (r_ptr->flags4 & RF4_BR_SHAR)
 			{
 				note = " resists.";
-				dam *= 3; dam /= (randint(6)+6);
+				dam *= 3; dam /= (randint1(6)+6);
 			}
 			break;
 		}
@@ -2580,11 +2580,11 @@ static bool project_m(int who, int r, int Depth, int y, int x, int dam, int typ)
 		case GF_SOUND:
 		{
 			if (seen) obvious = TRUE;
-			do_stun = (10 + randint(15)) / div;
+			do_stun = (10 + randint1(15)) / div;
 			if (r_ptr->flags4 & RF4_BR_SOUN)
 			{
 				note = " resists.";
-				dam *= 2; dam /= (randint(6)+6);
+				dam *= 2; dam /= (randint1(6)+6);
 			}
 			break;
 		}
@@ -2593,11 +2593,11 @@ static bool project_m(int who, int r, int Depth, int y, int x, int dam, int typ)
 		case GF_CONFUSION:
 		{
 			if (seen) obvious = TRUE;
-			do_conf = (10 + randint(15)) / div;
+			do_conf = (10 + randint1(15)) / div;
 			if (r_ptr->flags4 & RF4_BR_CONF)
 			{
 				note = " resists.";
-				dam *= 2; dam /= (randint(6)+6);
+				dam *= 2; dam /= (randint1(6)+6);
 			}
 			else if (r_ptr->flags3 & RF3_NO_CONF)
 			{
@@ -2615,7 +2615,7 @@ static bool project_m(int who, int r, int Depth, int y, int x, int dam, int typ)
 			    prefix(name, "Disen"))
 			{
 				note = " resists.";
-				dam *= 3; dam /= (randint(6)+6);
+				dam *= 3; dam /= (randint1(6)+6);
 			}
 			break;
 		}
@@ -2628,7 +2628,7 @@ static bool project_m(int who, int r, int Depth, int y, int x, int dam, int typ)
 				(r_ptr->flags4 & RF4_BR_NEXU))
 			{
 				note = " resists.";
-				dam *= 3; dam /= (randint(6)+6);
+				dam *= 3; dam /= (randint1(6)+6);
 			}
 			break;
 		}
@@ -2637,11 +2637,11 @@ static bool project_m(int who, int r, int Depth, int y, int x, int dam, int typ)
 		case GF_FORCE:
 		{
 			if (seen) obvious = TRUE;
-			do_stun = randint(15) / div;
+			do_stun = randint1(15) / div;
 			if (r_ptr->flags4 & RF4_BR_WALL)
 			{
 				note = " resists.";
-				dam *= 3; dam /= (randint(6)+6);
+				dam *= 3; dam /= (randint1(6)+6);
 			}
 			break;
 		}
@@ -2653,7 +2653,7 @@ static bool project_m(int who, int r, int Depth, int y, int x, int dam, int typ)
 			if (r_ptr->flags4 & RF4_BR_INER)
 			{
 				note = " resists.";
-				dam *= 3; dam /= (randint(6)+6);
+				dam *= 3; dam /= (randint1(6)+6);
 			}
 			break;
 		}
@@ -2665,7 +2665,7 @@ static bool project_m(int who, int r, int Depth, int y, int x, int dam, int typ)
 			if (r_ptr->flags4 & RF4_BR_TIME)
 			{
 				note = " resists.";
-				dam *= 3; dam /= (randint(6)+6);
+				dam *= 3; dam /= (randint1(6)+6);
 			}
 			break;
 		}
@@ -2676,13 +2676,13 @@ static bool project_m(int who, int r, int Depth, int y, int x, int dam, int typ)
 			if (seen) obvious = TRUE;
 
 			/* Higher level monsters can resist the teleportation better */
-			if (randint(RIFT_RESIST_TELEPORT) > r_ptr->level)
+			if (randint1(RIFT_RESIST_TELEPORT) > r_ptr->level)
 				do_dist = 10;
 
 			if (r_ptr->flags4 & RF4_BR_GRAV)
 			{
 				note = " resists.";
-				dam *= 3; dam /= (randint(6)+6);
+				dam *= 3; dam /= (randint1(6)+6);
 				do_dist = 0;
 			}
 			break;
@@ -2706,7 +2706,7 @@ static bool project_m(int who, int r, int Depth, int y, int x, int dam, int typ)
 		case GF_ICE:
 		{
 			if (seen) obvious = TRUE;
-			do_stun = randint(15) / div;
+			do_stun = randint1(15) / div;
 			if (r_ptr->flags3 & RF3_IM_COLD)
 			{
 				note = " resists a lot.";
@@ -2752,7 +2752,7 @@ static bool project_m(int who, int r, int Depth, int y, int x, int dam, int typ)
 
 			/* Powerful monsters can resist */
 			if ((r_ptr->flags1 & RF1_UNIQUE) ||
-			    (r_ptr->level > randint((dam - 10) < 1 ? 1 : (dam - 10)) + 10))
+			    (r_ptr->level > randint1((dam - 10) < 1 ? 1 : (dam - 10)) + 10))
 			{
 				note = " is unaffected!";
 				do_poly = FALSE;
@@ -2846,7 +2846,7 @@ static bool project_m(int who, int r, int Depth, int y, int x, int dam, int typ)
 
 			/* Powerful monsters can resist */
 			if ((r_ptr->flags1 & RF1_UNIQUE) ||
-			    (r_ptr->level > randint((dam - 10) < 1 ? 1 : (dam - 10)) + 10))
+			    (r_ptr->level > randint1((dam - 10) < 1 ? 1 : (dam - 10)) + 10))
 			{
 				note = " is unaffected!";
 				obvious = FALSE;
@@ -2873,7 +2873,7 @@ static bool project_m(int who, int r, int Depth, int y, int x, int dam, int typ)
 			/* Attempt a saving throw */
 			if ((r_ptr->flags1 & RF1_UNIQUE) ||
 			    (r_ptr->flags3 & RF3_NO_SLEEP) ||
-			    (r_ptr->level > randint((dam - 10) < 1 ? 1 : (dam - 10)) + 10))
+			    (r_ptr->level > randint1((dam - 10) < 1 ? 1 : (dam - 10)) + 10))
 			{
 				/* Memorize a flag */
 				if (r_ptr->flags3 & RF3_NO_SLEEP)
@@ -2909,7 +2909,7 @@ static bool project_m(int who, int r, int Depth, int y, int x, int dam, int typ)
 			/* Attempt a saving throw */
 			if ((r_ptr->flags1 & RF1_UNIQUE) ||
 			    (r_ptr->flags3 & RF3_NO_CONF) ||
-			    (r_ptr->level > randint((dam - 10) < 1 ? 1 : (dam - 10)) + 10))
+			    (r_ptr->level > randint1((dam - 10) < 1 ? 1 : (dam - 10)) + 10))
 			{
 				/* Memorize a flag */
 				if (r_ptr->flags3 & RF3_NO_CONF)
@@ -2968,7 +2968,7 @@ static bool project_m(int who, int r, int Depth, int y, int x, int dam, int typ)
 			if (r_ptr->flags4 & RF4_BR_LITE)
 			{
 				note = " resists.";
-				dam *= 2; dam /= (randint(6)+6);
+				dam *= 2; dam /= (randint1(6)+6);
 			}
 			else if (r_ptr->flags3 & RF3_HURT_LITE)
 			{
@@ -2988,7 +2988,7 @@ static bool project_m(int who, int r, int Depth, int y, int x, int dam, int typ)
 			if (r_ptr->flags4 & RF4_BR_DARK)
 			{
 				note = " resists.";
-				dam *= 2; dam /= (randint(6)+6);
+				dam *= 2; dam /= (randint1(6)+6);
 			}
 			break;
 		}
@@ -3087,7 +3087,7 @@ static bool project_m(int who, int r, int Depth, int y, int x, int dam, int typ)
 				do_fear = damroll(3, (dam / 2)) + 1;
 
 				/* Attempt a saving throw */
-				if (r_ptr->level > randint((dam - 10) < 1 ? 1 : (dam - 10)) + 10)
+				if (r_ptr->level > randint1((dam - 10) < 1 ? 1 : (dam - 10)) + 10)
 				{
 					/* No obvious effect */
 					note = " is unaffected!";
@@ -3118,7 +3118,7 @@ static bool project_m(int who, int r, int Depth, int y, int x, int dam, int typ)
 				do_fear = damroll(3, (dam / 2)) + 1;
 
 				/* Attempt a saving throw */
-				if (r_ptr->level > randint((dam - 10) < 1 ? 1 : (dam - 10)) + 10)
+				if (r_ptr->level > randint1((dam - 10) < 1 ? 1 : (dam - 10)) + 10)
 				{
 					/* No obvious effect */
 					note = " is unaffected!";
@@ -3145,7 +3145,7 @@ static bool project_m(int who, int r, int Depth, int y, int x, int dam, int typ)
 			/* Attempt a saving throw */
 			if ((r_ptr->flags1 & RF1_UNIQUE) ||
 			    (r_ptr->flags3 & RF3_NO_FEAR) ||
-			    (r_ptr->level > randint((dam - 10) < 1 ? 1 : (dam - 10)) + 10))
+			    (r_ptr->level > randint1((dam - 10) < 1 ? 1 : (dam - 10)) + 10))
 			{
 				/* No obvious effect */
 				note = " is unaffected!";
@@ -3261,7 +3261,7 @@ static bool project_m(int who, int r, int Depth, int y, int x, int dam, int typ)
 	}
 
 	/* Mega-Hack -- Handle "polymorph" -- monsters get a saving throw */
-	else if (do_poly && (randint(90) > r_ptr->level))
+	else if (do_poly && (randint1(90) > r_ptr->level))
 	{
 		/* Default -- assume no polymorph */
 		note = " is unaffected!";
@@ -3673,7 +3673,7 @@ static bool project_p(player_type *p_ptr, int who, int r, int Depth, int y, int 
 		take_hit(p_ptr, dam, killer);
 		if (!p_ptr->resist_sound)
 		{
-			int k = (randint((dam > 40) ? 35 : (dam * 3 / 4 + 5)));
+			int k = (randint1((dam > 40) ? 35 : (dam * 3 / 4 + 5)));
 			(void)set_stun(p_ptr, p_ptr->stun + k);
 		}
 		break;
@@ -3683,7 +3683,7 @@ static bool project_p(player_type *p_ptr, int who, int r, int Depth, int y, int 
 		if (fuzzy) msg_print(p_ptr, "You are hit by something strange!");
 		if (p_ptr->resist_neth)
 		{
-			dam *= 6; dam /= (randint(6) + 6);
+			dam *= 6; dam /= (randint1(6) + 6);
 		}
 		else
 		{
@@ -3710,11 +3710,11 @@ static bool project_p(player_type *p_ptr, int who, int r, int Depth, int y, int 
 		if (fuzzy) msg_print(p_ptr, "You are hit by something!");
 		if (!p_ptr->resist_sound)
 		{
-			(void)set_stun(p_ptr, p_ptr->stun + randint(40));
+			(void)set_stun(p_ptr, p_ptr->stun + randint1(40));
 		}
 		if (!p_ptr->resist_conf)
 		{
-			(void)set_confused(p_ptr, p_ptr->confused + randint(5) + 5);
+			(void)set_confused(p_ptr, p_ptr->confused + randint1(5) + 5);
 		}
 		take_hit(p_ptr, dam, killer);
 		break;
@@ -3724,7 +3724,7 @@ static bool project_p(player_type *p_ptr, int who, int r, int Depth, int y, int 
 		if (fuzzy) msg_print(p_ptr, "You are hit by something strange!");
 		if (p_ptr->resist_chaos)
 		{
-			dam *= 6; dam /= (randint(6) + 6);
+			dam *= 6; dam /= (randint1(6) + 6);
 		}
 		if (!p_ptr->resist_conf && !p_ptr->resist_chaos)
 		{
@@ -3732,7 +3732,7 @@ static bool project_p(player_type *p_ptr, int who, int r, int Depth, int y, int 
 		}
 		if (!p_ptr->resist_chaos)
 		{
-			(void)set_image(p_ptr, p_ptr->image + randint(10));
+			(void)set_image(p_ptr, p_ptr->image + randint1(10));
 		}
 		if (!p_ptr->resist_neth && !p_ptr->resist_chaos)
 		{
@@ -3759,7 +3759,7 @@ static bool project_p(player_type *p_ptr, int who, int r, int Depth, int y, int 
 		if (fuzzy) msg_print(p_ptr, "You are hit by something sharp!");
 		if (p_ptr->resist_shard)
 		{
-			dam *= 6; dam /= (randint(6) + 6);
+			dam *= 6; dam /= (randint1(6) + 6);
 		}
 		else
 		{
@@ -3773,11 +3773,11 @@ static bool project_p(player_type *p_ptr, int who, int r, int Depth, int y, int 
 		if (fuzzy) msg_print(p_ptr, "You are hit by something!");
 		if (p_ptr->resist_sound)
 		{
-			dam *= 5; dam /= (randint(6) + 6);
+			dam *= 5; dam /= (randint1(6) + 6);
 		}
 		else
 		{
-			int k = (randint((dam > 90) ? 35 : (dam / 3 + 5)));
+			int k = (randint1((dam > 90) ? 35 : (dam / 3 + 5)));
 			(void)set_stun(p_ptr, p_ptr->stun + k);
 		}
 		take_hit(p_ptr, dam, killer);
@@ -3788,11 +3788,11 @@ static bool project_p(player_type *p_ptr, int who, int r, int Depth, int y, int 
 		if (fuzzy) msg_print(p_ptr, "You are hit by something!");
 		if (p_ptr->resist_conf)
 		{
-			dam *= 5; dam /= (randint(6) + 6);
+			dam *= 5; dam /= (randint1(6) + 6);
 		}
 		if (!p_ptr->resist_conf)
 		{
-			(void)set_confused(p_ptr, p_ptr->confused + randint(20) + 10);
+			(void)set_confused(p_ptr, p_ptr->confused + randint1(20) + 10);
 		}
 		take_hit(p_ptr, dam, killer);
 		break;
@@ -3802,7 +3802,7 @@ static bool project_p(player_type *p_ptr, int who, int r, int Depth, int y, int 
 		if (fuzzy) msg_print(p_ptr, "You are hit by something strange!");
 		if (p_ptr->resist_disen)
 		{
-			dam *= 6; dam /= (randint(6) + 6);
+			dam *= 6; dam /= (randint1(6) + 6);
 		}
 		else
 		{
@@ -3816,7 +3816,7 @@ static bool project_p(player_type *p_ptr, int who, int r, int Depth, int y, int 
 		if (fuzzy) msg_print(p_ptr, "You are hit by something strange!");
 		if (p_ptr->resist_nexus)
 		{
-			dam *= 6; dam /= (randint(6) + 6);
+			dam *= 6; dam /= (randint1(6) + 6);
 		}
 		else
 		{
@@ -3830,7 +3830,7 @@ static bool project_p(player_type *p_ptr, int who, int r, int Depth, int y, int 
 		if (fuzzy) msg_print(p_ptr, "You are hit by something!");
 		if (!p_ptr->resist_sound)
 		{
-			(void)set_stun(p_ptr, p_ptr->stun + randint(20));
+			(void)set_stun(p_ptr, p_ptr->stun + randint1(20));
 		}
 		take_hit(p_ptr, dam, killer);
 		break;
@@ -3847,11 +3847,11 @@ static bool project_p(player_type *p_ptr, int who, int r, int Depth, int y, int 
 		if (fuzzy) msg_print(p_ptr, "You are hit by something!");
 		if (p_ptr->resist_lite)
 		{
-			dam *= 4; dam /= (randint(6) + 6);
+			dam *= 4; dam /= (randint1(6) + 6);
 		}
 		else if (!blind && !p_ptr->resist_blind)
 		{
-			(void)set_blind(p_ptr, p_ptr->blind + randint(5) + 2);
+			(void)set_blind(p_ptr, p_ptr->blind + randint1(5) + 2);
 		}
 		take_hit(p_ptr, dam, killer);
 		break;
@@ -3861,11 +3861,11 @@ static bool project_p(player_type *p_ptr, int who, int r, int Depth, int y, int 
 		if (fuzzy) msg_print(p_ptr, "You are hit by something!");
 		if (p_ptr->resist_dark)
 		{
-			dam *= 4; dam /= (randint(6) + 6);
+			dam *= 4; dam /= (randint1(6) + 6);
 		}
 		else if (!blind && !p_ptr->resist_blind)
 		{
-			(void)set_blind(p_ptr, p_ptr->blind + randint(5) + 2);
+			(void)set_blind(p_ptr, p_ptr->blind + randint1(5) + 2);
 		}
 		take_hit(p_ptr, dam, killer);
 		break;
@@ -3873,7 +3873,7 @@ static bool project_p(player_type *p_ptr, int who, int r, int Depth, int y, int 
 		/* Time -- bolt fewer effects XXX */
 		case GF_TIME:
 		if (fuzzy) msg_print(p_ptr, "You are hit by something strange!");
-		switch (randint(10))
+		switch (randint1(10))
 		{
 			case 1: case 2: case 3: case 4: case 5:
 			msg_print(p_ptr, "You feel life has clocked back.");
@@ -3882,7 +3882,7 @@ static bool project_p(player_type *p_ptr, int who, int r, int Depth, int y, int 
 
 			case 6: case 7: case 8: case 9:
 
-			switch (randint(6))
+			switch (randint1(6))
 			{
 				case 1: k = A_STR; act = "strong"; break;
 				case 2: k = A_INT; act = "bright"; break;
@@ -3919,13 +3919,13 @@ static bool project_p(player_type *p_ptr, int who, int r, int Depth, int y, int 
 		if (fuzzy) msg_print(p_ptr, "You are hit by something strange!");
 		msg_print(p_ptr, "Gravity warps around you.");
 		/* Higher level players can resist the teleportation better */
-		if (randint(127) > p_ptr->lev)
+		if (randint1(127) > p_ptr->lev)
 			teleport_player(p_ptr, 5);		
 
 		(void)set_slow(p_ptr, p_ptr->slow + randint0(4) + 4);
 		if (!p_ptr->resist_sound)
 		{
-			int k = (randint((dam > 90) ? 35 : (dam / 3 + 5)));
+			int k = (randint1((dam > 90) ? 35 : (dam / 3 + 5)));
 			(void)set_stun(p_ptr, p_ptr->stun + k);
 		}
 		take_hit(p_ptr, dam, killer);
@@ -3953,7 +3953,7 @@ static bool project_p(player_type *p_ptr, int who, int r, int Depth, int y, int 
 		}
 		if (!p_ptr->resist_sound)
 		{
-			(void)set_stun(p_ptr, p_ptr->stun + randint(15));
+			(void)set_stun(p_ptr, p_ptr->stun + randint1(15));
 		}
 		break;
 
@@ -4045,7 +4045,7 @@ static bool project_p(player_type *p_ptr, int who, int r, int Depth, int y, int 
 		{
 			msg_print(p_ptr, "You resist the effects!");
 		}
-		else set_paralyzed(p_ptr, p_ptr->paralyzed + 1 + randint(6));
+		else set_paralyzed(p_ptr, p_ptr->paralyzed + 1 + randint1(6));
 
 		break;
 
@@ -4485,7 +4485,7 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 				//attr = spell_color(typ);
 
 				/* Beams can have a slightly higher density */
-				if (randint(density>>1) == 1)
+				if (randint1(density>>1) == 1)
 				{
 					//p_ptr->scr_info[dispy][dispx].c = ch;
 					//p_ptr->scr_info[dispy][dispx].a = attr;
@@ -4571,7 +4571,7 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 				//ch = bolt_char(y, x, y9, x9);
 				//attr = spell_color(typ);
 
-				if (randint(density) == 1) 
+				if (randint1(density) == 1) 
 				{
 					//p_ptr->scr_info[dispy][dispx].c = ch;
 					//p_ptr->scr_info[dispy][dispx].a = attr;
@@ -4652,7 +4652,7 @@ bool project(int who, int rad, int Depth, int y, int x, int dam, int typ, int fl
 			/* Dump everything with this radius */
 			for (i = gm[t]; i < gm[t+1]; i++)
 			{
-			    if(randint(density) != 1) continue;
+			    if(randint1(density) != 1) continue;
 				/* Extract the location */
 				y = gy[i];
 				x = gx[i];

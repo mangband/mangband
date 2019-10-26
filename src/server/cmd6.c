@@ -489,7 +489,7 @@ void do_cmd_use_staff(player_type *p_ptr, int item)
 	}
 
 	/* Roll for usage */
-	if ((chance < USE_DEVICE) || (randint(chance) < USE_DEVICE))
+	if ((chance < USE_DEVICE) || (randint1(chance) < USE_DEVICE))
 	{
 		/*if (flush_failure) flush();*/
 		msg_print(p_ptr, "You failed to use the staff properly.");
@@ -999,7 +999,7 @@ void do_cmd_activate(player_type *p_ptr, int item)
 	}
 
 	/* Roll for usage */
-	if ((chance < USE_DEVICE) || (randint(chance) < USE_DEVICE))
+	if ((chance < USE_DEVICE) || (randint1(chance) < USE_DEVICE))
 	{
 		/*if (flush_failure) flush();*/
 		msg_print(p_ptr, "You failed to activate it properly.");

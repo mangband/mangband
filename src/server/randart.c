@@ -748,7 +748,7 @@ static void add_ability (artifact_type *a_ptr)
 				else if (r < 18)
                                 {
 					a_ptr->flags1 |= TR1_INFRA;
-					if (a_ptr->pval == 0) a_ptr->pval = randint(2);
+					if (a_ptr->pval == 0) a_ptr->pval = randint1(2);
 				}
 				else if (r < 42) add_esp(a_ptr);
 				else if (r < 57) a_ptr->flags3 |= TR3_SEE_INVIS;
@@ -1191,13 +1191,13 @@ artifact_type *randart_make(const object_type *o_ptr)
 			a_ptr->to_h = 0;
 			if (rand_int (2) == 0)
                 	{
-				a_ptr->to_d += randint(3);
-				if (rand_int (2) == 0) a_ptr->to_d += randint(3);
+				a_ptr->to_d += randint1(3);
+				if (rand_int (2) == 0) a_ptr->to_d += randint1(3);
 			}
 			if (rand_int (2) == 0)
                 	{
-				a_ptr->to_h += randint(6);
-				if (rand_int (2) == 0) a_ptr->to_h += randint(6);
+				a_ptr->to_h += randint1(6);
+				if (rand_int (2) == 0) a_ptr->to_h += randint1(6);
 			}
 			if (rand_int (5) == 0) a_ptr->ds += 1;
 			else if (rand_int (5) == 0) a_ptr->dd += 1;
@@ -1212,8 +1212,8 @@ artifact_type *randart_make(const object_type *o_ptr)
 		else
 		{
 			/* Make it really bad */
-			a_ptr->to_d = -20 - randint(30);
-			a_ptr->to_h = -20 - randint(30);
+			a_ptr->to_d = -20 - randint1(30);
+			a_ptr->to_h = -20 - randint1(30);
 			a_ptr->flags3 |= TR3_LIGHT_CURSE;
 			ap = artifact_power(a_ptr);
 		}
@@ -1281,7 +1281,7 @@ artifact_type *randart_make(const object_type *o_ptr)
 	/* Ensure a bonus for certain items whose base type always has a pval */
 	if ((k_ptr->flags1 & TR1_PVAL_MASK) && !a_ptr->pval)
         {
-		a_ptr->pval = randint(3);
+		a_ptr->pval = randint1(3);
 		if (cursed_p(o_ptr)) a_ptr->pval = -a_ptr->pval;
 	}
 

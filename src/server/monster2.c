@@ -1978,7 +1978,7 @@ static bool place_monster_one(int Depth, int y, int x, int r_idx, bool slp)
 	if (slp && r_ptr->sleep)
 	{
 		int val = r_ptr->sleep;
-		m_ptr->csleep = ((val * 2) + randint(val * 10));
+		m_ptr->csleep = ((val * 2) + randint1(val * 10));
 	}
 
 #ifdef DEBUG
@@ -2014,20 +2014,20 @@ static bool place_monster_group(int Depth, int y, int x, int r_idx, bool slp)
 
 
 	/* Pick a group size */
-	total = randint(13);
+	total = randint1(13);
 
 	/* Hard monsters, small groups */
 	if (r_ptr->level > Depth)
 	{
 		extra = r_ptr->level - Depth;
-		extra = 0 - randint(extra);
+		extra = 0 - randint1(extra);
 	}
 
 	/* Easy monsters, large groups */
 	else if (r_ptr->level < Depth)
 	{
 		extra = Depth - r_ptr->level;
-		extra = randint(extra);
+		extra = randint1(extra);
 	}
 
 	/* Hack -- limit group reduction */

@@ -2151,7 +2151,7 @@ void store_confirm(player_type *p_ptr)
 
 	/* Get the description all over again */
 	object_desc(p_ptr, o_name, sizeof(o_name), &sold_obj, TRUE, 3);
- 
+
 	/* Describe the result (in message buffer) */
 	msg_format(p_ptr, "You sold %s for %ld gold.", o_name, (long)price);
 
@@ -2392,7 +2392,7 @@ void store_maint(int which)
 	j = st_ptr->stock_num;
 
 	/* Sell a few items */
-	j = j - randint(STORE_TURNOVER);
+	j = j - randint1(STORE_TURNOVER);
 
 	/* Never keep more than "STORE_MAX_KEEP" slots */
 	if (j > STORE_MAX_KEEP) j = STORE_MAX_KEEP;
@@ -2411,7 +2411,7 @@ void store_maint(int which)
 	j = st_ptr->stock_num;
 
 	/* Buy some more items */
-	j = j + randint(STORE_TURNOVER);
+	j = j + randint1(STORE_TURNOVER);
 
 	/* Never keep more than "STORE_MAX_KEEP" slots */
 	if (j > STORE_MAX_KEEP) j = STORE_MAX_KEEP;

@@ -254,7 +254,7 @@ static bool quaff_potion(player_type *p_ptr, object_type *o_ptr, bool *ident)
 
 		case SV_POTION_SLOWNESS:
 		{
-			if (set_slow(p_ptr, p_ptr->slow + randint(25) + 15)) *ident = TRUE;
+			if (set_slow(p_ptr, p_ptr->slow + randint1(25) + 15)) *ident = TRUE;
 			break;
 		}
 
@@ -399,7 +399,7 @@ static bool quaff_potion(player_type *p_ptr, object_type *o_ptr, bool *ident)
 
 		case SV_POTION_INFRAVISION:
 		{
-			if (set_tim_infra(p_ptr, p_ptr->tim_infra + 100 + randint(100)))
+			if (set_tim_infra(p_ptr, p_ptr->tim_infra + 100 + randint1(100)))
 			{
 				*ident = TRUE;
 			}
@@ -408,7 +408,7 @@ static bool quaff_potion(player_type *p_ptr, object_type *o_ptr, bool *ident)
 
 		case SV_POTION_DETECT_INVIS:
 		{
-			if (set_tim_invis(p_ptr, p_ptr->tim_invis + 12 + randint(12)))
+			if (set_tim_invis(p_ptr, p_ptr->tim_invis + 12 + randint1(12)))
 			{
 				*ident = TRUE;
 			}
@@ -437,7 +437,7 @@ static bool quaff_potion(player_type *p_ptr, object_type *o_ptr, bool *ident)
 		{
 			if (!p_ptr->fast)
 			{
-				if (set_fast(p_ptr, randint(25) + 15)) *ident = TRUE;
+				if (set_fast(p_ptr, randint1(25) + 15)) *ident = TRUE;
 			}
 			else
 			{
@@ -448,7 +448,7 @@ static bool quaff_potion(player_type *p_ptr, object_type *o_ptr, bool *ident)
 
 		case SV_POTION_RESIST_HEAT:
 		{
-			if (set_oppose_fire(p_ptr, p_ptr->oppose_fire + randint(10) + 10))
+			if (set_oppose_fire(p_ptr, p_ptr->oppose_fire + randint1(10) + 10))
 			{
 				*ident = TRUE;
 			}
@@ -457,7 +457,7 @@ static bool quaff_potion(player_type *p_ptr, object_type *o_ptr, bool *ident)
 
 		case SV_POTION_RESIST_COLD:
 		{
-			if (set_oppose_cold(p_ptr, p_ptr->oppose_cold + randint(10) + 10))
+			if (set_oppose_cold(p_ptr, p_ptr->oppose_cold + randint1(10) + 10))
 			{
 				*ident = TRUE;
 			}
@@ -468,7 +468,7 @@ static bool quaff_potion(player_type *p_ptr, object_type *o_ptr, bool *ident)
 		{
 			if (hp_player(p_ptr, 10)) *ident = TRUE;
 			if (set_afraid(p_ptr, 0)) *ident = TRUE;
-			if (set_hero(p_ptr, p_ptr->hero + randint(25) + 25)) *ident = TRUE;
+			if (set_hero(p_ptr, p_ptr->hero + randint1(25) + 25)) *ident = TRUE;
 			break;
 		}
 
@@ -476,7 +476,7 @@ static bool quaff_potion(player_type *p_ptr, object_type *o_ptr, bool *ident)
 		{
 			if (hp_player(p_ptr, 30)) *ident = TRUE;
 			if (set_afraid(p_ptr, 0)) *ident = TRUE;
-			if (set_shero(p_ptr, p_ptr->shero + randint(25) + 25)) *ident = TRUE;
+			if (set_shero(p_ptr, p_ptr->shero + randint1(25) + 25)) *ident = TRUE;
 			break;
 		}
 
@@ -734,7 +734,7 @@ static bool read_scroll(player_type *p_ptr, object_type *o_ptr, bool *ident)
 		{
 			if (!p_ptr->resist_blind)
 			{
-				(void)set_blind(p_ptr, p_ptr->blind + 3 + randint(5));
+				(void)set_blind(p_ptr, p_ptr->blind + 3 + randint1(5));
 			}
 			if (unlite_area(p_ptr, 10, 3)) *ident = TRUE;
 			break;
@@ -763,7 +763,7 @@ static bool read_scroll(player_type *p_ptr, object_type *o_ptr, bool *ident)
 		case SV_SCROLL_SUMMON_MONSTER:
 		{
 			sound(p_ptr, MSG_SUM_MONSTER);
-			for (k = 0; k < randint(3); k++)
+			for (k = 0; k < randint1(3); k++)
 			{
 				if (summon_specific(Depth, py, px, p_ptr->dun_depth, 0))
 				{
@@ -776,7 +776,7 @@ static bool read_scroll(player_type *p_ptr, object_type *o_ptr, bool *ident)
 		case SV_SCROLL_SUMMON_UNDEAD:
 		{
 			sound(p_ptr, MSG_SUM_UNDEAD);
-			for (k = 0; k < randint(3); k++)
+			for (k = 0; k < randint1(3); k++)
 			{
 				if (summon_specific(Depth, py, px, p_ptr->dun_depth, SUMMON_UNDEAD))
 				{
@@ -874,14 +874,14 @@ static bool read_scroll(player_type *p_ptr, object_type *o_ptr, bool *ident)
 
 		case SV_SCROLL_STAR_ENCHANT_ARMOR:
 		{
-			if (!enchant_spell(p_ptr, 0, 0, randint(3) + 2, FALSE)) used_up = FALSE;
+			if (!enchant_spell(p_ptr, 0, 0, randint1(3) + 2, FALSE)) used_up = FALSE;
 			*ident = TRUE;
 			break;
 		}
 
 		case SV_SCROLL_STAR_ENCHANT_WEAPON:
 		{
-			if (!enchant_spell(p_ptr, randint(3), randint(3), 0, FALSE)) used_up = FALSE;
+			if (!enchant_spell(p_ptr, randint1(3), randint1(3), 0, FALSE)) used_up = FALSE;
 			*ident = TRUE;
 			break;
 		}
@@ -946,19 +946,19 @@ static bool read_scroll(player_type *p_ptr, object_type *o_ptr, bool *ident)
 
 		case SV_SCROLL_BLESSING:
 		{
-			if (set_blessed(p_ptr, p_ptr->blessed + randint(12) + 6)) *ident = TRUE;
+			if (set_blessed(p_ptr, p_ptr->blessed + randint1(12) + 6)) *ident = TRUE;
 			break;
 		}
 
 		case SV_SCROLL_HOLY_CHANT:
 		{
-			if (set_blessed(p_ptr, p_ptr->blessed + randint(24) + 12)) *ident = TRUE;
+			if (set_blessed(p_ptr, p_ptr->blessed + randint1(24) + 12)) *ident = TRUE;
 			break;
 		}
 
 		case SV_SCROLL_HOLY_PRAYER:
 		{
-			if (set_blessed(p_ptr, p_ptr->blessed + randint(48) + 24)) *ident = TRUE;
+			if (set_blessed(p_ptr, p_ptr->blessed + randint1(48) + 24)) *ident = TRUE;
 			break;
 		}
 
@@ -976,7 +976,7 @@ static bool read_scroll(player_type *p_ptr, object_type *o_ptr, bool *ident)
 		case SV_SCROLL_PROTECTION_FROM_EVIL:
 		{
 			k = 3 * p_ptr->lev;
-			if (set_protevil(p_ptr, p_ptr->protevil + randint(25) + k)) *ident = TRUE;
+			if (set_protevil(p_ptr, p_ptr->protevil + randint1(25) + k)) *ident = TRUE;
 			break;
 		}
 
@@ -1029,7 +1029,7 @@ static bool read_scroll(player_type *p_ptr, object_type *o_ptr, bool *ident)
 
 		case SV_SCROLL_STAR_ACQUIREMENT:
 		{
-			acquirement(Depth, py, px, randint(2) + 1, TRUE);
+			acquirement(Depth, py, px, randint1(2) + 1, TRUE);
 			*ident = TRUE;
 			break;
 		}
@@ -1090,7 +1090,7 @@ static bool use_staff(player_type *p_ptr, object_type *o_ptr, bool *ident)
 		{
 			if (!p_ptr->resist_blind)
 			{
-				if (set_blind(p_ptr, p_ptr->blind + 3 + randint(5))) *ident = TRUE;
+				if (set_blind(p_ptr, p_ptr->blind + 3 + randint1(5))) *ident = TRUE;
 			}
 			if (unlite_area(p_ptr, 10, 3)) *ident = TRUE;
 			break;
@@ -1098,7 +1098,7 @@ static bool use_staff(player_type *p_ptr, object_type *o_ptr, bool *ident)
 
 		case SV_STAFF_SLOWNESS:
 		{
-			if (set_slow(p_ptr, p_ptr->slow + randint(30) + 15)) *ident = TRUE;
+			if (set_slow(p_ptr, p_ptr->slow + randint1(30) + 15)) *ident = TRUE;
 			break;
 		}
 
@@ -1111,7 +1111,7 @@ static bool use_staff(player_type *p_ptr, object_type *o_ptr, bool *ident)
 		case SV_STAFF_SUMMONING:
 		{
 			sound(p_ptr, MSG_SUM_MONSTER);
-			for (k = 0; k < randint(4); k++)
+			for (k = 0; k < randint1(4); k++)
 			{
 				if (summon_specific(Depth, py, px, p_ptr->dun_depth, 0))
 				{
@@ -1213,7 +1213,7 @@ static bool use_staff(player_type *p_ptr, object_type *o_ptr, bool *ident)
 
 		case SV_STAFF_CURE_LIGHT:
 		{
-			if (hp_player(p_ptr, randint(8))) *ident = TRUE;
+			if (hp_player(p_ptr, randint1(8))) *ident = TRUE;
 			break;
 		}
 
@@ -1266,7 +1266,7 @@ static bool use_staff(player_type *p_ptr, object_type *o_ptr, bool *ident)
 		{
 			if (!p_ptr->fast)
 			{
-				if (set_fast(p_ptr, randint(30) + 15)) *ident = TRUE;
+				if (set_fast(p_ptr, randint1(30) + 15)) *ident = TRUE;
 			}
 			else
 			{
@@ -1298,7 +1298,7 @@ static bool use_staff(player_type *p_ptr, object_type *o_ptr, bool *ident)
 		{
 			if (dispel_evil(p_ptr, 120)) *ident = TRUE;
 			k = 3 * p_ptr->lev;
-			if (set_protevil(p_ptr, p_ptr->protevil + randint(25) + k)) *ident = TRUE;
+			if (set_protevil(p_ptr, p_ptr->protevil + randint1(25) + k)) *ident = TRUE;
 			if (set_poisoned(p_ptr, 0)) *ident = TRUE;
 			if (set_afraid(p_ptr, 0)) *ident = TRUE;
 			if (hp_player(p_ptr, 50)) *ident = TRUE;
@@ -1368,7 +1368,7 @@ static bool aim_wand(player_type *p_ptr, object_type *o_ptr, bool *ident)
 	}
 
 	/* Roll for usage */
-	if ((chance < USE_DEVICE) || (randint(chance) < USE_DEVICE))
+	if ((chance < USE_DEVICE) || (randint1(chance) < USE_DEVICE))
 	{
 		/*if (flush_failure) flush();*/
 		msg_print(p_ptr, "You failed to use the wand properly.");
@@ -1600,7 +1600,7 @@ static bool aim_wand(player_type *p_ptr, object_type *o_ptr, bool *ident)
 
 		case SV_WAND_DRAGON_BREATH:
 		{
-			switch (randint(5))
+			switch (randint1(5))
 			{
 				case 1:
 				{
@@ -1693,7 +1693,7 @@ static bool zap_rod(player_type *p_ptr, object_type *o_ptr, bool *ident)
 	}
 
 	/* Roll for usage */
-	if ((chance < USE_DEVICE) || (randint(chance) < USE_DEVICE))
+	if ((chance < USE_DEVICE) || (randint1(chance) < USE_DEVICE))
 	{
 		/* if (flush_failure) flush(); */
 		msg_print(p_ptr, "You failed to use the rod properly.");
@@ -1811,7 +1811,7 @@ static bool zap_rod(player_type *p_ptr, object_type *o_ptr, bool *ident)
 		{
 			if (!p_ptr->fast)
 			{
-				if (set_fast(p_ptr, randint(30) + 15)) *ident = TRUE;
+				if (set_fast(p_ptr, randint1(30) + 15)) *ident = TRUE;
 			}
 			else
 			{
@@ -1999,7 +1999,7 @@ static bool activate_object(player_type *p_ptr, object_type *o_ptr, bool *ident)
 			{
 				msg_format(p_ptr, "The %s lets out a shrill wail...", o_name);
 				k = 3 * p_ptr->lev;
-				(void)set_protevil(p_ptr, p_ptr->protevil + randint(25) + k);
+				(void)set_protevil(p_ptr, p_ptr->protevil + randint1(25) + k);
 				break;
 			}
 
@@ -2015,7 +2015,7 @@ static bool activate_object(player_type *p_ptr, object_type *o_ptr, bool *ident)
 				msg_format(p_ptr, "The %s glows brightly...", o_name);
 				if (!p_ptr->fast)
 				{
-					(void)set_fast(p_ptr, randint(75) + 75);
+					(void)set_fast(p_ptr, randint1(75) + 75);
 				}
 				else
 				{
@@ -2069,13 +2069,13 @@ static bool activate_object(player_type *p_ptr, object_type *o_ptr, bool *ident)
 				msg_format(p_ptr, "Your %s glows many colours...", o_name);
 				(void)hp_player(p_ptr, 30);
 				(void)set_afraid(p_ptr, 0);
-				(void)set_shero(p_ptr, p_ptr->shero + randint(50) + 50);
-				(void)set_blessed(p_ptr, p_ptr->blessed + randint(50) + 50);
-				(void)set_oppose_acid(p_ptr, p_ptr->oppose_acid + randint(50) + 50);
-				(void)set_oppose_elec(p_ptr, p_ptr->oppose_elec + randint(50) + 50);
-				(void)set_oppose_fire(p_ptr, p_ptr->oppose_fire + randint(50) + 50);
-				(void)set_oppose_cold(p_ptr, p_ptr->oppose_cold + randint(50) + 50);
-				(void)set_oppose_pois(p_ptr, p_ptr->oppose_pois + randint(50) + 50);
+				(void)set_shero(p_ptr, p_ptr->shero + randint1(50) + 50);
+				(void)set_blessed(p_ptr, p_ptr->blessed + randint1(50) + 50);
+				(void)set_oppose_acid(p_ptr, p_ptr->oppose_acid + randint1(50) + 50);
+				(void)set_oppose_elec(p_ptr, p_ptr->oppose_elec + randint1(50) + 50);
+				(void)set_oppose_fire(p_ptr, p_ptr->oppose_fire + randint1(50) + 50);
+				(void)set_oppose_cold(p_ptr, p_ptr->oppose_cold + randint1(50) + 50);
+				(void)set_oppose_pois(p_ptr, p_ptr->oppose_pois + randint1(50) + 50);
 				break;
 			}
 
@@ -2129,11 +2129,11 @@ static bool activate_object(player_type *p_ptr, object_type *o_ptr, bool *ident)
 			case ACT_RESIST:
 			{
 				msg_format(p_ptr, "Your %s glows many colours...", o_name);
-				(void)set_oppose_acid(p_ptr, p_ptr->oppose_acid + randint(20) + 20);
-				(void)set_oppose_elec(p_ptr, p_ptr->oppose_elec + randint(20) + 20);
-				(void)set_oppose_fire(p_ptr, p_ptr->oppose_fire + randint(20) + 20);
-				(void)set_oppose_cold(p_ptr, p_ptr->oppose_cold + randint(20) + 20);
-				(void)set_oppose_pois(p_ptr, p_ptr->oppose_pois + randint(20) + 20);
+				(void)set_oppose_acid(p_ptr, p_ptr->oppose_acid + randint1(20) + 20);
+				(void)set_oppose_elec(p_ptr, p_ptr->oppose_elec + randint1(20) + 20);
+				(void)set_oppose_fire(p_ptr, p_ptr->oppose_fire + randint1(20) + 20);
+				(void)set_oppose_cold(p_ptr, p_ptr->oppose_cold + randint1(20) + 20);
+				(void)set_oppose_pois(p_ptr, p_ptr->oppose_pois + randint1(20) + 20);
 				break;
 			}
 
@@ -2218,7 +2218,7 @@ static bool activate_object(player_type *p_ptr, object_type *o_ptr, bool *ident)
 				msg_format(p_ptr, "Your %s glows bright green...", o_name);
 				if (!p_ptr->fast)
 				{
-					(void)set_fast(p_ptr, randint(20) + 20);
+					(void)set_fast(p_ptr, randint1(20) + 20);
 				}
 				else
 				{
@@ -2376,14 +2376,14 @@ static bool activate_object(player_type *p_ptr, object_type *o_ptr, bool *ident)
 			case ACT_BERSERKER:
 			{
 				msg_format(p_ptr, "Your %s glows in anger...", o_name);
-				set_shero(p_ptr, p_ptr->shero + randint(50) + 50);
+				set_shero(p_ptr, p_ptr->shero + randint1(50) + 50);
 				break;
 			}
 		}
 
 		/* Set the recharge time */
 		if (a_ptr->randtime)
-			o_ptr->timeout = a_ptr->time + (byte)randint(a_ptr->randtime);
+			o_ptr->timeout = a_ptr->time + (byte)randint1(a_ptr->randtime);
 		else
 			o_ptr->timeout = a_ptr->time;
 
@@ -2399,11 +2399,11 @@ static bool activate_object(player_type *p_ptr, object_type *o_ptr, bool *ident)
 			{
 				msg_print(p_ptr, "Your cloak flashes many colors...");
 
-				(void)set_oppose_acid(p_ptr, p_ptr->oppose_acid + randint(40) + 40);
-				(void)set_oppose_elec(p_ptr, p_ptr->oppose_elec + randint(40) + 40);
-				(void)set_oppose_fire(p_ptr, p_ptr->oppose_fire + randint(40) + 40);
-				(void)set_oppose_cold(p_ptr, p_ptr->oppose_cold + randint(40) + 40);
-				(void)set_oppose_pois(p_ptr, p_ptr->oppose_pois + randint(40) + 40);
+				(void)set_oppose_acid(p_ptr, p_ptr->oppose_acid + randint1(40) + 40);
+				(void)set_oppose_elec(p_ptr, p_ptr->oppose_elec + randint1(40) + 40);
+				(void)set_oppose_fire(p_ptr, p_ptr->oppose_fire + randint1(40) + 40);
+				(void)set_oppose_cold(p_ptr, p_ptr->oppose_cold + randint1(40) + 40);
+				(void)set_oppose_pois(p_ptr, p_ptr->oppose_pois + randint1(40) + 40);
 
 				o_ptr->timeout = randint0(50) + 150;
 				break;
@@ -2600,7 +2600,7 @@ static bool activate_object(player_type *p_ptr, object_type *o_ptr, bool *ident)
 			case SV_RING_ACID:
 			{
 				fire_ball(p_ptr, GF_ACID, dir, 70, 2);
-				set_oppose_acid(p_ptr, p_ptr->oppose_acid + randint(20) + 20);
+				set_oppose_acid(p_ptr, p_ptr->oppose_acid + randint1(20) + 20);
 				o_ptr->timeout = randint0(50) + 50;
 				break;
 			}
@@ -2608,7 +2608,7 @@ static bool activate_object(player_type *p_ptr, object_type *o_ptr, bool *ident)
 			case SV_RING_FLAMES:
 			{
 				fire_ball(p_ptr, GF_FIRE, dir, 80, 2);
-				set_oppose_fire(p_ptr, p_ptr->oppose_fire + randint(20) + 20);
+				set_oppose_fire(p_ptr, p_ptr->oppose_fire + randint1(20) + 20);
 				o_ptr->timeout = randint0(50) + 50;
 				break;
 			}
@@ -2616,7 +2616,7 @@ static bool activate_object(player_type *p_ptr, object_type *o_ptr, bool *ident)
 			case SV_RING_ICE:
 			{
 				fire_ball(p_ptr, GF_COLD, dir, 75, 2);
-				set_oppose_cold(p_ptr, p_ptr->oppose_cold + randint(20) + 20);
+				set_oppose_cold(p_ptr, p_ptr->oppose_cold + randint1(20) + 20);
 				o_ptr->timeout = randint0(50) + 50;
 				break;
 			}
@@ -2624,7 +2624,7 @@ static bool activate_object(player_type *p_ptr, object_type *o_ptr, bool *ident)
 			case SV_RING_LIGHTNING:
 			{
 				fire_ball(p_ptr, GF_ELEC, dir, 85, 2);
-				set_oppose_elec(p_ptr, p_ptr->oppose_elec + randint(20) + 20);
+				set_oppose_elec(p_ptr, p_ptr->oppose_elec + randint1(20) + 20);
 				o_ptr->timeout = randint0(50) + 50;
 				break;
 			}

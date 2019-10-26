@@ -2412,7 +2412,7 @@ void access_arena(player_type *p_ptr, int py, int px) {
 		if (tmp_count < 2) 
 		{
 			msg_print(p_ptr, "You enter an ancient fighting pit.");
-			teleport_player_to(p_ptr, arenas[a].y_1+1+randint(arenas[a].y_2-arenas[a].y_1-2) , arenas[a].x_1+1+randint(arenas[a].x_2-arenas[a].x_1-2) );
+			teleport_player_to(p_ptr, arenas[a].y_1+1+randint1(arenas[a].y_2-arenas[a].y_1-2) , arenas[a].x_1+1+randint1(arenas[a].x_2-arenas[a].x_1-2) );
 			p_ptr->arena_num = a;
 		}
 		else
@@ -3082,7 +3082,7 @@ bool mon_take_hit(player_type *p_ptr, int m_idx, int dam, bool *fear, cptr note)
 	/* Mega-Hack -- Pain cancels fear */
 	if (m_ptr->monfear && (dam > 0))
 	{
-		int tmp = randint(dam);
+		int tmp = randint1(dam);
 
 		/* Cure a little fear */
 		if (tmp < m_ptr->monfear)
@@ -3121,7 +3121,7 @@ bool mon_take_hit(player_type *p_ptr, int m_idx, int dam, bool *fear, cptr note)
 			(*fear) = TRUE;
 
 			/* XXX XXX XXX Hack -- Add some timed fear */
-			m_ptr->monfear = (randint(10) +
+			m_ptr->monfear = (randint1(10) +
 			                  (((dam >= m_ptr->hp) && (percentage > 7)) ?
 			                   20 : ((11 - percentage) * 5)));
 		}

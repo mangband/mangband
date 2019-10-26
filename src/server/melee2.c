@@ -917,7 +917,7 @@ bool make_attack_spell(player_type *p_ptr, int m_idx)
 			if (blind) msg_format(p_ptr, "%^s mumbles.", m_name);
 			else msg_format(p_ptr, "%^s casts an acid ball.", m_name);
 			breath(p_ptr, m_idx, GF_ACID,
-			       randint(rlev * 3) + 15);
+			       randint1(rlev * 3) + 15);
 			update_smart_learn(m_idx, DRS_ACID);
 			break;
 		}
@@ -929,7 +929,7 @@ bool make_attack_spell(player_type *p_ptr, int m_idx)
 			if (blind) msg_format(p_ptr, "%^s mumbles.", m_name);
 			else msg_format(p_ptr, "%^s casts a lightning ball.", m_name);
 			breath(p_ptr, m_idx, GF_ELEC,
-			       randint(rlev * 3 / 2) + 8);
+			       randint1(rlev * 3 / 2) + 8);
 			update_smart_learn(m_idx, DRS_ELEC);
 			break;
 		}
@@ -941,7 +941,7 @@ bool make_attack_spell(player_type *p_ptr, int m_idx)
 			if (blind) msg_format(p_ptr, "%^s mumbles.", m_name);
 			else msg_format(p_ptr, "%^s casts a fire ball.", m_name);
 			breath(p_ptr, m_idx, GF_FIRE,
-			       randint(rlev * 7 / 2) + 10);
+			       randint1(rlev * 7 / 2) + 10);
 			update_smart_learn(m_idx, DRS_FIRE);
 			break;
 		}
@@ -953,7 +953,7 @@ bool make_attack_spell(player_type *p_ptr, int m_idx)
 			if (blind) msg_format(p_ptr, "%^s mumbles.", m_name);
 			else msg_format(p_ptr, "%^s casts a frost ball.", m_name);
 			breath(p_ptr, m_idx, GF_COLD,
-			       randint(rlev * 3 / 2) + 10);
+			       randint1(rlev * 3 / 2) + 10);
 			update_smart_learn(m_idx, DRS_COLD);
 			break;
 		}
@@ -995,7 +995,7 @@ bool make_attack_spell(player_type *p_ptr, int m_idx)
 				p_ptr->name
 			);
 			breath(p_ptr, m_idx, GF_WATER,
-			       randint(rlev * 5 / 2) + 50);
+			       randint1(rlev * 5 / 2) + 50);
 			break;
 		}
 
@@ -1037,7 +1037,7 @@ bool make_attack_spell(player_type *p_ptr, int m_idx)
 				msg_format(p_ptr, "%^s draws psychic energy from you!", m_name);
 
 				/* Attack power */
-				r1 = (randint(rlev) / 2) + 1;
+				r1 = (randint1(rlev) / 2) + 1;
 
 				/* Full drain */
 				if (r1 >= p_ptr->csp)
@@ -1306,7 +1306,7 @@ bool make_attack_spell(player_type *p_ptr, int m_idx)
 			if (blind) msg_format(p_ptr, "%^s mumbles.", m_name);
 			else msg_format(p_ptr, "%^s casts a mana bolt.", m_name);
 			bolt(p_ptr, m_idx, GF_MANA,
-			     randint(rlev * 7 / 2) + 50);
+			     randint1(rlev * 7 / 2) + 50);
 			break;
 		}
 
@@ -2219,7 +2219,7 @@ static void get_moves(player_type *p_ptr, int m_idx, int *mm)
 			}
 
 			/* Occasionally we change our mind about where we want to go */
-			if (randint(1000) < 10)
+			if (randint1(1000) < 10)
 			{
 				x2 = y2 = 0;
 			}
@@ -2227,8 +2227,8 @@ static void get_moves(player_type *p_ptr, int m_idx, int *mm)
 		if ( !x2 && !y2 )
 		{
 			/* We don't know where we're going, pick a destination */
-			x2 = m_ptr->wx = randint(MAX_WID);
-			y2 = m_ptr->wy = randint(MAX_HGT);
+			x2 = m_ptr->wx = randint1(MAX_WID);
+			y2 = m_ptr->wy = randint1(MAX_HGT);
 		}
 	}
 
@@ -2612,7 +2612,7 @@ static void process_monster(int Ind, int m_idx)
 	if (m_ptr->confused)
 	{
 		/* Amount of "boldness" */
-		int d = randint(r_ptr->level / 10 + 1);
+		int d = randint1(r_ptr->level / 10 + 1);
 
 		/* Still confused */
 		if (m_ptr->confused > d)
@@ -2645,7 +2645,7 @@ static void process_monster(int Ind, int m_idx)
 	if (m_ptr->monfear)
 	{
 		/* Amount of "boldness" */
-		int d = randint(r_ptr->level / 10 + 1);
+		int d = randint1(r_ptr->level / 10 + 1);
 
 		/* Still afraid */
 		if (m_ptr->monfear > d)
@@ -2908,7 +2908,7 @@ static void process_monster(int Ind, int m_idx)
 
 #if 0
 					/* XXX XXX XXX XXX Old test (pval 10 to 20) */
-					if (randint((m_ptr->hp + 1) * (50 + o_ptr->pval)) <
+					if (randint1((m_ptr->hp + 1) * (50 + o_ptr->pval)) <
 					    40 * (m_ptr->hp - 10 - o_ptr->pval));
 #endif
 
@@ -2934,7 +2934,7 @@ static void process_monster(int Ind, int m_idx)
 
 #if 0
 				/* XXX XXX XXX XXX Old test (pval 10 to 20) */
-				if (randint((m_ptr->hp + 1) * (50 + o_ptr->pval)) <
+				if (randint1((m_ptr->hp + 1) * (50 + o_ptr->pval)) <
 				    40 * (m_ptr->hp - 10 - o_ptr->pval));
 #endif
 
@@ -2987,7 +2987,7 @@ static void process_monster(int Ind, int m_idx)
 			do_move = FALSE;
 
 			/* Break the ward */
-			if (randint(BREAK_GLYPH) < r_ptr->level)
+			if (randint1(BREAK_GLYPH) < r_ptr->level)
 			{
 				/* Describe observable breakage */
 				for (i = 1; i <= NumPlayers; i++)
@@ -3493,7 +3493,7 @@ void process_monsters(void)
 			noise = (1L << (MIN(30, p_ptr->noise)));
 		}
 		/* If player hasn't acted, 1/100 chance to make noise */
-		else if (randint(100) == 1)
+		else if (randint1(100) == 1)
 		{
 			noise = (1L << (30 - p_ptr->skill_stl));
 		}

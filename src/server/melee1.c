@@ -120,7 +120,7 @@ static int check_hit(player_type *p_ptr, int power, int level)
 	ac = p_ptr->ac + p_ptr->to_a;
 
 	/* Power and Level compete against Armor */
-	if ((i > 0) && (randint(i) > ((ac * 3) / 4))) return (TRUE);
+	if ((i > 0) && (randint1(i) > ((ac * 3) / 4))) return (TRUE);
 
 	/* Assume miss */
 	return (FALSE);
@@ -523,7 +523,7 @@ bool make_attack_normal(player_type *p_ptr, int m_idx)
 					/* Take "poison" effect */
 					if (!(p_ptr->resist_pois || p_ptr->oppose_pois))
 					{
-						if (set_poisoned(p_ptr, p_ptr->poisoned + randint(rlev) + 5))
+						if (set_poisoned(p_ptr, p_ptr->poisoned + randint1(rlev) + 5))
 						{
 							obvious = TRUE;
 						}
@@ -629,9 +629,9 @@ bool make_attack_normal(player_type *p_ptr, int m_idx)
 					/* Eat gold */
 					else
 					{
-						gold = (p_ptr->au / 10) + randint(25);
+						gold = (p_ptr->au / 10) + randint1(25);
 						if (gold < 2) gold = 2;
-						if (gold > 5000) gold = (p_ptr->au / 20) + randint(3000);
+						if (gold > 5000) gold = (p_ptr->au / 20) + randint1(3000);
 						if (gold > p_ptr->au) gold = p_ptr->au;
 						p_ptr->au -= gold;
 						if (gold <= 0)
@@ -804,7 +804,7 @@ bool make_attack_normal(player_type *p_ptr, int m_idx)
 					if ((o_ptr->pval > 0) && (o_ptr->sval < SV_LITE_DWARVEN))
 					{
 						/* Reduce fuel */
-						o_ptr->pval -= (250 + randint(250));
+						o_ptr->pval -= (250 + randint1(250));
 						if (o_ptr->pval < 1) o_ptr->pval = 1;
 
 						/* Notice */
@@ -897,7 +897,7 @@ bool make_attack_normal(player_type *p_ptr, int m_idx)
 					/* Increase "blind" */
 					if (!p_ptr->resist_blind)
 					{
-						if (set_blind(p_ptr, p_ptr->blind + 10 + randint(rlev)))
+						if (set_blind(p_ptr, p_ptr->blind + 10 + randint1(rlev)))
 						{
 							obvious = TRUE;
 						}
@@ -917,7 +917,7 @@ bool make_attack_normal(player_type *p_ptr, int m_idx)
 					/* Increase "confused" */
 					if (!p_ptr->resist_conf)
 					{
-						if (set_confused(p_ptr, p_ptr->confused + 3 + randint(rlev)))
+						if (set_confused(p_ptr, p_ptr->confused + 3 + randint1(rlev)))
 						{
 							obvious = TRUE;
 						}
@@ -947,7 +947,7 @@ bool make_attack_normal(player_type *p_ptr, int m_idx)
 					}
 					else
 					{
-						if (set_afraid(p_ptr, p_ptr->afraid + 3 + randint(rlev)))
+						if (set_afraid(p_ptr, p_ptr->afraid + 3 + randint1(rlev)))
 						{
 							obvious = TRUE;
 						}
@@ -977,7 +977,7 @@ bool make_attack_normal(player_type *p_ptr, int m_idx)
 					}
 					else
 					{
-						if (set_paralyzed(p_ptr, p_ptr->paralyzed + 3 + randint(rlev)))
+						if (set_paralyzed(p_ptr, p_ptr->paralyzed + 3 + randint1(rlev)))
 						{
 							obvious = TRUE;
 							
@@ -1215,7 +1215,7 @@ bool make_attack_normal(player_type *p_ptr, int m_idx)
 					/* Increase "image" */
 					if (!p_ptr->resist_chaos)
 					{
-						if (set_image(p_ptr, p_ptr->image + 3 + randint(rlev / 2)))
+						if (set_image(p_ptr, p_ptr->image + 3 + randint1(rlev / 2)))
 						{
 							obvious = TRUE;
 						}
@@ -1252,11 +1252,11 @@ bool make_attack_normal(player_type *p_ptr, int m_idx)
 				switch (tmp)
 				{
 					case 0: k = 0; break;
-					case 1: k = randint(5); break;
-					case 2: k = randint(5) + 5; break;
-					case 3: k = randint(20) + 20; break;
-					case 4: k = randint(50) + 50; break;
-					case 5: k = randint(100) + 100; break;
+					case 1: k = randint1(5); break;
+					case 2: k = randint1(5) + 5; break;
+					case 3: k = randint1(20) + 20; break;
+					case 4: k = randint1(50) + 50; break;
+					case 5: k = randint1(100) + 100; break;
 					case 6: k = 300; break;
 					default: k = 500; break;
 				}
@@ -1277,11 +1277,11 @@ bool make_attack_normal(player_type *p_ptr, int m_idx)
 				switch (tmp)
 				{
 					case 0: k = 0; break;
-					case 1: k = randint(5); break;
-					case 2: k = randint(10) + 10; break;
-					case 3: k = randint(20) + 20; break;
-					case 4: k = randint(30) + 30; break;
-					case 5: k = randint(40) + 40; break;
+					case 1: k = randint1(5); break;
+					case 2: k = randint1(10) + 10; break;
+					case 3: k = randint1(20) + 20; break;
+					case 4: k = randint1(30) + 30; break;
+					case 5: k = randint1(40) + 40; break;
 					case 6: k = 100; break;
 					default: k = 200; break;
 				}

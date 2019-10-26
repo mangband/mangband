@@ -1183,7 +1183,7 @@ static void wild_add_dwelling(int Depth, int x, int y)
 			/* Setup some "house info" */
 			price = (h_x2 - h_x1 - 1) * (h_y2 - h_y1 - 1);
 			price *= 15;
-			price *= 80 + randint(40);
+			price *= 80 + randint1(40);
 #else
 			// This is the dominant term for large houses
 			if (area > 40) price = (area-40)*(area-40)*(area-40)*3;

@@ -663,7 +663,7 @@ s16b get_obj_num(int level)
 		if (randint0(GREAT_OBJ) == 0)
 		{
 			/* What a bizarre calculation */
-			level = 1 + (level * MAX_DEPTH / randint(MAX_DEPTH));
+			level = 1 + (level * MAX_DEPTH / randint1(MAX_DEPTH));
 		}
 	}
 
@@ -2301,35 +2301,35 @@ static void charge_wand(object_type *o_ptr)
 {
 	switch (o_ptr->sval)
 	{
-		case SV_WAND_HEAL_MONSTER:		o_ptr->pval = randint(20) + 8; break;
-		case SV_WAND_HASTE_MONSTER:		o_ptr->pval = randint(20) + 8; break;
-		case SV_WAND_CLONE_MONSTER:		o_ptr->pval = randint(5)  + 3; break;
-		case SV_WAND_TELEPORT_AWAY:		o_ptr->pval = randint(5)  + 6; break;
-		case SV_WAND_DISARMING:			o_ptr->pval = randint(5)  + 4; break;
-		case SV_WAND_TRAP_DOOR_DEST:	o_ptr->pval = randint(8)  + 6; break;
-		case SV_WAND_STONE_TO_MUD:		o_ptr->pval = randint(4)  + 3; break;
-		case SV_WAND_LITE:				o_ptr->pval = randint(10) + 6; break;
-		case SV_WAND_SLEEP_MONSTER:		o_ptr->pval = randint(15) + 8; break;
-		case SV_WAND_SLOW_MONSTER:		o_ptr->pval = randint(10) + 6; break;
-		case SV_WAND_CONFUSE_MONSTER:	o_ptr->pval = randint(12) + 6; break;
-		case SV_WAND_FEAR_MONSTER:		o_ptr->pval = randint(5)  + 3; break;
-		case SV_WAND_DRAIN_LIFE:		o_ptr->pval = randint(3)  + 3; break;
-		case SV_WAND_POLYMORPH:			o_ptr->pval = randint(8)  + 6; break;
-		case SV_WAND_STINKING_CLOUD:	o_ptr->pval = randint(8)  + 6; break;
-		case SV_WAND_MAGIC_MISSILE:		o_ptr->pval = randint(10) + 6; break;
-		case SV_WAND_ACID_BOLT:			o_ptr->pval = randint(8)  + 6; break;
-		case SV_WAND_ELEC_BOLT:			o_ptr->pval = randint(8)  + 6; break;
-		case SV_WAND_FIRE_BOLT:			o_ptr->pval = randint(8)  + 6; break;
-		case SV_WAND_COLD_BOLT:			o_ptr->pval = randint(5)  + 6; break;
-		case SV_WAND_ACID_BALL:			o_ptr->pval = randint(5)  + 2; break;
-		case SV_WAND_ELEC_BALL:			o_ptr->pval = randint(8)  + 4; break;
-		case SV_WAND_FIRE_BALL:			o_ptr->pval = randint(4)  + 2; break;
-		case SV_WAND_COLD_BALL:			o_ptr->pval = randint(6)  + 2; break;
-		case SV_WAND_WONDER:			o_ptr->pval = randint(15) + 8; break;
-		case SV_WAND_ANNIHILATION:		o_ptr->pval = randint(2)  + 1; break;
-		case SV_WAND_DRAGON_FIRE:		o_ptr->pval = randint(3)  + 1; break;
-		case SV_WAND_DRAGON_COLD:		o_ptr->pval = randint(3)  + 1; break;
-		case SV_WAND_DRAGON_BREATH:		o_ptr->pval = randint(3)  + 1; break;
+		case SV_WAND_HEAL_MONSTER:		o_ptr->pval = randint1(20) + 8; break;
+		case SV_WAND_HASTE_MONSTER:		o_ptr->pval = randint1(20) + 8; break;
+		case SV_WAND_CLONE_MONSTER:		o_ptr->pval = randint1(5)  + 3; break;
+		case SV_WAND_TELEPORT_AWAY:		o_ptr->pval = randint1(5)  + 6; break;
+		case SV_WAND_DISARMING:			o_ptr->pval = randint1(5)  + 4; break;
+		case SV_WAND_TRAP_DOOR_DEST:	o_ptr->pval = randint1(8)  + 6; break;
+		case SV_WAND_STONE_TO_MUD:		o_ptr->pval = randint1(4)  + 3; break;
+		case SV_WAND_LITE:				o_ptr->pval = randint1(10) + 6; break;
+		case SV_WAND_SLEEP_MONSTER:		o_ptr->pval = randint1(15) + 8; break;
+		case SV_WAND_SLOW_MONSTER:		o_ptr->pval = randint1(10) + 6; break;
+		case SV_WAND_CONFUSE_MONSTER:	o_ptr->pval = randint1(12) + 6; break;
+		case SV_WAND_FEAR_MONSTER:		o_ptr->pval = randint1(5)  + 3; break;
+		case SV_WAND_DRAIN_LIFE:		o_ptr->pval = randint1(3)  + 3; break;
+		case SV_WAND_POLYMORPH:			o_ptr->pval = randint1(8)  + 6; break;
+		case SV_WAND_STINKING_CLOUD:	o_ptr->pval = randint1(8)  + 6; break;
+		case SV_WAND_MAGIC_MISSILE:		o_ptr->pval = randint1(10) + 6; break;
+		case SV_WAND_ACID_BOLT:			o_ptr->pval = randint1(8)  + 6; break;
+		case SV_WAND_ELEC_BOLT:			o_ptr->pval = randint1(8)  + 6; break;
+		case SV_WAND_FIRE_BOLT:			o_ptr->pval = randint1(8)  + 6; break;
+		case SV_WAND_COLD_BOLT:			o_ptr->pval = randint1(5)  + 6; break;
+		case SV_WAND_ACID_BALL:			o_ptr->pval = randint1(5)  + 2; break;
+		case SV_WAND_ELEC_BALL:			o_ptr->pval = randint1(8)  + 4; break;
+		case SV_WAND_FIRE_BALL:			o_ptr->pval = randint1(4)  + 2; break;
+		case SV_WAND_COLD_BALL:			o_ptr->pval = randint1(6)  + 2; break;
+		case SV_WAND_WONDER:			o_ptr->pval = randint1(15) + 8; break;
+		case SV_WAND_ANNIHILATION:		o_ptr->pval = randint1(2)  + 1; break;
+		case SV_WAND_DRAGON_FIRE:		o_ptr->pval = randint1(3)  + 1; break;
+		case SV_WAND_DRAGON_COLD:		o_ptr->pval = randint1(3)  + 1; break;
+		case SV_WAND_DRAGON_BREATH:		o_ptr->pval = randint1(3)  + 1; break;
 	}
 }
 
@@ -2342,36 +2342,36 @@ static void charge_staff(object_type *o_ptr)
 {
 	switch (o_ptr->sval)
 	{
-		case SV_STAFF_DARKNESS:			o_ptr->pval = randint(8)  + 8; break;
-		case SV_STAFF_SLOWNESS:			o_ptr->pval = randint(8)  + 8; break;
-		case SV_STAFF_HASTE_MONSTERS:	o_ptr->pval = randint(8)  + 8; break;
-		case SV_STAFF_SUMMONING:		o_ptr->pval = randint(3)  + 1; break;
-		case SV_STAFF_TELEPORTATION:	o_ptr->pval = randint(4)  + 5; break;
-		case SV_STAFF_IDENTIFY:			o_ptr->pval = randint(15) + 5; break;
-		case SV_STAFF_REMOVE_CURSE:		o_ptr->pval = randint(3)  + 4; break;
-		case SV_STAFF_STARLITE:			o_ptr->pval = randint(5)  + 6; break;
-		case SV_STAFF_LITE:				o_ptr->pval = randint(20) + 8; break;
-		case SV_STAFF_MAPPING:			o_ptr->pval = randint(5)  + 5; break;
-		case SV_STAFF_DETECT_GOLD:		o_ptr->pval = randint(20) + 8; break;
-		case SV_STAFF_DETECT_ITEM:		o_ptr->pval = randint(15) + 6; break;
-		case SV_STAFF_DETECT_TRAP:		o_ptr->pval = randint(5)  + 6; break;
-		case SV_STAFF_DETECT_DOOR:		o_ptr->pval = randint(8)  + 6; break;
-		case SV_STAFF_DETECT_INVIS:		o_ptr->pval = randint(15) + 8; break;
-		case SV_STAFF_DETECT_EVIL:		o_ptr->pval = randint(15) + 8; break;
-		case SV_STAFF_CURE_LIGHT:		o_ptr->pval = randint(5)  + 6; break;
-		case SV_STAFF_CURING:			o_ptr->pval = randint(3)  + 4; break;
-		case SV_STAFF_HEALING:			o_ptr->pval = randint(2)  + 1; break;
-		case SV_STAFF_THE_MAGI:			o_ptr->pval = randint(2)  + 2; break;
-		case SV_STAFF_SLEEP_MONSTERS:	o_ptr->pval = randint(5)  + 6; break;
-		case SV_STAFF_SLOW_MONSTERS:	o_ptr->pval = randint(5)  + 6; break;
-		case SV_STAFF_SPEED:			o_ptr->pval = randint(3)  + 4; break;
-		case SV_STAFF_PROBING:			o_ptr->pval = randint(6)  + 2; break;
-		case SV_STAFF_DISPEL_EVIL:		o_ptr->pval = randint(3)  + 4; break;
-		case SV_STAFF_POWER:			o_ptr->pval = randint(3)  + 1; break;
-		case SV_STAFF_HOLINESS:			o_ptr->pval = randint(2)  + 2; break;
-		case SV_STAFF_BANISHMENT:			o_ptr->pval = randint(2)  + 1; break;
-		case SV_STAFF_EARTHQUAKES:		o_ptr->pval = randint(5)  + 3; break;
-		case SV_STAFF_DESTRUCTION:		o_ptr->pval = randint(3)  + 1; break;
+		case SV_STAFF_DARKNESS:			o_ptr->pval = randint1(8)  + 8; break;
+		case SV_STAFF_SLOWNESS:			o_ptr->pval = randint1(8)  + 8; break;
+		case SV_STAFF_HASTE_MONSTERS:	o_ptr->pval = randint1(8)  + 8; break;
+		case SV_STAFF_SUMMONING:		o_ptr->pval = randint1(3)  + 1; break;
+		case SV_STAFF_TELEPORTATION:	o_ptr->pval = randint1(4)  + 5; break;
+		case SV_STAFF_IDENTIFY:			o_ptr->pval = randint1(15) + 5; break;
+		case SV_STAFF_REMOVE_CURSE:		o_ptr->pval = randint1(3)  + 4; break;
+		case SV_STAFF_STARLITE:			o_ptr->pval = randint1(5)  + 6; break;
+		case SV_STAFF_LITE:				o_ptr->pval = randint1(20) + 8; break;
+		case SV_STAFF_MAPPING:			o_ptr->pval = randint1(5)  + 5; break;
+		case SV_STAFF_DETECT_GOLD:		o_ptr->pval = randint1(20) + 8; break;
+		case SV_STAFF_DETECT_ITEM:		o_ptr->pval = randint1(15) + 6; break;
+		case SV_STAFF_DETECT_TRAP:		o_ptr->pval = randint1(5)  + 6; break;
+		case SV_STAFF_DETECT_DOOR:		o_ptr->pval = randint1(8)  + 6; break;
+		case SV_STAFF_DETECT_INVIS:		o_ptr->pval = randint1(15) + 8; break;
+		case SV_STAFF_DETECT_EVIL:		o_ptr->pval = randint1(15) + 8; break;
+		case SV_STAFF_CURE_LIGHT:		o_ptr->pval = randint1(5)  + 6; break;
+		case SV_STAFF_CURING:			o_ptr->pval = randint1(3)  + 4; break;
+		case SV_STAFF_HEALING:			o_ptr->pval = randint1(2)  + 1; break;
+		case SV_STAFF_THE_MAGI:			o_ptr->pval = randint1(2)  + 2; break;
+		case SV_STAFF_SLEEP_MONSTERS:	o_ptr->pval = randint1(5)  + 6; break;
+		case SV_STAFF_SLOW_MONSTERS:	o_ptr->pval = randint1(5)  + 6; break;
+		case SV_STAFF_SPEED:			o_ptr->pval = randint1(3)  + 4; break;
+		case SV_STAFF_PROBING:			o_ptr->pval = randint1(6)  + 2; break;
+		case SV_STAFF_DISPEL_EVIL:		o_ptr->pval = randint1(3)  + 4; break;
+		case SV_STAFF_POWER:			o_ptr->pval = randint1(3)  + 1; break;
+		case SV_STAFF_HOLINESS:			o_ptr->pval = randint1(2)  + 2; break;
+		case SV_STAFF_BANISHMENT:			o_ptr->pval = randint1(2)  + 1; break;
+		case SV_STAFF_EARTHQUAKES:		o_ptr->pval = randint1(5)  + 3; break;
+		case SV_STAFF_DESTRUCTION:		o_ptr->pval = randint1(3)  + 1; break;
 	}
 }
 
@@ -2428,8 +2428,8 @@ static void charge_staff(object_type *o_ptr)
  */
 static void a_m_aux_1(object_type *o_ptr, int level, int power)
 {
-	int tohit1 = randint(5) + m_bonus(5, level);
-	int todam1 = randint(5) + m_bonus(5, level);
+	int tohit1 = randint1(5) + m_bonus(5, level);
+	int todam1 = randint1(5) + m_bonus(5, level);
 
 	int tohit2 = m_bonus(10, level);
 	int todam2 = m_bonus(10, level);
@@ -2481,7 +2481,7 @@ static void a_m_aux_1(object_type *o_ptr, int level, int power)
 			if (power < -1)
 			{
 				/* Hack -- Horrible digging bonus */
-				o_ptr->pval = 0 - (5 + randint(5));
+				o_ptr->pval = 0 - (5 + randint1(5));
 			}
 
 			/* Bad */
@@ -2563,7 +2563,7 @@ static void a_m_aux_1(object_type *o_ptr, int level, int power)
  */
 static void a_m_aux_2(object_type *o_ptr, int level, int power)
 {
-    int toac1 = randint(5) + m_bonus(5, level);
+    int toac1 = randint1(5) + m_bonus(5, level);
     int toac2 = m_bonus(10, level);
     int idx, nbtries = 1000;
 
@@ -2613,7 +2613,7 @@ static void a_m_aux_2(object_type *o_ptr, int level, int power)
     /* Set the orcish shield's STR and CON bonus */
     if ((o_ptr->tval == TV_SHIELD) && (o_ptr->sval == SV_ORCISH_SHIELD))
 	 {
-    	o_ptr->bpval = randint(2);
+    	o_ptr->bpval = randint1(2);
     	
     	/* Cursed orcish shield */
     	if (power < 0) 
@@ -2632,7 +2632,7 @@ static void a_m_aux_2(object_type *o_ptr, int level, int power)
 	/* Set the Kolla cloak's base bonuses */
 	if ((o_ptr->tval == TV_CLOAK) && (o_ptr->sval == SV_KOLLA))
 	{
-		o_ptr->bpval = randint(2);
+		o_ptr->bpval = randint1(2);
 
 		/* Cursed kolla */
 		if (o_ptr->to_a < 0) 
@@ -2711,7 +2711,7 @@ static void a_m_aux_3(object_type *o_ptr, int level, int power)
 				case SV_RING_SPEED:
 				{
 					/* Base speed (1 to 10) */
-					o_ptr->pval = randint(5) + m_bonus(5, level);
+					o_ptr->pval = randint1(5) + m_bonus(5, level);
 
 					/* Super-charge the ring */
 					while (randint0(100) < 50) o_ptr->pval++;
@@ -2766,7 +2766,7 @@ static void a_m_aux_3(object_type *o_ptr, int level, int power)
                 case SV_RING_LIGHTNING:
 				{
 					/* Bonus to armor class */
-					o_ptr->to_a = 5 + randint(5) + m_bonus(10, level);
+					o_ptr->to_a = 5 + randint1(5) + m_bonus(10, level);
 					break;
 				}
 
@@ -2806,7 +2806,7 @@ static void a_m_aux_3(object_type *o_ptr, int level, int power)
 				case SV_RING_DAMAGE:
 				{
 					/* Bonus to damage */
-					o_ptr->to_d = 5 + randint(5) + m_bonus(7, level);
+					o_ptr->to_d = 5 + randint1(5) + m_bonus(7, level);
 
 					/* Cursed */
 					if (power < 0)
@@ -2828,7 +2828,7 @@ static void a_m_aux_3(object_type *o_ptr, int level, int power)
 				case SV_RING_ACCURACY:
 				{
 					/* Bonus to hit */
-					o_ptr->to_h = 5 + randint(5) + m_bonus(7, level);
+					o_ptr->to_h = 5 + randint1(5) + m_bonus(7, level);
 
 					/* Cursed */
 					if (power < 0)
@@ -2850,7 +2850,7 @@ static void a_m_aux_3(object_type *o_ptr, int level, int power)
 				case SV_RING_PROTECTION:
 				{
 					/* Bonus to armor class */
-					o_ptr->to_a = 5 + randint(5) + m_bonus(10, level);
+					o_ptr->to_a = 5 + randint1(5) + m_bonus(10, level);
 
 					/* Cursed */
 					if (power < 0)
@@ -2872,8 +2872,8 @@ static void a_m_aux_3(object_type *o_ptr, int level, int power)
 				case SV_RING_SLAYING:
 				{
 					/* Bonus to damage and to hit */
-					o_ptr->to_d = randint(5) + m_bonus(5, level);
-					o_ptr->to_h = randint(5) + m_bonus(5, level);
+					o_ptr->to_d = randint1(5) + m_bonus(5, level);
+					o_ptr->to_h = randint1(5) + m_bonus(5, level);
 
 					/* Cursed */
 					if (power < 0)
@@ -2926,7 +2926,7 @@ static void a_m_aux_3(object_type *o_ptr, int level, int power)
 				/* Amulet of searching */
 				case SV_AMULET_SEARCHING:
 				{
-					o_ptr->pval = randint(5) + m_bonus(5, level);
+					o_ptr->pval = randint1(5) + m_bonus(5, level);
 
 					/* Cursed */
 					if (power < 0)
@@ -2947,7 +2947,7 @@ static void a_m_aux_3(object_type *o_ptr, int level, int power)
                 /* Amulet of ESP -- never cursed */
                 case SV_AMULET_ESP:
                 {
-					o_ptr->pval = randint(5) + m_bonus(5, level);
+					o_ptr->pval = randint1(5) + m_bonus(5, level);
 
                     break;
                 }
@@ -2956,11 +2956,11 @@ static void a_m_aux_3(object_type *o_ptr, int level, int power)
 				case SV_AMULET_THE_MAGI:
 				{
                     o_ptr->pval = 1 + m_bonus(2, level);
-                    o_ptr->to_a = randint(5) + m_bonus(5, level);
+                    o_ptr->to_a = randint1(5) + m_bonus(5, level);
                     
                     /* mangband-specific -- TURN IT ON IF YOU NEED
                     o_ptr->xtra1 = OBJECT_XTRA_TYPE_RESIST;
-                    o_ptr->xtra2 = (byte)randint(OBJECT_XTRA_SIZE_RESIST);
+                    o_ptr->xtra2 = (byte)randint1(OBJECT_XTRA_SIZE_RESIST);
 					*/
 
                     break;
@@ -2971,7 +2971,7 @@ static void a_m_aux_3(object_type *o_ptr, int level, int power)
 				{
 					// Amulets of speed can't give very
 					// much, and are rarely +3.
-					o_ptr->pval = randint(randint(3)); 
+					o_ptr->pval = randint1(randint1(3)); 
 
 					/* Cursed */
 					if (power < 0)
@@ -2992,7 +2992,7 @@ static void a_m_aux_3(object_type *o_ptr, int level, int power)
          			/* Amulet of Terken -- never cursed */
 				case SV_AMULET_TERKEN:
 				{
-					o_ptr->pval = randint(5) + m_bonus(5, level);
+					o_ptr->pval = randint1(5) + m_bonus(5, level);
 
 					o_ptr->xtra1 = OBJECT_XTRA_TYPE_POWER;
 					o_ptr->xtra2 = (byte)randint0(OBJECT_XTRA_SIZE_POWER);
@@ -3002,9 +3002,9 @@ static void a_m_aux_3(object_type *o_ptr, int level, int power)
          			/* Amulet of the Moon -- never cursed */
 				case SV_AMULET_THE_MOON:
 				{
-					o_ptr->pval = randint(5) + m_bonus(5, level);
-                    o_ptr->to_h = randint(5);
-                    o_ptr->to_d = randint(5);
+					o_ptr->pval = randint1(5) + m_bonus(5, level);
+                    o_ptr->to_h = randint1(5);
+                    o_ptr->to_d = randint1(5);
 
 					break;
 				}
@@ -3036,7 +3036,7 @@ static void a_m_aux_3(object_type *o_ptr, int level, int power)
                 /* Amulet of Trickery -- never cursed */
                 case SV_AMULET_TRICKERY:
                 {
-					o_ptr->pval = randint(1) + m_bonus(3, level);
+					o_ptr->pval = randint1(1) + m_bonus(3, level);
 
 					/* Boost the rating */
 					rating += 25;
@@ -3047,7 +3047,7 @@ static void a_m_aux_3(object_type *o_ptr, int level, int power)
                 /* Amulet of infravision */
                 case SV_AMULET_INFRA:
                 {
-                    o_ptr->pval = randint(5) + m_bonus(5, level);
+                    o_ptr->pval = randint1(5) + m_bonus(5, level);
 
                     /* Cursed */
                     if (power < 0)
@@ -3075,8 +3075,8 @@ static void a_m_aux_3(object_type *o_ptr, int level, int power)
 					o_ptr->ident |= ID_CURSED;
 
 					/* Penalize */
-					o_ptr->pval = 0 - (randint(5) + m_bonus(5, level));
-					o_ptr->to_a = 0 - (randint(5) + m_bonus(5, level));
+					o_ptr->pval = 0 - (randint1(5) + m_bonus(5, level));
+					o_ptr->to_a = 0 - (randint1(5) + m_bonus(5, level));
 
 					break;
 				}
@@ -3103,13 +3103,13 @@ static void a_m_aux_4(object_type *o_ptr, int level, int power)
 		/* Hack -- Torches -- random fuel */
 		if (o_ptr->sval == SV_LITE_TORCH)
 		{
-			if (o_ptr->pval) o_ptr->pval = randint(o_ptr->pval);
+			if (o_ptr->pval) o_ptr->pval = randint1(o_ptr->pval);
 		}
 
 		/* Hack -- Lanterns -- random fuel */
 		if (o_ptr->sval == SV_LITE_LANTERN)
 		{
-			if (o_ptr->pval) o_ptr->pval = randint(o_ptr->pval);
+			if (o_ptr->pval) o_ptr->pval = randint1(o_ptr->pval);
 		}
 
 		break;
@@ -3142,7 +3142,7 @@ static void a_m_aux_4(object_type *o_ptr, int level, int power)
 		if (k_info[o_ptr->k_idx].level <= 0) break;
 
 		/* Hack -- pick a "difficulty" */
-		o_ptr->pval = randint(k_info[o_ptr->k_idx].level);
+		o_ptr->pval = randint1(k_info[o_ptr->k_idx].level);
 
 		/* Never exceed "difficulty" of 55 to 59 */
 		if (o_ptr->pval > 55) o_ptr->pval = 55 + randint0(5);
@@ -3405,12 +3405,12 @@ void apply_magic(int Depth, object_type *o_ptr, int lev, bool okay, bool good, b
 		if (cursed_p(o_ptr) || broken_p(o_ptr))
 		{
 			/* Hack -- obtain bonuses */
-			if (e_ptr->max_to_h) o_ptr->to_h -= randint(e_ptr->max_to_h);
-			if (e_ptr->max_to_d) o_ptr->to_d -= randint(e_ptr->max_to_d);
-			if (e_ptr->max_to_a) o_ptr->to_a -= randint(e_ptr->max_to_a);
+			if (e_ptr->max_to_h) o_ptr->to_h -= randint1(e_ptr->max_to_h);
+			if (e_ptr->max_to_d) o_ptr->to_d -= randint1(e_ptr->max_to_d);
+			if (e_ptr->max_to_a) o_ptr->to_a -= randint1(e_ptr->max_to_a);
 
 			/* Hack -- obtain pval */
-			if (e_ptr->max_pval) o_ptr->pval -= randint(e_ptr->max_pval);
+			if (e_ptr->max_pval) o_ptr->pval -= randint1(e_ptr->max_pval);
 		}
 
 		/* Hack -- apply extra bonuses if needed */
@@ -3418,17 +3418,17 @@ void apply_magic(int Depth, object_type *o_ptr, int lev, bool okay, bool good, b
 		{
 			/* Hack -- obtain bonuses */
 	   	/* Don't forget minuses!! */
-            if (e_ptr->max_to_h > 0) o_ptr->to_h += randint(e_ptr->max_to_h);
-	    else if (e_ptr->max_to_h < 0) o_ptr->to_h -= randint(-e_ptr->max_to_h);
-	    		if (e_ptr->max_to_d > 0) o_ptr->to_d += randint(e_ptr->max_to_d);
-	    else if (e_ptr->max_to_d < 0) o_ptr->to_d -= randint(-e_ptr->max_to_d);
-	    		if (e_ptr->max_to_a > 0) o_ptr->to_a += randint(e_ptr->max_to_a);
-	    else if (e_ptr->max_to_a < 0) o_ptr->to_a -= randint(-e_ptr->max_to_a);
+            if (e_ptr->max_to_h > 0) o_ptr->to_h += randint1(e_ptr->max_to_h);
+	    else if (e_ptr->max_to_h < 0) o_ptr->to_h -= randint1(-e_ptr->max_to_h);
+	    		if (e_ptr->max_to_d > 0) o_ptr->to_d += randint1(e_ptr->max_to_d);
+	    else if (e_ptr->max_to_d < 0) o_ptr->to_d -= randint1(-e_ptr->max_to_d);
+	    		if (e_ptr->max_to_a > 0) o_ptr->to_a += randint1(e_ptr->max_to_a);
+	    else if (e_ptr->max_to_a < 0) o_ptr->to_a -= randint1(-e_ptr->max_to_a);
 
 			/* Hack -- obtain pval */
 	   	/* Don't forget minuses!! */
-            if (e_ptr->max_pval > 0) o_ptr->pval += randint(e_ptr->max_pval);
-	    else if (e_ptr->max_pval < 0) o_ptr->pval -= randint(-e_ptr->max_pval);
+            if (e_ptr->max_pval > 0) o_ptr->pval += randint1(e_ptr->max_pval);
+	    else if (e_ptr->max_pval < 0) o_ptr->pval -= randint1(-e_ptr->max_pval);
 		}
 
 		/* Hack -- apply rating bonus */
@@ -3875,12 +3875,12 @@ void place_gold(int Depth, int y, int x)
 
 
 	/* Hack -- Pick a Treasure variety */
-	i = ((randint(object_level + 2) + 2) / 2) - 1;
+	i = ((randint1(object_level + 2) + 2) / 2) - 1;
 
 	/* Apply "extra" magic */
 	if (randint0(GREAT_OBJ) == 0)
 	{
-		i += randint(object_level + 1);
+		i += randint1(object_level + 1);
 	}
 
 	/* Hack -- Creeping Coins only generate "themselves" */
@@ -3911,7 +3911,7 @@ void place_gold(int Depth, int y, int x)
 		base = k_info[OBJ_GOLD_LIST+i].cost;
 
 		/* Determine how much the treasure is "worth" */
-		o_ptr->pval = (base + (8L * randint(base)) + randint(8));
+		o_ptr->pval = (base + (8L * randint1(base)) + randint1(8));
 
 		/* No one can see it */
 		for (j = 1; j <= NumPlayers; j++)

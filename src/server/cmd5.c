@@ -682,7 +682,7 @@ void do_cmd_cast_fin(player_type *p_ptr, bool tried)
 		msg_print(p_ptr, "You faint from the effort!");
 
 		/* Hack -- bypass free action */
-		(void)set_paralyzed(p_ptr, p_ptr->paralyzed + randint(5 * oops + 1));
+		(void)set_paralyzed(p_ptr, p_ptr->paralyzed + randint1(5 * oops + 1));
 
 		/* Damage CON (possibly permanently) */
 		if (randint0(100) < 50)
@@ -693,7 +693,7 @@ void do_cmd_cast_fin(player_type *p_ptr, bool tried)
 			msg_print(p_ptr, "You have damaged your health!");
 
 			/* Reduce constitution */
-			(void)dec_stat(p_ptr, A_CON, 15 + randint(10), perm);
+			(void)dec_stat(p_ptr, A_CON, 15 + randint1(10), perm);
 		}
 	}
 

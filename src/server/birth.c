@@ -93,11 +93,11 @@ static int adjust_stat(player_type *p_ptr, int value, s16b amount, int auto_roll
 			}
 			else if (value < 18+70)
 			{
-				value += ((auto_roll ? 15 : randint(15)) + 5);
+				value += ((auto_roll ? 15 : randint1(15)) + 5);
 			}
 			else if (value < 18+90)
 			{
-				value += ((auto_roll ? 6 : randint(6)) + 2);
+				value += ((auto_roll ? 6 : randint1(6)) + 2);
 			}
 			else if (value < 18+100)
 			{
@@ -170,7 +170,7 @@ static void get_stats(player_type *p_ptr)
 		for (j = i = 0; i < 18; i++)
 		{
 			/* Roll the dice */
-			dice[i] = randint(3 + i % 3);
+			dice[i] = randint1(3 + i % 3);
 
 			/* Collect the maximum */
 			j += dice[i];
@@ -285,7 +285,7 @@ static void get_extra(player_type *p_ptr)
 		/* Roll the hitpoint values */
 		for (i = 1; i < PY_MAX_LEVEL; i++)
 		{
-			j = randint(p_ptr->hitdie);
+			j = randint1(p_ptr->hitdie);
 			p_ptr->player_hp[i] = p_ptr->player_hp[i-1] + j;
 		}
 
@@ -326,7 +326,7 @@ static void get_history(player_type *p_ptr)
 	p = &p_ptr->descrip[0];
 
 	/* Initial social class */
-	social_class = randint(4);
+	social_class = randint1(4);
 
 	/* Starting place */
 	chart = p_info[p_ptr->prace].hist;
@@ -338,7 +338,7 @@ static void get_history(player_type *p_ptr)
 		i = 0;
 
 		/* Roll for nobility */
-		roll = randint(100);
+		roll = randint1(100);
 
 		/* Access the proper entry in the table */
 		while ((chart != h_info[i].chart) || (roll > h_info[i].roll)) i++;
@@ -439,7 +439,7 @@ static void get_history(player_type *p_ptr)
 static void get_ahw(player_type *p_ptr)
 {
 	/* Calculate the age */
-	p_ptr->age = p_ptr->rp_ptr->b_age + randint(p_ptr->rp_ptr->m_age);
+	p_ptr->age = p_ptr->rp_ptr->b_age + randint1(p_ptr->rp_ptr->m_age);
 
 	/* Calculate the height/weight for males */
 	if (p_ptr->male)
@@ -467,7 +467,7 @@ static void get_money(player_type *p_ptr)
 	int        i, gold;
 
 	/* Social Class determines starting gold */
-	gold = (p_ptr->sc * 6) + randint(100) + 300;
+	gold = (p_ptr->sc * 6) + randint1(100) + 300;
 
 	/* Process the stats */
 	for (i = 0; i < A_MAX; i++)

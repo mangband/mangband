@@ -1094,7 +1094,7 @@ static void spell_wonder(player_type *p_ptr, int dir)
 	int px = p_ptr->px;
 	int Depth = p_ptr->dun_depth;
 	int plev = p_ptr->lev;
-	int die = randint(100) + plev / 5;
+	int die = randint1(100) + plev / 5;
 	int beam = beam_chance(p_ptr);
 
 	if (die > 100)
@@ -1520,13 +1520,13 @@ static bool cast_mage_spell(player_type *p_ptr, int spell)
 
 		case SPELL_RESIST_FIRE:
 		{
-			(void)set_oppose_fire(p_ptr, p_ptr->oppose_fire + randint(20) + 20);
+			(void)set_oppose_fire(p_ptr, p_ptr->oppose_fire + randint1(20) + 20);
 			break;
 		}
 
 		case SPELL_RESIST_COLD:
 		{
-			(void)set_oppose_cold(p_ptr, p_ptr->oppose_cold + randint(20) + 20);
+			(void)set_oppose_cold(p_ptr, p_ptr->oppose_cold + randint1(20) + 20);
 			break;
 		}
 
@@ -1539,13 +1539,13 @@ static bool cast_mage_spell(player_type *p_ptr, int spell)
 
 		case SPELL_RESIST_POISON:
 		{
-			(void)set_oppose_pois(p_ptr, p_ptr->oppose_pois + randint(20) + 20);
+			(void)set_oppose_pois(p_ptr, p_ptr->oppose_pois + randint1(20) + 20);
 			break;
 		}
 
 		case SPELL_RESISTANCE:
 		{
-			int time = randint(20) + 20;
+			int time = randint1(20) + 20;
 			(void)set_oppose_acid(p_ptr, p_ptr->oppose_acid + time);
 			(void)set_oppose_elec(p_ptr, p_ptr->oppose_elec + time);
 			(void)set_oppose_fire(p_ptr, p_ptr->oppose_fire + time);
@@ -1557,7 +1557,7 @@ static bool cast_mage_spell(player_type *p_ptr, int spell)
 		case SPELL_HEROISM:
 		{
 			(void)hp_player(p_ptr, 10);
-			(void)set_hero(p_ptr, p_ptr->hero + randint(25) + 25);
+			(void)set_hero(p_ptr, p_ptr->hero + randint1(25) + 25);
 			(void)set_afraid(p_ptr, 0);
 			break;
 		}
@@ -1565,7 +1565,7 @@ static bool cast_mage_spell(player_type *p_ptr, int spell)
 		case SPELL_SHIELD:
 		{
 			msg_spell("%s forms a mystic shield."); 
-			(void)set_shield(p_ptr, p_ptr->shield + randint(20) + 30);
+			(void)set_shield(p_ptr, p_ptr->shield + randint1(20) + 30);
 			break;
 		}
 
@@ -1573,7 +1573,7 @@ static bool cast_mage_spell(player_type *p_ptr, int spell)
 		{
 			msg_spell("%s enters a battle rage!");
 			(void)hp_player(p_ptr, 30);
-			(void)set_shero(p_ptr, p_ptr->shero + randint(25) + 25);
+			(void)set_shero(p_ptr, p_ptr->shero + randint1(25) + 25);
 			(void)set_afraid(p_ptr, 0);
 			break;
 		}
@@ -1583,11 +1583,11 @@ static bool cast_mage_spell(player_type *p_ptr, int spell)
 			msg_spell("%s starts moving faster."); 
 			if (!p_ptr->fast)
 			{
-				(void)set_fast(p_ptr, randint(20) + plev);
+				(void)set_fast(p_ptr, randint1(20) + plev);
 			}
 			else
 			{
-				(void)set_fast(p_ptr, p_ptr->fast + randint(5));
+				(void)set_fast(p_ptr, p_ptr->fast + randint1(5));
 			}
 			break;
 		}
@@ -1677,7 +1677,7 @@ static bool cast_priest_spell(player_type *p_ptr, int spell)
 
 		case PRAYER_BLESS:
 		{
-			(void)set_blessed(p_ptr, p_ptr->blessed + randint(12) + 12);
+			(void)set_blessed(p_ptr, p_ptr->blessed + randint1(12) + 12);
 			break;
 		}
 
@@ -1743,7 +1743,7 @@ static bool cast_priest_spell(player_type *p_ptr, int spell)
 
 		case PRAYER_CHANT:
 		{
-			(void)set_blessed(p_ptr, p_ptr->blessed + randint(24) + 24);
+			(void)set_blessed(p_ptr, p_ptr->blessed + randint1(24) + 24);
 			break;
 		}
 
@@ -1768,8 +1768,8 @@ static bool cast_priest_spell(player_type *p_ptr, int spell)
 
 		case PRAYER_RESIST_HEAT_COLD:
 		{
-			(void)set_oppose_fire(p_ptr, p_ptr->oppose_fire + randint(10) + 10);
-			(void)set_oppose_cold(p_ptr, p_ptr->oppose_cold + randint(10) + 10);
+			(void)set_oppose_fire(p_ptr, p_ptr->oppose_fire + randint1(10) + 10);
+			(void)set_oppose_cold(p_ptr, p_ptr->oppose_cold + randint1(10) + 10);
 			break;
 		}
 
@@ -1806,13 +1806,13 @@ static bool cast_priest_spell(player_type *p_ptr, int spell)
 
 		case PRAYER_SENSE_INVISIBLE:
 		{
-			(void)set_tim_invis(p_ptr, p_ptr->tim_invis + randint(24) + 24);
+			(void)set_tim_invis(p_ptr, p_ptr->tim_invis + randint1(24) + 24);
 			break;
 		}
 
 		case PRAYER_PROTECTION_FROM_EVIL:
 		{
-			(void)set_protevil(p_ptr, p_ptr->protevil + randint(25) + 3 * p_ptr->lev);
+			(void)set_protevil(p_ptr, p_ptr->protevil + randint1(25) + 3 * p_ptr->lev);
 			break;
 		}
 
@@ -1853,14 +1853,14 @@ static bool cast_priest_spell(player_type *p_ptr, int spell)
 
 		case PRAYER_PRAYER:
 		{
-			(void)set_blessed(p_ptr, p_ptr->blessed + randint(48) + 48);
+			(void)set_blessed(p_ptr, p_ptr->blessed + randint1(48) + 48);
 			break;
 		}
 
 		case PRAYER_DISPEL_UNDEAD:
 		{
 			msg_prayer("%s dispells undead.");
-			(void)dispel_undead(p_ptr, randint(plev * 3));
+			(void)dispel_undead(p_ptr, randint1(plev * 3));
 			break;
 		}
 
@@ -1882,7 +1882,7 @@ static bool cast_priest_spell(player_type *p_ptr, int spell)
 		case PRAYER_DISPEL_EVIL:
 		{
 			msg_prayer("%s dispells evil.");
-			(void)dispel_evil(p_ptr, randint(plev * 3));
+			(void)dispel_evil(p_ptr, randint1(plev * 3));
 			break;
 		}
 
@@ -1898,7 +1898,7 @@ static bool cast_priest_spell(player_type *p_ptr, int spell)
 		case PRAYER_HOLY_WORD:
 		{
 			msg_prayer("%s shouts the holy word.");
-			(void)dispel_evil(p_ptr, randint(plev * 4));
+			(void)dispel_evil(p_ptr, randint1(plev * 4));
 			(void)hp_player(p_ptr, 1000);
 			(void)set_afraid(p_ptr, 0);
 			(void)set_poisoned(p_ptr, 0);
@@ -2007,14 +2007,14 @@ static bool cast_priest_spell(player_type *p_ptr, int spell)
 		case PRAYER_DISPEL_UNDEAD2:
 		{
 			msg_prayer("%s dispells undead.");
-			(void)dispel_undead(p_ptr, randint(plev * 4));
+			(void)dispel_undead(p_ptr, randint1(plev * 4));
 			break;
 		}
 
 		case PRAYER_DISPEL_EVIL2:
 		{
 			msg_prayer("%s dispells evil.");
-			(void)dispel_evil(p_ptr, randint(plev * 4));
+			(void)dispel_evil(p_ptr, randint1(plev * 4));
 			break;
 		}
 

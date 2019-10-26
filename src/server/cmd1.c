@@ -85,9 +85,9 @@ s16b critical_shot(player_type *p_ptr, int weight, int plus, int dam)
 	i = (weight + ((p_ptr->to_h + plus) * 4) + (p_ptr->lev * 2));
 
 	/* Critical hit */
-	if (randint(5000) <= i)
+	if (randint1(5000) <= i)
 	{
-		k = weight + randint(500);
+		k = weight + randint1(500);
 
 		if (k < 500)
 		{
@@ -124,9 +124,9 @@ s16b critical_norm(player_type *p_ptr, int weight, int plus, int dam)
 	i = (weight + ((p_ptr->to_h + plus) * 5) + (p_ptr->lev * 3));
 
 	/* Chance */
-	if (randint(5000) <= i)
+	if (randint1(5000) <= i)
 	{
-		k = weight + randint(650);
+		k = weight + randint1(650);
 
 		if (k < 400)
 		{
@@ -877,7 +877,7 @@ static int check_hit(player_type *p_ptr, int power)
 	ac = p_ptr->ac + p_ptr->to_a;
 
 	/* Power competes against Armor */
-	if (randint(power) > ((ac * 3) / 4)) return (TRUE);
+	if (randint1(power) > ((ac * 3) / 4)) return (TRUE);
 
 	/* Assume miss */
 	return (FALSE);
@@ -993,7 +993,7 @@ static void hit_trap(player_type *p_ptr)
 					msg_print(p_ptr, "You are impaled!");
 
 					dam = dam * 2;
-					(void)set_cut(p_ptr, p_ptr->cut + randint(dam));
+					(void)set_cut(p_ptr, p_ptr->cut + randint1(dam));
 				}
 
 				/* Take the damage */
@@ -1023,7 +1023,7 @@ static void hit_trap(player_type *p_ptr)
 					msg_print(p_ptr, "You are impaled on poisonous spikes!");
 
 					dam = dam * 2;
-					(void)set_cut(p_ptr, p_ptr->cut + randint(dam));
+					(void)set_cut(p_ptr, p_ptr->cut + randint1(dam));
 
 					if (p_ptr->resist_pois || p_ptr->oppose_pois)
 					{
@@ -1033,7 +1033,7 @@ static void hit_trap(player_type *p_ptr)
 					else
 					{
 						dam = dam * 2;
-						(void)set_poisoned(p_ptr, p_ptr->poisoned + randint(dam));
+						(void)set_poisoned(p_ptr, p_ptr->poisoned + randint1(dam));
 					}
 				}
 
@@ -1052,7 +1052,7 @@ static void hit_trap(player_type *p_ptr)
 			*w_ptr &= ~CAVE_MARK;
 			note_spot_depth(Depth, p_ptr->py, p_ptr->px);
 			everyone_lite_spot(Depth, p_ptr->py, p_ptr->px);
-			num = 2 + randint(3);
+			num = 2 + randint1(3);
 			for (i = 0; i < num; i++)
 			{
 				(void)summon_specific(Depth, p_ptr->py, p_ptr->px, Depth, 0);
@@ -1686,7 +1686,7 @@ void move_player(player_type *p_ptr, int dir, int do_pickup)
 			/* check to make sure he hasnt hit the edge of the world */
 			if (world_index(p_ptr->world_x, p_ptr->world_y) <= -MAX_WILD) 
 			{
-				switch(randint(2))
+				switch(randint1(2))
 				{
 					case 0: msg_print(p_ptr, "You have reached the Walls of the World. You can not pass."); break;
 					case 1: msg_print(p_ptr, "You cannot go beyond the Walls of the World."); break;

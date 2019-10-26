@@ -399,7 +399,7 @@ static void chest_trap(player_type *p_ptr, int y, int x, object_type *o_ptr)
 		msg_print(p_ptr, "A puff of green gas surrounds you!");
 		if (!(p_ptr->resist_pois || p_ptr->oppose_pois))
 		{
-			(void)set_poisoned(p_ptr, p_ptr->poisoned + 10 + randint(20));
+			(void)set_poisoned(p_ptr, p_ptr->poisoned + 10 + randint1(20));
 		}
 	}
 
@@ -409,14 +409,14 @@ static void chest_trap(player_type *p_ptr, int y, int x, object_type *o_ptr)
 		msg_print(p_ptr, "A puff of yellow gas surrounds you!");
 		if (!p_ptr->free_act)
 		{
-			(void)set_paralyzed(p_ptr, p_ptr->paralyzed + 10 + randint(20));
+			(void)set_paralyzed(p_ptr, p_ptr->paralyzed + 10 + randint1(20));
 		}
 	}
 
 	/* Summon monsters */
 	if (trap & CHEST_SUMMON)
 	{
-		int num = 2 + randint(3);
+		int num = 2 + randint1(3);
 		msg_print(p_ptr, "You are enveloped in a cloud of smoke!");
 		sound(p_ptr, MSG_SUM_MONSTER);
 		for (i = 0; i < num; i++)
@@ -1066,7 +1066,7 @@ static bool do_cmd_disarm_chest(player_type *p_ptr, int y, int x, s16b o_idx)
 	}
 
 	/* Failure -- Keep trying */
-	else if ((i > 5) && (randint(i) > 5))
+	else if ((i > 5) && (randint1(i) > 5))
 	{
 		/* We may keep trying */
 		more = TRUE;
@@ -2237,7 +2237,7 @@ static bool do_cmd_disarm_aux(player_type *p_ptr, int y, int x, int dir)
 	}
 
 	/* Failure -- Keep trying */
-	else if ((i > 5) && (randint(i) > 5))
+	else if ((i > 5) && (randint1(i) > 5))
 	{
 		/* Failure */
 		/*if (flush_failure) flush();*/
@@ -4104,7 +4104,7 @@ void do_cmd_throw(player_type *p_ptr, int item, int dir)
 						if (!house_owned_by(p_ptr, j)) break;
 						
 						/* Chance to fail */
-						if (randint(100) > p_ptr->sc) break;
+						if (randint1(100) > p_ptr->sc) break;
 
 						/* Perform colorization */
 						houses[j].strength = i - FEAT_HOME_HEAD;

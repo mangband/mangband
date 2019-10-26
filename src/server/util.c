@@ -184,7 +184,7 @@ int color_opposite(int color) {
 		case TERM_UMBER: 		return TERM_L_UMBER;
 		case TERM_ORANGE: 	return TERM_YELLOW;
 		case TERM_DARK: 		return TERM_L_DARK;
-		case TERM_VIOLET:		return ( randint(100) < 50 ? TERM_BLUE : TERM_RED );
+		case TERM_VIOLET:		return ( randint1(100) < 50 ? TERM_BLUE : TERM_RED );
 		/* and vice versa */
 		case TERM_BLUE: 		return TERM_L_BLUE;
 		case TERM_GREEN: 		return TERM_L_GREEN;

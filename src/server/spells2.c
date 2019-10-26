@@ -2219,7 +2219,7 @@ bool curse_armor(player_type *p_ptr)
 		o_ptr->name1 = 0;
 		o_ptr->name2 = EGO_BLASTED;
 	o_ptr->name3 = 0;
-		o_ptr->to_a = 0 - randint(5) - randint(5);
+		o_ptr->to_a = 0 - randint1(5) - randint1(5);
 		o_ptr->to_h = 0;
 		o_ptr->to_d = 0;
 		o_ptr->ac = 0;
@@ -2290,8 +2290,8 @@ bool curse_weapon(player_type *p_ptr)
 		o_ptr->name1 = 0;
 		o_ptr->name2 = EGO_SHATTERED;
 	o_ptr->name3 = 0;
-		o_ptr->to_h = 0 - randint(5) - randint(5);
-		o_ptr->to_d = 0 - randint(5) - randint(5);
+		o_ptr->to_h = 0 - randint1(5) - randint1(5);
+		o_ptr->to_d = 0 - randint1(5) - randint1(5);
 		o_ptr->to_a = 0;
 		o_ptr->ac = 0;
 		o_ptr->dd = 0;
@@ -2550,7 +2550,7 @@ bool enchant(player_type *p_ptr, object_type *o_ptr, int n, int eflag)
 			else if (o_ptr->to_h > 15) chance = 1000;
 			else chance = enchant_table[o_ptr->to_h];
 
-			if ((randint(1000) > chance) && (!a || (randint0(100) < 50)))
+			if ((randint1(1000) > chance) && (!a || (randint0(100) < 50)))
 			{
 				o_ptr->to_h++;
 				res = TRUE;
@@ -2575,7 +2575,7 @@ bool enchant(player_type *p_ptr, object_type *o_ptr, int n, int eflag)
 			else if (o_ptr->to_d > 15) chance = 1000;
 			else chance = enchant_table[o_ptr->to_d];
 
-			if ((randint(1000) > chance) && (!a || (randint0(100) < 50)))
+			if ((randint1(1000) > chance) && (!a || (randint0(100) < 50)))
 			{
 				o_ptr->to_d++;
 				res = TRUE;
@@ -2600,7 +2600,7 @@ bool enchant(player_type *p_ptr, object_type *o_ptr, int n, int eflag)
 			else if (o_ptr->to_a > 15) chance = 1000;
 			else chance = enchant_table[o_ptr->to_a];
 
-			if ((randint(1000) > chance) && (!a || (randint0(100) < 50)))
+			if ((randint1(1000) > chance) && (!a || (randint0(100) < 50)))
 			{
 				o_ptr->to_a++;
 				res = TRUE;
@@ -3173,7 +3173,7 @@ bool recharge_aux(player_type *p_ptr, int item, int spell_strength)
 		t = (spell_strength / (lev + 2)) + 1;
 
 		/* Recharge based on the power */
-		if (t > 0) o_ptr->pval += 2 + randint(t);
+		if (t > 0) o_ptr->pval += 2 + randint1(t);
 
 		/* We no longer think the item is empty */
 		o_ptr->ident &= ~ID_EMPTY;
@@ -3442,7 +3442,7 @@ bool banishment(player_type *p_ptr)
 		delete_monster_idx(i);
 
 		/* Take damage */
-		take_hit(p_ptr, randint(4), "the strain of casting Banishment");
+		take_hit(p_ptr, randint1(4), "the strain of casting Banishment");
 
 		/* Redraw */
 		p_ptr->redraw |= (PR_HP);
@@ -3515,7 +3515,7 @@ bool mass_banishment(player_type *p_ptr)
 		/* does not effect the dungeon master, because it disturbs his movement
 		 */
 		if (!(p_ptr->dm_flags & DM_INVULNERABLE))
-			take_hit(p_ptr, randint(3), "the strain of casting Mass Banishment");
+			take_hit(p_ptr, randint1(3), "the strain of casting Mass Banishment");
 
 		/* Redraw */
 		p_ptr->redraw |= (PR_HP);
@@ -3675,7 +3675,7 @@ void destroy_area(int Depth, int y1, int x1, int r, bool full)
 				if (!p_ptr->resist_blind && !p_ptr->resist_lite)
 				{
 					/* Become blind */
-					(void)set_blind(p_ptr, p_ptr->blind + 10 + randint(10));
+					(void)set_blind(p_ptr, p_ptr->blind + 10 + randint1(10));
 				}
 
 				/* Mega-Hack -- Forget the view and lite */
@@ -3977,7 +3977,7 @@ void earthquake(int Depth, int cy, int cx, int r)
 		}
 
 		/* Random message */
-		switch (randint(3))
+		switch (randint1(3))
 		{
 			case 1:
 			{
@@ -4009,7 +4009,7 @@ void earthquake(int Depth, int cy, int cx, int r)
 		else
 		{
 			/* Calculate results */
-			switch (randint(3))
+			switch (randint1(3))
 			{
 				case 1:
 				{
@@ -4021,14 +4021,14 @@ void earthquake(int Depth, int cy, int cx, int r)
 				{
 					msg_print(p_ptr, "You are bashed by rubble!");
 					damage = damroll(10, 4);
-					(void)set_stun(p_ptr, p_ptr->stun + randint(50));
+					(void)set_stun(p_ptr, p_ptr->stun + randint1(50));
 					break;
 				}
 				case 3:
 				{
 					msg_print(p_ptr, "You are crushed between the floor and ceiling!");
 					damage = damroll(10, 4);
-					(void)set_stun(p_ptr, p_ptr->stun + randint(50));
+					(void)set_stun(p_ptr, p_ptr->stun + randint1(50));
 					break;
 				}
 			}
@@ -4743,7 +4743,7 @@ bool drain_life(player_type *p_ptr, int dir, int dam)
 bool wall_to_mud(player_type *p_ptr, int dir)
 {
 	int flg = PROJECT_BEAM | PROJECT_GRID | PROJECT_ITEM | PROJECT_KILL;
-	return (project_hook(p_ptr, GF_KILL_WALL, dir, 20 + randint(30), flg));
+	return (project_hook(p_ptr, GF_KILL_WALL, dir, 20 + randint1(30), flg));
 }
 
 bool destroy_door(player_type *p_ptr, int dir)
@@ -4995,7 +4995,7 @@ bool brand_bolts(player_type *p_ptr, bool discount)
 void ring_of_power(player_type *p_ptr, int dir)
 {
 	/* Pick a random effect */
-	switch (randint(10))
+	switch (randint1(10))
 	{
 		case 1:
 		case 2:
