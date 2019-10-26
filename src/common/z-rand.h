@@ -42,7 +42,7 @@ typedef struct random {
  * The integer X falls along a uniform distribution.
  * For example, if M is 100, you get "percentile dice"
  */
-#define rand_int(M) \
+#define randint0(M) \
 	(Rand_div(M))
 
 /*
@@ -66,17 +66,17 @@ typedef struct random {
  * Generate a random long integer X where 1<=X<=M
  * Also, "correctly" handle the case of M<=1
  */
-#define randint(M) \
+#define randint1(M) \
 	(rand_int(M) + 1)
 
 
 /**
- * In Angband 3.X, randint was renamed to randint1
- * and rand_int was renamed to randint0
- * I don't want to do this (yet), but here are some compatibility defines -flm
+ * In Angband 3.1.0beta, "randint" was renamed to "randint1"
+ * and "rand_int" was renamed to "randint0".
+ * For compatibility sake, we're keeping the old names:
  */
-#define randint1 randint
-#define randint0 rand_int
+#define randint randint1
+#define rand_int randint0
 
 /**
  * Return TRUE one time in `x`.
