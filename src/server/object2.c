@@ -891,7 +891,7 @@ byte object_tester_flag(player_type *p_ptr, object_type *o_ptr, byte *secondary_
 		}
 		else
 		/* Get a direction (unless KNOWN not to need it) */
-		if ((o_ptr->sval >= SV_ROD_MIN_DIRECTION) || !aware)
+		if ((o_ptr->sval >= SV_ROD_MIN_DIRECTION) || !tried)
 		{
 			flag |= ITEM_ASK_AIM;
 		}
@@ -902,7 +902,7 @@ byte object_tester_flag(player_type *p_ptr, object_type *o_ptr, byte *secondary_
 	{
 		/* Get an item (unless KNOWN not to need it) */
 		if ((o_ptr->sval >= SV_STAFF_IDENTIFY && o_ptr->sval <= SV_STAFF_REMOVE_CURSE)
-		|| !aware)
+		|| !tried)
 		{
 			flag |= ITEM_ASK_ITEM;
 		}
@@ -924,7 +924,7 @@ byte object_tester_flag(player_type *p_ptr, object_type *o_ptr, byte *secondary_
 		/* Get a second item (unless KNOWN not to need it) */
 		if (o_ptr->sval == SV_SCROLL_CREATE_ARTIFACT
 		|| (o_ptr->sval >= SV_SCROLL_IDENTIFY && o_ptr->sval <= SV_SCROLL_RECHARGING)
-		|| !aware)
+		|| !tried)
 		{
 			flag |= ITEM_ASK_ITEM;
 		}
