@@ -849,6 +849,7 @@ byte object_tester_flag(player_type *p_ptr, object_type *o_ptr, byte *secondary_
 	bool relevant_fuel = FALSE;
 	
 	bool aware = object_aware_p(p_ptr, o_ptr);
+	bool tried = aware || object_tried_p(p_ptr, o_ptr);
 	*secondary_tester = 0;
 	
 	/* item_tester_hook_wear: */
@@ -884,24 +885,24 @@ byte object_tester_flag(player_type *p_ptr, object_type *o_ptr, byte *secondary_
 	if (o_ptr->tval == TV_ROD)
 	{
 		/* Hack -- KNOWN Rod of Perception asks for item */
-		if ((o_ptr->sval == SV_ROD_IDENTIFY) && object_aware_p(p_ptr, o_ptr))
+		if ((o_ptr->sval == SV_ROD_IDENTIFY) && aware)
 		{
 			flag |= ITEM_ASK_ITEM;
 		}
 		else
 		/* Get a direction (unless KNOWN not to need it) */
-		if ((o_ptr->sval >= SV_ROD_MIN_DIRECTION) || !object_aware_p(p_ptr, o_ptr))
+		if ((o_ptr->sval >= SV_ROD_MIN_DIRECTION) || !aware)
 		{
 			flag |= ITEM_ASK_AIM;
 		}
 	}
 
-	/* ask for another iem? (FOR STAFFS) */
+	/* ask for another item? (FOR STAFFS) */
 	if (o_ptr->tval == TV_STAFF)
 	{
-		/* Get a direction (unless KNOWN not to need it) */
+		/* Get an item (unless KNOWN not to need it) */
 		if ((o_ptr->sval >= SV_STAFF_IDENTIFY && o_ptr->sval <= SV_STAFF_REMOVE_CURSE)
-		|| !object_aware_p(p_ptr, o_ptr))
+		|| !aware)
 		{
 			flag |= ITEM_ASK_ITEM;
 		}
@@ -915,7 +916,6 @@ byte object_tester_flag(player_type *p_ptr, object_type *o_ptr, byte *secondary_
 				default: break;
 			}
 		}
-
 	}
 
 	/* ask for another item? (Id, Enchant, Curse, ...) */
@@ -924,7 +924,7 @@ byte object_tester_flag(player_type *p_ptr, object_type *o_ptr, byte *secondary_
 		/* Get a second item (unless KNOWN not to need it) */
 		if (o_ptr->sval == SV_SCROLL_CREATE_ARTIFACT
 		|| (o_ptr->sval >= SV_SCROLL_IDENTIFY && o_ptr->sval <= SV_SCROLL_RECHARGING)
-		|| !object_aware_p(p_ptr, o_ptr) )
+		|| !aware)
 		{
 			flag |= ITEM_ASK_ITEM;
 		}
@@ -1026,11 +1026,33 @@ void object_known(object_type *o_ptr)
  */
 void object_aware(player_type *p_ptr, object_type *o_ptr)
 {
+	int item;
+	int _tmp;
+	object_type *j_ptr;
+	
 	/* Fully aware of the effects */
 	p_ptr->kind_aware[o_ptr->k_idx] = TRUE;
 	
 	/* Update resistant flags */
 	p_ptr->redraw |= PR_OFLAGS;
+	
+	/* Update all similar objects */
+	for (item = 0; item < INVEN_TOTAL; item++)
+	{
+		object_type *j_ptr = &p_ptr->inventory[item];
+		if (o_ptr->k_idx == j_ptr->k_idx)
+		{
+			player_redraw_item(p_ptr, item);
+		}
+	}
+	/* And the floor object */
+	if ((j_ptr = player_get_floor_item(p_ptr, &_tmp)))
+	{
+		if (o_ptr->k_idx == j_ptr->k_idx)
+		{
+			player_redraw_item(p_ptr, FLOOR_INDEX);
+		}
+	}
 }
 
 
