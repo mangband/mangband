@@ -1636,7 +1636,7 @@ static errr rd_dungeon_special()
 	}
 	
 	/* Vanilla Mangand doesn't have special static pre-designed levels */
-	if ((!cfg_ironman) || (!cfg_more_towns)) return 0;
+	if ((!cfg_ironman) && (!cfg_more_towns)) return 0;
 	
 	num_levels = 0;
 	/* k = E/W, J = N/S for wilderness towns */
@@ -1733,7 +1733,7 @@ static bool rd_cave_memory(player_type *p_ptr)
 		for(x = 0; x < max_x; x++)
 		{
 			p_ptr->cave_flag[y][x] = cave_row[x];
-		}			
+		}
 	}
 
 	__try( end_section_read("cave_memory") );

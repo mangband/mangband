@@ -493,6 +493,7 @@ void network_loop()
 {
 	shutdown_timer = 0;
 	plog(format("Server is running version %04x", SERVER_VERSION));
+	if (cfg_ironman) plog("[Ironman mode]");
 #ifdef DEBUG
 	plog("Serving with delicious DEBUG cheeze!");
 #endif
