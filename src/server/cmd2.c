@@ -139,7 +139,10 @@ void do_cmd_go_down(player_type *p_ptr)
 		};
 		
 		/* Can't go down on a "quest" level */
-		if (is_quest_level(p_ptr, p_ptr->dun_depth))
+		if (is_quest_level(p_ptr, p_ptr->dun_depth)
+			/* Hack -- ..but not in Ironman mode. See #1365 */
+			&& !cfg_ironman
+		)
 		{
 			/* Inform */
 			msg_print(p_ptr, "An unvanquished adversary pulls you back, you can descend no further.");
