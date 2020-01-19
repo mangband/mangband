@@ -33,6 +33,7 @@
 		20A3A6201B03169300DA5935 /* z-util.c in Sources */ = {isa = PBXBuildFile; fileRef = 20A3A6151B03169300DA5935 /* z-util.c */; };
 		20A3A6211B03169300DA5935 /* z-virt.c in Sources */ = {isa = PBXBuildFile; fileRef = 20A3A6171B03169300DA5935 /* z-virt.c */; };
 		20A3A7D01B0319D300DA5935 /* lib in Resources */ = {isa = PBXBuildFile; fileRef = 20A3A73A1B0319D300DA5935 /* lib */; };
+		2E41FA0223D4A75B00A9FD1A /* grafmode.c in Sources */ = {isa = PBXBuildFile; fileRef = 2E41FA0023D4A75A00A9FD1A /* grafmode.c */; };
 		2EA8D73C230E0A6500EBF4A1 /* mangclient.icns in Resources */ = {isa = PBXBuildFile; fileRef = 2EA8D73B230E0A6500EBF4A1 /* mangclient.icns */; };
 		2EA8D73F230E0C9400EBF4A1 /* SDL2_ttf.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2ED92EF223071B9000D9E84A /* SDL2_ttf.framework */; };
 		2EA8D740230E0C9400EBF4A1 /* SDL2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2ED92EF323071B9000D9E84A /* SDL2.framework */; };
@@ -128,6 +129,8 @@
 		20A3A6171B03169300DA5935 /* z-virt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "z-virt.c"; path = "../../src/common/z-virt.c"; sourceTree = SOURCE_ROOT; };
 		20A3A6181B03169300DA5935 /* z-virt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "z-virt.h"; path = "../../src/common/z-virt.h"; sourceTree = SOURCE_ROOT; };
 		20A3A73A1B0319D300DA5935 /* lib */ = {isa = PBXFileReference; lastKnownFileType = folder; name = lib; path = ../../lib; sourceTree = SOURCE_ROOT; };
+		2E41FA0023D4A75A00A9FD1A /* grafmode.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = grafmode.c; path = ../../src/client/grafmode.c; sourceTree = "<group>"; };
+		2E41FA0123D4A75A00A9FD1A /* grafmode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = grafmode.h; path = ../../src/client/grafmode.h; sourceTree = "<group>"; };
 		2EA8D73B230E0A6500EBF4A1 /* mangclient.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = mangclient.icns; path = ../../src/client/osx/mangclient.icns; sourceTree = "<group>"; };
 		2EA8D741230E0DC600EBF4A1 /* launch_mangclient.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = launch_mangclient.sh; path = ../../src/client/osx/launch_mangclient.sh; sourceTree = "<group>"; };
 		2EB0AF1C2306B3FF003B13E7 /* c-cmd0.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "c-cmd0.c"; path = "../../src/client/c-cmd0.c"; sourceTree = "<group>"; };
@@ -267,6 +270,8 @@
 				20A3A5DA1B03165000DA5935 /* set_focus.c */,
 				20A3A5DC1B03165000DA5935 /* z-term.c */,
 				20A3A5DD1B03165000DA5935 /* z-term.h */,
+				2E41FA0023D4A75A00A9FD1A /* grafmode.c */,
+				2E41FA0123D4A75A00A9FD1A /* grafmode.h */,
 			);
 			name = client;
 			sourceTree = "<group>";
@@ -421,6 +426,7 @@
 				20A3A61E1B03169300DA5935 /* z-rand.c in Sources */,
 				2EB0AF1F2306B40D003B13E7 /* c-variable.c in Sources */,
 				20A3A61F1B03169300DA5935 /* z-type.c in Sources */,
+				2E41FA0223D4A75B00A9FD1A /* grafmode.c in Sources */,
 				20A3A6201B03169300DA5935 /* z-util.c in Sources */,
 				20A3A6211B03169300DA5935 /* z-virt.c in Sources */,
 			);
