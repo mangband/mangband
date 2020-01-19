@@ -2856,6 +2856,8 @@ static void hook_quit(cptr str)
 	/* Unused */
 	(void)str;
 
+	close_graphics_modes();
+
 	save_prefs();
 }
 
@@ -2880,6 +2882,9 @@ errr init_x11(int argc, char **argv)
 	char *TmpData;
 
 #endif /* USE_GRAPHICS */
+
+	/* load the possible graphics modes */
+	init_graphics_modes("graphics.txt");
 
 	/* Global config */
 	use_graphics = conf_get_int("X11", "Graphics", use_graphics);

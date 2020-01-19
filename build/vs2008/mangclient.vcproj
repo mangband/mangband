@@ -813,14 +813,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\client\ui.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\client\ui.c"
-				>
-			</File>
-			<File
 				RelativePath="..\..\src\client\c-files.c"
 				>
 			</File>
@@ -862,6 +854,10 @@
 			</File>
 			<File
 				RelativePath="..\..\src\client\client.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\client\grafmode.c"
 				>
 			</File>
 			<File
@@ -929,6 +925,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\common\parser.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\client\win\readdib.c"
 				>
 			</File>
@@ -949,7 +949,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\parser.c"
+				RelativePath="..\..\src\client\ui.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\client\ui.c"
 				>
 			</File>
 			<File
@@ -1004,6 +1008,10 @@
 			</File>
 			<File
 				RelativePath="..\..\src\common\defines.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\client\grafmode.h"
 				>
 			</File>
 			<File
@@ -1075,6 +1083,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\common\parser.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\client\win\readdib.h"
 				>
 			</File>
@@ -1095,7 +1107,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\parser.h"
+				RelativePath="..\..\src\client\ui.h"
 				>
 			</File>
 			<File
@@ -1116,10 +1128,6 @@
 			</File>
 			<File
 				RelativePath="..\..\src\client\z-term.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\client\ui.h"
 				>
 			</File>
 			<File

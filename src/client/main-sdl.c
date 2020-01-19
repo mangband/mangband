@@ -2521,6 +2521,9 @@ static void quit_sdl(cptr str)
 	/* Call regular quit hook */
 	quit_hook(str);
 
+	/* Forget grafmodes */
+	close_graphics_modes();
+
 	/* Do SDL-specific stuff */
 #ifdef USE_SOUND
 	sdl_cleanup_sound();
@@ -2664,6 +2667,9 @@ errr init_sdl(void)
 	load_sound_prefs();
 	sdl_init_sound();
 #endif
+
+	/* Load the possible graphics modes */
+	init_graphics_modes("graphics.txt");
 
 	/* Init font loading sublibraries */
 	sdl_font_init();

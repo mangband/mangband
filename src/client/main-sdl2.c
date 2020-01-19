@@ -246,6 +246,9 @@ errr init_sdl2(void) {
 		return 3;
 	}
 
+	/* load the possible graphics modes */
+	init_graphics_modes("graphics.txt");
+
 #ifdef USE_SOUND
 	/* Sound */
 	load_sound_prefs();
@@ -309,6 +312,9 @@ void quit_sdl2(cptr s)
 
 	/* Call regular quit hook */
 	quit_hook(s);
+
+	/* Forget grafmodes */
+	close_graphics_modes();
 
 	/* Do SDL-specific stuff */
 #ifdef USE_SOUND

@@ -273,6 +273,7 @@ extern cptr ANGBAND_DIR_USER;
 extern cptr ANGBAND_DIR_PREF;
 extern cptr ANGBAND_DIR_XTRA;
 extern cptr ANGBAND_DIR_XTRA_SOUND;
+extern cptr ANGBAND_DIR_XTRA_GRAF;
 
 extern int use_graphics;
 extern bool big_tile;

@@ -21,10 +21,12 @@ mangclient_SOURCES = \
 		src/client/main-cap.c src/client/main-gcu.c src/client/main-ibm.c \
 		src/client/main-win.c src/client/main-xaw.c src/client/net-client.c \
 		src/client/set_focus.c src/client/c-variable.c \
+		src/client/grafmode.c \
 		src/client/z-term.c \
 		$(mangclient_RESOURCES) \
 		src/client/c-angband.h src/client/c-defines.h src/client/c-externs.h \
 		src/client/net-client.h \
+		src/client/grafmode.h \
 		src/client/z-term.h
 
 mangclient_SOURCES += src/client/win/resource.h \

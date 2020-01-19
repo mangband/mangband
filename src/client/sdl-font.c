@@ -17,7 +17,6 @@
  */
 
 static cptr ANGBAND_DIR_XTRA_FONT;
-static cptr ANGBAND_DIR_XTRA_GRAF;
 
 #define USE_BITMASK /* Load "mask files" and use them as colorkeys when doing graphics. Slower, but neatier */
 
@@ -856,11 +855,6 @@ errr sdl_font_init(void)
 	path_build(path, 1024, ANGBAND_DIR_XTRA, "font");
 	ANGBAND_DIR_XTRA_FONT = string_make(path);
 
-	/* Graf */
-	path_build(path, 1024, ANGBAND_DIR_XTRA, "graf");
-	ANGBAND_DIR_XTRA_GRAF = string_make(path);
-	
-	
 #if defined(USE_SDL2_TTF) || defined(USE_SDL_TTF)
 	if (TTF_Init() == -1) {
 		plog_fmt("TTF_Init(): %s", TTF_GetError());
@@ -880,7 +874,6 @@ errr sdl_font_init(void)
 errr sdl_font_quit()
 {
 	string_free(ANGBAND_DIR_XTRA_FONT);
-	string_free(ANGBAND_DIR_XTRA_GRAF);
 
 #if defined(USE_SDL2_TTF) || defined(USE_SDL_TTF)
 	TTF_Quit();

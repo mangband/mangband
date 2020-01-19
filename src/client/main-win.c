@@ -448,7 +448,6 @@ static int loaded_graphics = 0;
  * Directory names
  */
 static cptr ANGBAND_DIR_XTRA_FONT;
-static cptr ANGBAND_DIR_XTRA_GRAF;
 #define ANGBAND_DIR_XTRA_HELP ".\\lib\\text"
 
 #ifdef USE_SOUND
@@ -3649,6 +3648,9 @@ static void hack_quit(cptr str)
 	FreeDIB(&infGraph);
 	FreeDIB(&infMask);
 #endif
+	/* Forget grafmodes */
+	close_graphics_modes();
+
 
 	term_force_font(&win_data[0], NULL);
 	if (win_data[0].font_want) string_free(win_data[0].font_want);
@@ -3838,12 +3840,6 @@ void static init_stuff_win(void)
 
 #ifdef USE_GRAPHICS
 
-	/* Build the "graf" path */
-	path_build(path, 1024, ANGBAND_DIR_XTRA, "graf");
-
-	/* Allocate the path */
-	ANGBAND_DIR_XTRA_GRAF = string_make(path);
-
 	/* Validate the "graf" directory */
 	validate_dir(ANGBAND_DIR_XTRA_GRAF);
 
@@ -3948,6 +3944,11 @@ int FAR PASCAL WinMain(HINSTANCE hInst, HINSTANCE hPrevInst,
 		color_table[i][0] = win_pal[i];
 	}
 #endif
+
+	/* load the possible graphics modes */
+	if (!init_graphics_modes("graphics.txt")) {
+		plog("Graphics list load failed");
+	}
 
 	/* Prepare the windows */
 	init_windows();
