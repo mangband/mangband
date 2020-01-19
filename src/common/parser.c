@@ -109,7 +109,7 @@ struct parser {
 };
 
 struct parser *parser_new(void) {
-	struct parser *p = ZNEW(sizeof *p);
+	struct parser *p = ZNEW(*p);
 	return p;
 }
 
@@ -313,7 +313,7 @@ enum parser_error parser_parse(struct parser *p, const char *line) {
 
 		/* Allocate a value node, parse out its value, and link it into
 		 * the value list. */
-		v = ZNEW(sizeof *v);
+		v = ZNEW(*v);
 		v->spec.next = NULL;
 		v->spec.type = s->type;
 		v->spec.name = s->name;
@@ -481,7 +481,7 @@ static errr parse_specs(struct parser_hook *h, char *fmt) {
 		}
 
 		/* Save this spec. */
-		s = RNEW(sizeof *s);
+		s = RNEW(*s);
 		s->type = type;
 		s->name = (char*)string_make(name);
 		s->next = NULL;
@@ -505,7 +505,7 @@ errr parser_reg(struct parser *p, const char *fmt,
 	assert(fmt);
 	assert(func);
 
-	h = RNEW(sizeof *h);
+	h = RNEW(*h);
 	cfmt = (char*)string_make(fmt);
 	h->next = p->hooks;
 	h->func = func;
