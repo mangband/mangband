@@ -221,7 +221,7 @@ bool init_graphics_modes(const char *filename) {
 	/* Read every filename */
 	while (my_dread(dir, buf, sizeof buf)) {
 		/* Skip 'main' file (it has already been read) */
-		if (filename && !strcasecmp(buf, filename))
+		if (filename && !my_stricmp(buf, filename))
 			continue;
 		/* Check for file extension */
 		if (isuffix(buf, ".txt"))
