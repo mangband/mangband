@@ -134,13 +134,42 @@ void init_stuff(void)
 	/* We're onto something */
 	if (!STRZERO(path))
 	{
+		size_t offset = 0;
+
 		/* Hack -- Add a path separator (only if needed) */
 		if (!suffix(path, PATH_SEP)) my_strcat(path, PATH_SEP, 1024);
 
-		/* Overwrite "user" dir */
+		/* HACK! Do not append "user" to userdir if -d option was used. */
+		if (prefix(path, "-duser=")) offset = 7;
+		else
 		my_strcat(path, "user", 1024);
+
+		/* Overwrite "user" dir */
 		string_free(ANGBAND_DIR_USER);
-		ANGBAND_DIR_USER = string_make(path);
+		ANGBAND_DIR_USER = string_make(path + offset);
+	}
+
+	/* -------------------------- */
+	/* Overwrite ANGBAND_DIR_BONE */
+
+	/* Read/Write path from config file or CLI */
+	my_strcpy(path, conf_get_string("MAngband", "BoneDir", ""), 1024);
+	clia_read_string(path, 1024, "bonedir");
+
+	/* We're onto something */
+	if (!STRZERO(path))
+	{
+		size_t offset = 0;
+
+		/* Hack -- Add a path separator (only if needed) */
+		if (!suffix(path, PATH_SEP)) my_strcat(path, PATH_SEP, 1024);
+
+		/* HACK! Do not append "user" to userdir if -d option was used. */
+		if (prefix(path, "-dbone=")) offset = 7;
+
+		/* Overwrite "bone" dir */
+		string_free(ANGBAND_DIR_BONE);
+		ANGBAND_DIR_USER = string_make(path + offset);
 	}
 
     /* ------------------------------------- */

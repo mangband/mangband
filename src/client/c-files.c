@@ -2641,8 +2641,19 @@ int clia_find(const char *key)
 				/* Hack -- Ignore MacOSX `-psn_APPID` handle (see #989) */
 				if (prefix(p_argv[i], "-psn_")) continue;
 
+				/* Starts with an "-", could be a short option. */
+				if (p_argv[i][0] == '-')
+				{
+					if (
+					    (prefix(p_argv[i], "-duser=") && streq(key, "userdir"))
+					 || (prefix(p_argv[i], "-dbone=") && streq(key, "bonedir"))
+					) {
+						/* "Found" */
+						return i;
+					}
+				}
 				/* Could be hostname */
-				if (i == p_argc - 1 || (i == p_argc - 2 && !got_hostname))
+				else if (i == p_argc - 1 || (i == p_argc - 2 && !got_hostname))
 				{
 					if (!got_hostname)
 					{
