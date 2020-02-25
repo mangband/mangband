@@ -18,6 +18,7 @@ struct listener_type {
 struct connection_type {
 	int conn_fd;
 	callback receive_cb; /* return -1 if you disliked his input */
+	callback send_cb; /* Unused, unless using connection wrappers */
 	callback close_cb;
 	int close;
 	char host_addr[24];
@@ -25,6 +26,7 @@ struct connection_type {
 	cq wbuf;
 	int user; /* User-defined data, unused by us */
 	data uptr;
+	cq wsrbuf; /* Unused, additional read buffer for connection wrapping */
 };
 struct timer_type {
 	micro interval;

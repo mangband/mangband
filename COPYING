@@ -132,6 +132,15 @@
  *
  * ----------------------------------------------------------------------------
  *
+ * MAngband uses "b64encode" module by David Lazar which "has been placed in the
+ * public domain".
+ *
+ * ----------------------------------------------------------------------------
+ *
+ * MAngband uses "sha1" module (SHA-1 in C) by Steve Reid, "100% Public Domain".
+ *
+ * ----------------------------------------------------------------------------
+ *
  * This software may be copied and distributed for educational, research, and not for 
  * profit purposes provided that this copyright and statement are included in their 
  * entirety with all such copies or executables produced from this source or source 
