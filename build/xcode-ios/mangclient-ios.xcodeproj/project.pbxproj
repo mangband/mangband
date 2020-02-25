@@ -56,6 +56,8 @@
 		2E29DE752303FA6C00415961 /* Default.png in Resources */ = {isa = PBXBuildFile; fileRef = 2E29DE722303FA6C00415961 /* Default.png */; };
 		2E29DE772303FA6C00415961 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 2E29DE742303FA6C00415961 /* Default-568h@2x.png */; };
 		2E41F9FF23D4A71E00A9FD1A /* grafmode.c in Sources */ = {isa = PBXBuildFile; fileRef = 2E41F9F023D4A71E00A9FD1A /* grafmode.c */; };
+		2E9B33422405A116003E24BD /* sha1.c in Sources */ = {isa = PBXBuildFile; fileRef = 2E9B33402405A116003E24BD /* sha1.c */; };
+		2E9B33432405A116003E24BD /* base64encode.c in Sources */ = {isa = PBXBuildFile; fileRef = 2E9B33412405A116003E24BD /* base64encode.c */; };
 		2EA8D715230D55D700EBF4A1 /* libSDL2_ttf.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2EA8D710230D557800EBF4A1 /* libSDL2_ttf.a */; };
 		2EB388BA230401E6007B7A33 /* appl-dir.m in Sources */ = {isa = PBXBuildFile; fileRef = 2EB388B8230401E6007B7A33 /* appl-dir.m */; };
 		2EE023F123009C0B00BA0836 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2EE023DD23009C0B00BA0836 /* AVFoundation.framework */; };
@@ -210,6 +212,10 @@
 		2E41F9F023D4A71E00A9FD1A /* grafmode.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = grafmode.c; path = ../../src/client/grafmode.c; sourceTree = "<group>"; };
 		2E41F9FE23D4A71E00A9FD1A /* grafmode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = grafmode.h; path = ../../src/client/grafmode.h; sourceTree = "<group>"; };
 		2E50683F23040445009E8074 /* h-config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "h-config.h"; path = "../../src/h-config.h"; sourceTree = "<group>"; };
+		2E9B33312405A116003E24BD /* sha1.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sha1.h; path = ../../src/common/sha1.h; sourceTree = "<group>"; };
+		2E9B333F2405A116003E24BD /* base64encode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = base64encode.h; path = ../../src/common/base64encode.h; sourceTree = "<group>"; };
+		2E9B33402405A116003E24BD /* sha1.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = sha1.c; path = ../../src/common/sha1.c; sourceTree = "<group>"; };
+		2E9B33412405A116003E24BD /* base64encode.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = base64encode.c; path = ../../src/common/base64encode.c; sourceTree = "<group>"; };
 		2EB0B0122306F644003B13E7 /* SDL_ttf.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SDL_ttf.xcodeproj; path = "../../../SDL2_ttf/Xcode-iOS/SDL_ttf.xcodeproj"; sourceTree = "<group>"; };
 		2EB388B8230401E6007B7A33 /* appl-dir.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "appl-dir.m"; path = "../../src/client/osx/appl-dir.m"; sourceTree = "<group>"; };
 		2EB388B9230401E6007B7A33 /* appl-dir.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "appl-dir.h"; path = "../../src/client/osx/appl-dir.h"; sourceTree = "<group>"; };
@@ -382,6 +388,10 @@
 				2E0077BE2301790300DD2D1A /* parser.c */,
 				2E0077C32301790300DD2D1A /* parser.h */,
 				2E0077C02301790300DD2D1A /* types.h */,
+				2E9B33412405A116003E24BD /* base64encode.c */,
+				2E9B333F2405A116003E24BD /* base64encode.h */,
+				2E9B33402405A116003E24BD /* sha1.c */,
+				2E9B33312405A116003E24BD /* sha1.h */,
 				2E0077D82301790600DD2D1A /* z-bitflag.c */,
 				2E0077D42301790600DD2D1A /* z-bitflag.h */,
 				2E0077CE2301790500DD2D1A /* z-file.c */,
@@ -564,6 +574,8 @@
 				2E0078182301792300DD2D1A /* z-term.c in Sources */,
 				2EB388BA230401E6007B7A33 /* appl-dir.m in Sources */,
 				2E0077E52301790700DD2D1A /* net-pack.c in Sources */,
+				2E9B33432405A116003E24BD /* base64encode.c in Sources */,
+				2E9B33422405A116003E24BD /* sha1.c in Sources */,
 				2E00782A2301792300DD2D1A /* ui.c in Sources */,
 				2E0077E42301790700DD2D1A /* z-file.c in Sources */,
 				2E00782C2301792300DD2D1A /* c-init.c in Sources */,
