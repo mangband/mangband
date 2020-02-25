@@ -7,7 +7,10 @@
    100% Public Domain
  */
 
-#include "stdint.h"
+#include "h-basic.h"
+#ifndef uint32_t
+#define uint32_t u32b
+#endif
 
 typedef struct
 {

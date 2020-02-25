@@ -20,9 +20,6 @@ A million repetitions of "a"
 #include <stdio.h>
 #include <string.h>
 
-/* for uint32_t */
-#include <stdint.h>
-
 #include "sha1.h"
 
 

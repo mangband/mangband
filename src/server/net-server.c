@@ -1404,7 +1404,7 @@ int websocket_exec(connection_type *ct)
  * "frame". */
 int websocket_receive(int data1, data data2)
 {
-	(void)data1; /* Unused */
+	//(void)data1; /* Unused */
 	connection_type *ct = data2;
 	bool updated = FALSE;
 	int n = 0;
@@ -1490,7 +1490,7 @@ int websocket_handshake(int data1, data data2)
 		my_strcat(mixed_key, websocket_guid, 1024);
 		SHA1(sha_of_key, mixed_key, strlen(mixed_key));
 		base64_encode(sha_of_key, 20, b64_of_key);
-		snprintf(in_header, 1024, "Sec-WebSocket-Accept: %s\r\n", b64_of_key);
+		strnfmt(in_header, 1024, "Sec-WebSocket-Accept: %s\r\n", b64_of_key);
 
 		cq_printf(&ct->wbuf, "%T", "HTTP/1.1 101 Switching Protocols\r\n");
 		cq_printf(&ct->wbuf, "%T", "Upgrade: websocket\r\n");
@@ -1515,7 +1515,7 @@ int websocket_handshake(int data1, data data2)
 
 int websocket_close(int data1, data data2)
 {
-	(void)data1; /* Unused */
+	//(void)data1; /* Unused */
 	connection_type *ct = data2;
 
 	if (ct->user == -2)

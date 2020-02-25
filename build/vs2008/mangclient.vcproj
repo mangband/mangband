@@ -801,6 +801,10 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath="..\..\src\common\base64encode.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\client\c-birth.c"
 				>
 			</File>
@@ -949,6 +953,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\common\sha1.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\client\ui.c"
 				>
 			</File>
@@ -992,6 +1000,10 @@
 			>
 			<File
 				RelativePath="..\..\src\common\angband.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\common\base64encode.h"
 				>
 			</File>
 			<File
@@ -1100,6 +1112,10 @@
 			</File>
 			<File
 				RelativePath="..\..\src\client\sdl-sound.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\common\sha1.h"
 				>
 			</File>
 			<File

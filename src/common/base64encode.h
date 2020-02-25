@@ -12,7 +12,16 @@ For details, see http://sourceforge.net/projects/libb64
 #define BASE64_ENCODE_H
 
 #include <stddef.h>
-#include <stdint.h>
+#include "h-basic.h"
+#ifndef uint64_t
+#define uint64_t u64b
+#endif
+#ifndef uint32_t
+#define uint32_t u32b
+#endif
+#ifndef uint8_t
+#define uint8_t byte
+#endif
 
 typedef enum {
     step_A, step_B, step_C

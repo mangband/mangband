@@ -9,7 +9,6 @@ For details, see http://sourceforge.net/projects/libb64
 */
 
 #include <stddef.h>
-#include <stdint.h>
 #include "base64encode.h"
 
 void base64_encode_init(base64_encodestate *S) {
