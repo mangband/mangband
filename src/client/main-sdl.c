@@ -1397,6 +1397,7 @@ static errr Term_xtra_sdl(int n, int v)
 		/* XXX XXX XXX Make a noise (optional) */
 		/* This action should produce a "beep" noise. */
 		/* This action is optional, but nice. */
+		sdl_bell();
 
 		return (0);
 

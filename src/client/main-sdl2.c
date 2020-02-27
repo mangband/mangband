@@ -2474,7 +2474,7 @@ static errr xtraTermHook(int n, int v) {
 	int i;
 	switch (n) {
 	case TERM_XTRA_NOISE: // generic noise
-		//return (Term_xtra_win_noise());
+		sdl_bell();
 		return 0;
 	case TERM_XTRA_SOUND:
 #ifdef USE_SOUND

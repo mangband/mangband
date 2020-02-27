@@ -173,5 +173,26 @@ void sdl_play_sound(int v, int s)
 	now_playing = wav;
 }
 
+/*
+ * BONUS API - Play a system beep sound
+ */
+#ifdef ON_OSX
+#include "CoreFoundation/CoreFoundation.h"
+#endif
+#ifdef WINDOWS
+/* <windows.h> should already be included by "c-angband.h" */
+#endif
+void sdl_bell(void)
+{
+#ifdef ON_OSX
+	NSBeep();
+#elif defined(WINDOWS)
+	MessageBeep(MB_ICONASTERISK);
+#elif defined(SET_UID) && !defined(MOBILE_UI)
+	/* Hacky fallback for "UNIX" */
+	fprintf(stdout, "\a");
+#endif
+}
+
 #endif
 #endif
