@@ -1736,6 +1736,8 @@ int recv_clear(connection_type *ct, player_type *p_ptr)
 {
 	/* Clear player's "command buffer" */
 	cq_clear(&p_ptr->cbuf);
+	/* Cancel pathfinder */
+	p_ptr->running_withpathfind = FALSE;
 	return 1;
 }
 
