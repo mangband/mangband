@@ -51,10 +51,12 @@ extern int server_port;
 
 extern object_type *inventory;
 extern char **inventory_name;
+extern char **inventory_name_one;
 extern byte *inventory_secondary_tester;
 
 extern object_type floor_item;
 extern char floor_name[MAX_CHARS];
+extern char floor_name_one[MAX_CHARS];
 extern byte floor_secondary_tester;
 
 

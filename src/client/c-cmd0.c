@@ -1032,11 +1032,11 @@ int item_as_keystroke(int item, char cmd, char *dst, size_t len, byte ctxt_flag)
 
 	if (item < 0 && item > -FLOOR_TOTAL-1)
 	{
-		my_strcpy(buf2, floor_name, 1024);
+		my_strcpy(buf2, floor_name_one, 1024);
 	}
 	else
 	{
-		my_strcpy(buf2, inventory_name[item], 1024);
+		my_strcpy(buf2, inventory_name_one[item], 1024);
 	}
 
 	if (ctxt_flag & CTXT_WITH_CMD)

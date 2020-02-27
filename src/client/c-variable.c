@@ -12,10 +12,12 @@ int server_port;
 
 object_type *inventory; 	/* The client-side copy of the inventory */
 char **inventory_name;  	/* The client-side copy of the inventory names */
+char **inventory_name_one;	/* Client-side copy of inventory names (singular) */
 byte *inventory_secondary_tester;/* Secondary item tester (if known) */
 
 object_type floor_item;
-char floor_name[MAX_CHARS]; 	/* Client-side copy of floor item */
+char floor_name[MAX_CHARS];     /* Client-side copy of floor item */
+char floor_name_one[MAX_CHARS]; /* Client-side copy of floor item (singular) */
 byte floor_secondary_tester;
 
 indicator_type indicators[MAX_INDICATORS];

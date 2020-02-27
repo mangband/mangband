@@ -709,7 +709,7 @@ int send_air_char(player_type *p_ptr, byte y, byte x, char a, char c, u16b delay
 	return 1;
 }
 
-int send_floor(player_type *p_ptr, byte attr, int amt, byte tval, byte flag, byte s_tester, cptr name)
+int send_floor_DEPRECATED(player_type *p_ptr, byte attr, int amt, byte tval, byte flag, byte s_tester, cptr name)
 {
 	connection_type *ct;
 	if (p_ptr->conn == -1) return -1;
@@ -721,12 +721,50 @@ int send_floor(player_type *p_ptr, byte attr, int amt, byte tval, byte flag, byt
 	return 1;
 }
 
-int send_inven(player_type *p_ptr, char pos, byte attr, int wgt, int amt, byte tval, byte flag, byte s_tester, cptr name)
+int send_floor(player_type *p_ptr, byte ga, char gc, byte attr, int amt, byte tval, byte flag, byte s_tester, cptr name, cptr name_one)
+{
+	connection_type *ct;
+	/* Hack -- use old version of the function */
+	if (!client_version_atleast(p_ptr->version, 1,5,3))
+	{
+		return send_floor_DEPRECATED(p_ptr, attr, amt, tval, flag, s_tester, name);
+	}
+	if (p_ptr->conn == -1) return -1;
+	ct = Conn[p_ptr->conn];
+	if (cq_printf(&ct->wbuf, "%b" "%c%c%c%c" "%d%c%b%b%s%s", PKT_FLOOR,
+		0, ga, gc, attr,
+		amt, tval, flag, s_tester, name, name_one) <= 0)
+	{
+		client_withdraw(ct);
+	}
+	return 1;
+}
+
+int send_inven_DEPRECATED(player_type *p_ptr, char pos, byte attr, int wgt, int amt, byte tval, byte flag, byte s_tester, cptr name)
 {
 	connection_type *ct;
 	if (p_ptr->conn == -1) return -1;
 	ct = Conn[p_ptr->conn];
-	if (cq_printf(&ct->wbuf, "%c" "%c%c%ud%d%c%b%b%s", PKT_INVEN, pos, attr, wgt, amt, tval, flag, s_tester, name) <= 0)
+	if (cq_printf(&ct->wbuf, "%c" "%c%ud%d%c%b%b%s", PKT_INVEN, pos, attr, wgt, amt, tval, flag, s_tester, name) <= 0)
+	{
+		client_withdraw(ct);
+	}
+	return 1;
+}
+
+int send_inven(player_type *p_ptr, char pos, byte ga, char gc, byte attr, int wgt, int amt, byte tval, byte flag, byte s_tester, cptr name, cptr name_one)
+{
+	connection_type *ct;
+	/* Hack -- use old version of the function */
+	if (!client_version_atleast(p_ptr->version, 1,5,3))
+	{
+		return send_inven_DEPRECATED(p_ptr, pos, attr, wgt, amt, tval, flag, s_tester, name);
+	}
+	if (p_ptr->conn == -1) return -1;
+	ct = Conn[p_ptr->conn];
+	if (cq_printf(&ct->wbuf, "%b" "%c%c%c%c" "%ud%d%c%b%b%s%s", PKT_INVEN,
+		pos, ga, gc, attr,
+		wgt, amt, tval, flag, s_tester, name, name_one) <= 0)
 	{
 		client_withdraw(ct);
 	}
@@ -2121,12 +2159,29 @@ static int recv_custom_command(player_type *p_ptr)
 	return 1;
 }
 
-int send_store(player_type *p_ptr, char pos, byte attr, s16b wgt, s16b number, long price, cptr name)
+int send_store_DEPRECATED(player_type *p_ptr, char pos, byte attr, s16b wgt, s16b number, long price, cptr name)
 {
 	connection_type *ct;
 	if (p_ptr->conn == -1) return -1;
 	ct = Conn[p_ptr->conn];
-	if (cq_printf(&ct->wbuf, "%c%c%c%d%d%ul%s", PKT_STORE, pos, attr, wgt, number, price, name) <= 0)
+	if (cq_printf(&ct->wbuf, "%c%c%d%d%ul%s", PKT_STORE, pos, attr, wgt, number, price, name) <= 0)
+	{
+		client_withdraw(ct);
+	}
+	return 1;
+}
+
+int send_store(player_type *p_ptr, char pos, byte ga, char gc, byte attr, s16b wgt, s16b number, long price, cptr name)
+{
+	connection_type *ct;
+	/* Hack -- use old version of the function */
+	if (!client_version_atleast(p_ptr->version, 1,5,3))
+	{
+		return send_store_DEPRECATED(p_ptr, pos, attr, wgt, number, price, name);
+	}
+	if (p_ptr->conn == -1) return -1;
+	ct = Conn[p_ptr->conn];
+	if (cq_printf(&ct->wbuf, "%b" "%b%c%c%c%d%d%ul%s", PKT_STORE, pos, ga, gc, attr, wgt, number, price, name) <= 0)
 	{
 		client_withdraw(ct);
 	}

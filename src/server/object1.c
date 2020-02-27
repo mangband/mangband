@@ -2117,6 +2117,28 @@ void object_desc_store(const player_type *p_ptr, char *buf, object_type *o_ptr, 
 	}
 }
 
+/* Hack -- dump item name in singular form (discard number of items) */
+void object_desc_one(const player_type *p_ptr, char *buf, size_t bufsize, object_type *o_ptr, int force, int mode)
+{
+	byte old_number;
+
+	/* Clear buffer, at any rate */
+	buf[0] = '\0';
+
+	/* HACK !!! For now, do nothing... */
+	return;
+
+	/* Do nothing if item is already singular. */
+	if (o_ptr->number < 2 && !force) return;
+
+	old_number = o_ptr->number;
+	o_ptr->number = 1;
+
+	/* Call regular function with "pref"ix=FALSE */
+	object_desc(p_ptr, buf, bufsize, o_ptr, FALSE, mode);
+
+	o_ptr->number = old_number;
+}
 
 
 #if 0
@@ -2876,10 +2898,13 @@ void display_inven(player_type *p_ptr)
 	object_type *o_ptr;
 
 	byte	attr = TERM_WHITE;
+	byte a;
+	char c;
 
 	char	tmp_val[80];
 
 	char	o_name[80];
+	char	o_name_one[80];
 
 	int wgt;
 
@@ -2908,6 +2933,7 @@ void display_inven(player_type *p_ptr)
 
 		/* Obtain an item description */
 		object_desc(p_ptr, o_name, sizeof(o_name) - 1, o_ptr, TRUE, 3);
+		object_desc_one(p_ptr, o_name_one, sizeof(o_name_one) - 1, o_ptr, FALSE, 0);
 
 		/* Obtain the length of the description */
 		n = strlen(o_name);
@@ -2923,9 +2949,13 @@ void display_inven(player_type *p_ptr)
 		
 		/* Get item flag and secondary_tester */
 		flag = object_tester_flag(p_ptr, o_ptr, &secondary_tester);
-		
+
+		/* Get a/c symbols */
+		c = object_char_p(p_ptr, o_ptr);
+		a = object_attr_p(p_ptr, o_ptr);
+
 		/* Send the info to the client */
-		send_inven(p_ptr, tmp_val[0], attr, wgt, o_ptr->number, o_ptr->tval, flag, secondary_tester, o_name);
+		send_inven(p_ptr, tmp_val[0], a, c, attr, wgt, o_ptr->number, o_ptr->tval, flag, secondary_tester, o_name, o_name_one);
 	}
 }
 
