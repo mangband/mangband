@@ -19,6 +19,7 @@ extern item_tester_type item_tester[MAX_ITEM_TESTERS];
 extern const indicator_type indicators[MAX_INDICATORS];
 extern custom_command_type priest_study_cmd;
 extern int study_cmd_id;
+extern byte eq_pos[INVEN_TOTAL-INVEN_WIELD+1][2];
 extern s16b ddd[9];
 extern s16b ddx[10];
 extern s16b ddy[10];
@@ -740,6 +741,7 @@ extern int send_inven(player_type *p_ptr, char pos, byte a, char c, byte attr, i
 extern int send_equip(player_type *p_ptr, char pos, byte attr, int wgt, byte tval, byte flag, cptr name);
 extern int send_spell_info(player_type *p_ptr, u16b book, u16b id, byte flag, byte item_tester, cptr desc);
 extern int send_ghost(player_type *p_ptr);
+extern int send_inventory_info_DEPRECATED(connection_type *ct);
 extern int send_inventory_info(connection_type *ct);
 extern int send_objflags_info(connection_type *ct);
 extern int send_floor_info(connection_type *ct);

@@ -979,6 +979,27 @@ const indicator_type indicators[MAX_INDICATORS] =
 };
 
 /*
+ * Global array of equipment slot X/Y positions for advanced
+ * interfaces. 0 is 0.0f, 128 is 0.5f, 255 is 1.0f.
+ */
+#define __F(X) MAX(MIN(127 + X * 64, 255), 0)
+byte eq_pos[INVEN_TOTAL - INVEN_WIELD + 1][2] = {
+		{ __F(-2), __F( 0) },	/* INVEN_WIELD */
+		{ __F(-2), __F( 1) },	/* INVEN_BOW */
+		{ __F( 1), __F( 1) },	/* INVEN_LEFT */
+		{ __F(-1), __F( 1) },	/* INVEN_RIGHT */
+		{ __F( 0), __F(-1) },	/* INVEN_NECK */
+		{ __F( 2), __F( 0) },	/* INVEN_LITE */
+		{ __F( 0), __F( 0) },	/* INVEN_BODY */
+		{ __F( 1), __F(-1) },	/* INVEN_OUTER */
+		{ __F( 1), __F( 0) },	/* INVEN_ARM */
+		{ __F( 0), __F(-2) },	/* INVEN_HEAD */
+		{ __F(-1), __F( 0) },	/* INVEN_HANDS */
+		{ __F( 0), __F( 2) },	/* INVEN_FEET */
+};
+#undef __F
+
+/*
  * Global array for looping through the "keypad directions"
  */
 s16b ddd[9] =

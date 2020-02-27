@@ -219,7 +219,8 @@ int send_option_info(connection_type *ct, player_type *p_ptr, int id)
 	return 1;
 }
 
-int send_inventory_info(connection_type *ct)
+/* XXX REMOVE ME XXX Remove at next protocol upgrade. */
+int send_inventory_info_DEPRECATED(connection_type *ct)
 {
 	u32b i, off = 0;
 	char buf[80];
@@ -242,7 +243,7 @@ int send_inventory_info(connection_type *ct)
 	for (i = 0; i < INVEN_TOTAL; i++)
 	{
 		off += strlen(buf) + 1;
-		if (i < INVEN_WIELD) 
+		if (i < INVEN_WIELD)
 		{
 			off = 0;
 		}
@@ -250,6 +251,52 @@ int send_inventory_info(connection_type *ct)
 		my_strcpy(buf, mention_use(0, i), MAX_CHARS);
 
 		if (cq_printf(&ct->wbuf, "%s%ul", buf, off) <= 0)
+		{
+			ct->wbuf.len = start_pos; /* rollback */
+			client_withdraw(ct);
+		}
+	}
+	return 1;
+}
+
+int send_inventory_info(connection_type *ct)
+{
+	u32b i, off = 0;
+	char buf[80];
+
+	int start_pos = ct->wbuf.len; /* begin cq "transaction" */
+
+	if (cq_printf(&ct->wbuf, "%c%c", PKT_STRUCT_INFO, STRUCT_INFO_INVEN) <= 0)
+	{
+		ct->wbuf.len = start_pos; /* rollback */
+		client_withdraw(ct);
+	}
+
+	if (cq_printf(&ct->wbuf, "%ud%ul%ul%ul", INVEN_TOTAL, eq_name_size, INVEN_WIELD, INVEN_PACK) <= 0)
+	{
+		ct->wbuf.len = start_pos; /* rollback */
+		client_withdraw(ct);
+	}
+
+	buf[0] = '\0';
+	for (i = 0; i < INVEN_TOTAL; i++)
+	{
+		byte xpos = 0, ypos = 0;
+
+		off += strlen(buf) + 1;
+		if (i < INVEN_WIELD)
+		{
+			off = 0;
+		}
+		else
+		{
+			xpos = eq_pos[i-INVEN_WIELD][0];
+			ypos = eq_pos[i-INVEN_WIELD][1];
+		}
+
+		my_strcpy(buf, mention_use(0, i), MAX_CHARS);
+
+		if (cq_printf(&ct->wbuf, "%s%ul%c%c", buf, off, xpos, ypos) <= 0)
 		{
 			ct->wbuf.len = start_pos; /* rollback */
 			client_withdraw(ct);

@@ -996,7 +996,8 @@ int client_login(int data1, data data2) { /* return -1 on error */
 	send_race_info(ct);
 	send_class_info(ct);
 	send_server_info(ct);
-	send_inventory_info(ct);
+	if (client_version_atleast(p_ptr->version, 1,5,3)) send_inventory_info(ct);
+	else send_inventory_info_DEPRECATED(ct);
 	send_objflags_info(ct);
 	send_floor_info(ct);
 	send_optgroups_info(ct);

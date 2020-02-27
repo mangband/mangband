@@ -189,6 +189,8 @@ extern char *p_name;
 extern player_race *race_info;
 extern player_class *c_info;
 extern s16b *eq_names;
+extern byte *eq_xpos;
+extern byte *eq_ypos;
 
 extern maxima z_info;
 

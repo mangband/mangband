@@ -209,6 +209,8 @@ byte icky_levels; /* How many levels of ickyness nested -- DO NOT USE */
 /* Player equipment refrence array */
 char *eq_name;
 s16b *eq_names;
+byte *eq_xpos;
+byte *eq_ypos;
 
 /*
  * The player race arrays

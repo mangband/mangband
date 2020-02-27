@@ -831,6 +831,8 @@ int recv_struct_info(connection_type *ct)
 			/* Alloc */
 			C_MAKE(eq_name, fake_name_size, char);
 			C_MAKE(eq_names, max, s16b);
+			C_MAKE(eq_xpos, max, s16b);
+			C_MAKE(eq_ypos, max, s16b);
 			C_MAKE(inventory_name, max, char*);
 			C_MAKE(inventory_name_one, max, char*);
 			C_MAKE(inventory, max, object_type);
@@ -849,12 +851,14 @@ int recv_struct_info(connection_type *ct)
 			/* Fill */
 			for (i = 0; i < max; i++) 
 			{
+				byte xpos, ypos;
+
 				C_MAKE(inventory_name[i], 80, char);
 				C_MAKE(inventory_name_one[i], 80, char);
 
 				off = 0;
 
-				if (cq_scanf(&ct->rbuf, "%s%ul", &name, &off) < 2)
+				if (cq_scanf(&ct->rbuf, "%s%ul%c%c", &name, &off, &xpos, &ypos) < 4)
 				{
 					return 0;
 				}
@@ -865,6 +869,8 @@ int recv_struct_info(connection_type *ct)
 				}
 
 				eq_names[i] = last_off = (s16b)off;
+				eq_xpos[i] = xpos;
+				eq_ypos[i] = ypos;
 			}
 		}
 		break;
@@ -926,6 +932,8 @@ void free_struct_info(void)
 	}
 	KILL(eq_name);
 	KILL(eq_names);
+	KILL(eq_xpos);
+	KILL(eq_ypos);
 	KILL(inventory_name);
 	KILL(inventory_name_one);
 	KILL(inventory);
