@@ -34,6 +34,8 @@
 		20A3A6211B03169300DA5935 /* z-virt.c in Sources */ = {isa = PBXBuildFile; fileRef = 20A3A6171B03169300DA5935 /* z-virt.c */; };
 		20A3A7D01B0319D300DA5935 /* lib in Resources */ = {isa = PBXBuildFile; fileRef = 20A3A73A1B0319D300DA5935 /* lib */; };
 		2E41FA0223D4A75B00A9FD1A /* grafmode.c in Sources */ = {isa = PBXBuildFile; fileRef = 2E41FA0023D4A75A00A9FD1A /* grafmode.c */; };
+		2E9B33482405A141003E24BD /* base64encode.c in Sources */ = {isa = PBXBuildFile; fileRef = 2E9B33442405A141003E24BD /* base64encode.c */; };
+		2E9B33492405A141003E24BD /* sha1.c in Sources */ = {isa = PBXBuildFile; fileRef = 2E9B33462405A141003E24BD /* sha1.c */; };
 		2EA8D73C230E0A6500EBF4A1 /* mangclient.icns in Resources */ = {isa = PBXBuildFile; fileRef = 2EA8D73B230E0A6500EBF4A1 /* mangclient.icns */; };
 		2EA8D73F230E0C9400EBF4A1 /* SDL2_ttf.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2ED92EF223071B9000D9E84A /* SDL2_ttf.framework */; };
 		2EA8D740230E0C9400EBF4A1 /* SDL2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2ED92EF323071B9000D9E84A /* SDL2.framework */; };
@@ -131,6 +133,10 @@
 		20A3A73A1B0319D300DA5935 /* lib */ = {isa = PBXFileReference; lastKnownFileType = folder; name = lib; path = ../../lib; sourceTree = SOURCE_ROOT; };
 		2E41FA0023D4A75A00A9FD1A /* grafmode.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = grafmode.c; path = ../../src/client/grafmode.c; sourceTree = "<group>"; };
 		2E41FA0123D4A75A00A9FD1A /* grafmode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = grafmode.h; path = ../../src/client/grafmode.h; sourceTree = "<group>"; };
+		2E9B33442405A141003E24BD /* base64encode.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = base64encode.c; path = ../../src/common/base64encode.c; sourceTree = "<group>"; };
+		2E9B33452405A141003E24BD /* base64encode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = base64encode.h; path = ../../src/common/base64encode.h; sourceTree = "<group>"; };
+		2E9B33462405A141003E24BD /* sha1.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = sha1.c; path = ../../src/common/sha1.c; sourceTree = "<group>"; };
+		2E9B33472405A141003E24BD /* sha1.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sha1.h; path = ../../src/common/sha1.h; sourceTree = "<group>"; };
 		2EA8D73B230E0A6500EBF4A1 /* mangclient.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = mangclient.icns; path = ../../src/client/osx/mangclient.icns; sourceTree = "<group>"; };
 		2EA8D741230E0DC600EBF4A1 /* launch_mangclient.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = launch_mangclient.sh; path = ../../src/client/osx/launch_mangclient.sh; sourceTree = "<group>"; };
 		2EB0AF1C2306B3FF003B13E7 /* c-cmd0.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "c-cmd0.c"; path = "../../src/client/c-cmd0.c"; sourceTree = "<group>"; };
@@ -214,6 +220,10 @@
 				20A3A6041B03169300DA5935 /* h-type.h */,
 				20A3A6051B03169300DA5935 /* md5.c */,
 				20A3A6061B03169300DA5935 /* md5.h */,
+				2E9B33442405A141003E24BD /* base64encode.c */,
+				2E9B33452405A141003E24BD /* base64encode.h */,
+				2E9B33462405A141003E24BD /* sha1.c */,
+				2E9B33472405A141003E24BD /* sha1.h */,
 				20A3A6071B03169300DA5935 /* net-basics.c */,
 				20A3A6081B03169300DA5935 /* net-basics.h */,
 				20A3A6091B03169300DA5935 /* net-imps.c */,
@@ -392,6 +402,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2E9B33492405A141003E24BD /* sha1.c in Sources */,
 				20A3A5DE1B03165000DA5935 /* c-birth.c in Sources */,
 				20A3A5DF1B03165000DA5935 /* c-cmd.c in Sources */,
 				20A3A5E01B03165000DA5935 /* c-files.c in Sources */,
@@ -428,6 +439,7 @@
 				20A3A61F1B03169300DA5935 /* z-type.c in Sources */,
 				2E41FA0223D4A75B00A9FD1A /* grafmode.c in Sources */,
 				20A3A6201B03169300DA5935 /* z-util.c in Sources */,
+				2E9B33482405A141003E24BD /* base64encode.c in Sources */,
 				20A3A6211B03169300DA5935 /* z-virt.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

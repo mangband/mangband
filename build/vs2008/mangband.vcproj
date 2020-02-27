@@ -775,6 +775,10 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath="..\..\src\common\base64encode.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\server\birth.c"
 				>
 			</File>
@@ -891,6 +895,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\common\parser.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\server\party.c"
 				>
 			</File>
@@ -904,6 +912,10 @@
 			</File>
 			<File
 				RelativePath="..\..\src\server\save.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\common\sha1.c"
 				>
 			</File>
 			<File
@@ -951,10 +963,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\parser.c"
-				>
-			</File>
-			<File
 				RelativePath="..\..\src\common\z-bitflag.c"
 				>
 			</File>
@@ -986,6 +994,10 @@
 			>
 			<File
 				RelativePath="..\..\src\common\angband.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\common\base64encode.h"
 				>
 			</File>
 			<File
@@ -1065,11 +1077,15 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\types.h"
+				RelativePath="..\..\src\common\parser.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\parser.h"
+				RelativePath="..\..\src\common\sha1.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\common\types.h"
 				>
 			</File>
 			<File

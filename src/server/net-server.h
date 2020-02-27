@@ -4,6 +4,10 @@
 #include "../common/net-basics.h"
 #include "../common/net-imps.h"
 
+/* For websocket handshake: */
+#include "../common/base64encode.h"
+#include "../common/sha1.h"
+
 /* 
  * Note: this file is not to be included with all the rest of the .h files.
  * It is manually included from "net-server.c" and "net-game.c"

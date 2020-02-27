@@ -26,6 +26,7 @@ LOCAL_SRC_FILES := $(MC_PATH)/main-sdl2.c $(MC_PATH)/client.c \
 		$(MC_PATH)/z-term.c \
 		$(MC_PATH)/lupng/lupng.c $(MC_PATH)/lupng/miniz.c \
 		$(MC_PATH)/grafmode.c \
+		$(CMN_PATH)/base64encode.c $(CMN_PATH)/sha1.c \
 		$(CMN_PATH)/z-file.c \
 		$(CMN_PATH)/z-form.c $(CMN_PATH)/z-rand.c $(CMN_PATH)/z-util.c \
 		$(CMN_PATH)/z-virt.c $(CMN_PATH)/md5.c $(CMN_PATH)/net-basics.c \

@@ -1,5 +1,5 @@
 /*
- * MAngband Data packacking code
+ * MAngband Data packaging code
  *
  * Copyright (c) 2010 MAngband Project Team.
  *
@@ -14,15 +14,47 @@
  */
 #include "angband.h"
 
-#define PACK_PTR_8(PT, VAL) * PT ++ = VAL
-#define PACK_PTR_16(PT, VAL) * PT ++ = (char)(VAL >> 8), * PT ++ = (char)VAL
-#define PACK_PTR_32(PT, VAL) * PT ++ = (char)(VAL >> 24), * PT ++ = (char)(VAL >> 16), * PT ++ = (char)(VAL >> 8), * PT ++ = (char)VAL
+#define PACK_PTR_8(PT, VAL) \
+ * PT ++ = VAL
+#define PACK_PTR_16(PT, VAL) \
+ * PT ++ = (char)(VAL >> 8), \
+ * PT ++ = (char)VAL
+#define PACK_PTR_32(PT, VAL) \
+ * PT ++ = (char)(VAL >> 24),\
+ * PT ++ = (char)(VAL >> 16),\
+ * PT ++ = (char)(VAL >> 8), \
+ * PT ++ = (char)VAL
+#define PACK_PTR_64(PT, VAL) \
+ * PT ++ = (char)(VAL >> 56),\
+ * PT ++ = (char)(VAL >> 48),\
+ * PT ++ = (char)(VAL >> 40),\
+ * PT ++ = (char)(VAL >> 32),\
+ * PT ++ = (char)(VAL >> 24),\
+ * PT ++ = (char)(VAL >> 16),\
+ * PT ++ = (char)(VAL >> 8), \
+ * PT ++ = (char)VAL
 #define PACK_PTR_STR(PT, VAL) while ((* PT ++ = * VAL ++) != '\0')
 #define PACK_PTR_NSTR(PT, VAL, SIZE) while (SIZE--) { * PT ++ = * VAL ++ ; }
 
-#define UNPACK_PTR_8(PT, VAL) * PT = * VAL ++
-#define UNPACK_PTR_16(PT, VAL) * PT = * VAL ++ << 8, * PT |= (* VAL ++ & 0xFF)
-#define UNPACK_PTR_32(PT, VAL) * PT = * VAL ++ << 24, * PT |= (* VAL ++ & 0xFF) << 16, * PT |= (* VAL ++ & 0xFF) << 8, * PT |= (* VAL ++ & 0xFF)
+#define UNPACK_PTR_8(PT, VAL) \
+ * PT = * VAL ++
+#define UNPACK_PTR_16(PT, VAL)   \
+ * PT  = (* VAL ++ & 0xFF) << 8, \
+ * PT |= (* VAL ++ & 0xFF)
+#define UNPACK_PTR_32(PT, VAL)   \
+ * PT  = (* VAL ++ & 0xFF) << 24,\
+ * PT |= (* VAL ++ & 0xFF) << 16,\
+ * PT |= (* VAL ++ & 0xFF) << 8, \
+ * PT |= (* VAL ++ & 0xFF)
+#define UNPACK_PTR_64(PT, VAL)     \
+ * PT  = (* VAL ++ & 0xFFUL) << 56,\
+ * PT |= (* VAL ++ & 0xFFUL) << 48,\
+ * PT |= (* VAL ++ & 0xFFUL) << 40,\
+ * PT |= (* VAL ++ & 0xFFUL) << 32,\
+ * PT |= (* VAL ++ & 0xFFUL) << 24,\
+ * PT |= (* VAL ++ & 0xFFUL) << 16,\
+ * PT |= (* VAL ++ & 0xFFUL) << 8, \
+ * PT |= (* VAL ++ & 0xFFUL)
 
 #define SOFTER_ERRORS //undefine this for better debug
 
@@ -55,6 +87,7 @@ static const cptr pf_errors[] = {
 #define PACK_8(VAL) PACK_PTR_8(WPTRN, VAL)
 #define PACK_16(VAL) PACK_PTR_16(WPTRN, VAL)
 #define PACK_32(VAL) PACK_PTR_32(WPTRN, VAL)
+#define PACK_64(VAL) PACK_PTR_64(WPTRN, VAL)
 #define PACK_STR(VAL) PACK_PTR_STR(WPTRN, VAL)
 #define PACK_NSTR(VAL, SIZE) PACK_PTR_NSTR(WPTRN, VAL, SIZE)
 
@@ -68,6 +101,7 @@ static const cptr pf_errors[] = {
 #define UNPACK_8(PT) UNPACK_PTR_8(PT, RPTRN)
 #define UNPACK_16(PT) UNPACK_PTR_16(PT, RPTRN)
 #define UNPACK_32(PT) UNPACK_PTR_32(PT, RPTRN)
+#define UNPACK_64(PT) UNPACK_PTR_64(PT, RPTRN)
 #define UNPACK_STR(PT) PACK_PTR_STR(PT, RPTRN)
 #define UNPACK_NSTR(PT, SIZE) PACK_PTR_NSTR(PT, RPTRN, SIZE)
 
@@ -83,6 +117,7 @@ static const cptr pf_errors[] = {
 #define REPACK_8 * WPTRN ++ = * RPTRN ++;
 #define REPACK_16 REPACK_8; REPACK_8
 #define REPACK_32 REPACK_16; REPACK_16
+#define REPACK_64 REPACK_32; REPACK_32
 #define REPACK_STR PACK_PTR_STR(WPTRN, RPTRN)
 #define REPACK_NSTR(SIZE) PACK_PTR_NSTR(WPTRN, RPTRN, SIZE)
 
@@ -97,6 +132,8 @@ int cq_printf(cq *charq, char *str, ...) {
 	s16b _s16b;
 	u32b _u32b;
 	s32b _s32b;
+	u64b _u64b;
+	s64b _s64b;
 	char *text;
 
 	PACK_DEF
@@ -132,22 +169,41 @@ int cq_printf(cq *charq, char *str, ...) {
 				break;}
 			case 'u': { /* unsigned */
 				switch (*str++) {
-			    	case 'c': {
-						PF_ERROR_SIZE(1)
-						u8b = (unsigned char) va_arg (marker, unsigned int);
+				case 'c': {
+					PF_ERROR_SIZE(1)
+					u8b = (unsigned char) va_arg (marker, unsigned int);
+					PACK_8(u8b);
+					break;}
+				case 'd': {
+					PF_ERROR_SIZE(2)
+					_u16b = (u16b) va_arg (marker, unsigned int);
+					PACK_16(_u16b);
+					break;}
+				case 'l': {
+					PF_ERROR_SIZE(4)
+					_u32b = va_arg (marker, u32b);
+					PACK_32(_u32b);
+					break;}
+				case 'v': { /* variable-length, websocket style */
+					_u64b = (u64b) va_arg (marker, u64b);
+					if (_u64b > 0xFFFF) {
+						PF_ERROR_SIZE(1 + 8)
+						u8b = 127;
 						PACK_8(u8b);
-						break;}
-			    	case 'd': {
-			    		PF_ERROR_SIZE(2)
-						_u16b = (u16b) va_arg (marker, unsigned int);
+						PACK_64(_u64b);
+					} else if (_u64b >= 126) {
+						PF_ERROR_SIZE(1 + 2)
+						u8b = 126;
+						_u16b = (u16b) _u64b;
+						PACK_8(u8b);
 						PACK_16(_u16b);
-						break;}
-					case 'l': {
-						PF_ERROR_SIZE(4)
-						_u32b = va_arg (marker, u32b);
-						PACK_32(_u32b);
-			    		break;}
-			    	PF_ERROR_FRMT
+					} else { /* 0 - 125 */
+						PF_ERROR_SIZE(1)
+						u8b = (unsigned char) _u64b;
+						PACK_8(u8b);
+					}
+					break;}
+				PF_ERROR_FRMT
 				}
 				break;}
 			case 'n': {
@@ -259,6 +315,8 @@ int cq_scanf(cq *charq, char *str, ...) {
 	s16b *_s16b;
 	u32b *_u32b;
 	s32b *_s32b;
+	u64b *_u64b;
+	s64b *_s64b;
 	char *_text;
 
 	UNPACK_DEF
@@ -314,7 +372,25 @@ int cq_scanf(cq *charq, char *str, ...) {
 						_u32b = (u32b*) va_arg (marker, u32b*);
 						UNPACK_32(_u32b);
 						break;}
-					SF_ERROR_FRMT	
+					case 'v': { /* variable-length, websocket style */
+						byte len8;
+						SF_ERROR_SIZE(1);
+						_u64b = (u64b*) va_arg (marker, u64b*);
+						UNPACK_8(&len8);
+						len8 &= 0x7F; /* clear out mask bit */
+						if (len8 <= 125) { /* first 8 bits contained len */
+							*_u64b = len8;
+						} else if (len8 == 126) { /* next 16 bits are len */
+							u16b len16 = 0;
+							SF_ERROR_SIZE(2);
+							UNPACK_16(&len16);
+							*_u64b = len16;
+						} else if (len8 >= 127) { /* next 64 bits are len */
+							SF_ERROR_SIZE(8);
+							UNPACK_64(_u64b);
+						}
+						break;}
+					SF_ERROR_FRMT
 				}
 				break;}
 			case 'n': {
@@ -424,19 +500,34 @@ int cq_copyf(cq *src, const char *str, cq *dst) {
 				break;}
 			case 'u': {/* unsigned */
 				switch (*str++) {
-			    	case 'c': {
-			    		CF_ERROR_SIZE(1)
-			    		REPACK_8
+					case 'c': {
+						CF_ERROR_SIZE(1)
+						REPACK_8
 						break;}
-			    	case 'd': {
-			    		CF_ERROR_SIZE(2)
-			    		REPACK_16
+					case 'd': {
+						CF_ERROR_SIZE(2)
+						REPACK_16
 						break;}
 					case 'l': {
 						CF_ERROR_SIZE(4)
 						REPACK_32
-			    		break;}
-					CF_ERROR_FRMT	
+						break;}
+					case 'v': {
+						byte len8;
+						CF_ERROR_SIZE(1)
+						UNPACK_8(&len8);
+						PACK_8(len8);
+						if (len8 <= 125) {
+							/* Do nothing */
+						} else if (len8 == 126) {
+							CF_ERROR_SIZE(2);
+							REPACK_16
+						} else if (len8 >= 127) {
+							CF_ERROR_SIZE(8);
+							REPACK_64
+						}
+						break;}
+					CF_ERROR_FRMT
 				}
 				break;}
 			case 'n': {
