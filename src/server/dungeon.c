@@ -1117,8 +1117,16 @@ static void process_player_end(player_type *p_ptr)
 	/* Use food, 10 times slower than other regen effects */
 	if ( !(turn.turn % (time*10)) )
 	{
-		/* Ghosts don't need food and noone uses food in town */
-		if ((!p_ptr->ghost) && (p_ptr->dun_depth>0) && (!check_special_level(p_ptr->dun_depth)) )
+		bool do_digest = TRUE;
+		/* Ghosts don't need food */
+		if (p_ptr->ghost) do_digest = FALSE;
+		/* Noone uses food in town */
+		if ((p_ptr->dun_depth == 0 || check_special_level(p_ptr->dun_depth))
+			/* ...unless gorged */
+			&& (p_ptr->food < PY_FOOD_MAX))
+				do_digest = FALSE;
+		/* Proceed? */
+		if (do_digest)
 		{
 			/* Digest normally */
 			if (p_ptr->food < PY_FOOD_MAX)
