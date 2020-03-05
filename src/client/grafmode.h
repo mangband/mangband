@@ -40,7 +40,11 @@ typedef struct _graphics_mode {
 	u16b cell_height;
 	char pref[32];
 	char file[32];
+	char mask[32];
 	char menuname[32];
+	byte transparent;
+	byte lightmap;
+	s16b light_offset[4][2];
 } graphics_mode;
 
 extern graphics_mode *graphics_modes;
@@ -50,5 +54,6 @@ extern int graphics_mode_high_id;
 bool init_graphics_modes(const char *filename);
 void close_graphics_modes(void);
 graphics_mode* get_graphics_mode(byte id);
+extern size_t get_num_graphics_modes(void);
 
 #endif /* INCLUDED_GRAFMODE_H */

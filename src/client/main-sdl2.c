@@ -122,12 +122,6 @@ const int ttf_font_sizes[MAX_FONT_SIZES] = {
 	16, 18, 20, 24, 30, 32, 36, 48, 0
 };
 
-
-static cptr GFXBMP[] = { "8x8.png", "8x8.png", "16x16.png", "32x32.png", 0 };
-static cptr GFXMASK[] = { 0, 0, "mask.bmp", "mask32.bmp", 0 };
-static cptr GFXNAME[] = { 0, "old", "new", "david", 0 };
-#define MAX_QUICK_TILESETS 3
-
 #define MAX_ZOOM_LEVELS 6
 static int zoom_levels[MAX_ZOOM_LEVELS] = {
 	25,
@@ -215,11 +209,6 @@ errr init_sdl2(void) {
 
 	// **** Load in Configuration ****
 	// The following global vars are set AFTER init_sdl2(), but as per below, we need 'em
-	use_graphics = conf_get_int("SDL2", "Graphics", 0);
-	if (use_graphics)
-	{
-		ANGBAND_GRAF = GFXNAME[use_graphics];
-	}
 	ANGBAND_SYS = "sdl2";
 
 	// FIXME: this should be handled elsewhere, but we want colors now.
@@ -248,6 +237,14 @@ errr init_sdl2(void) {
 
 	/* load the possible graphics modes */
 	init_graphics_modes("graphics.txt");
+
+	/* set graphics mode */
+	use_graphics = conf_get_int("SDL2", "Graphics", 0);
+	if (use_graphics)
+	{
+		graphics_mode* gm = get_graphics_mode((byte)use_graphics);
+		ANGBAND_GRAF = gm ? gm->pref : "none";
+	}
 
 #ifdef USE_SOUND
 	/* Sound */
@@ -1505,20 +1502,20 @@ static errr renderGui(TermData *td)
 			int sy = y + 1;
 			int si = 0;
 			int j;
-			for (j = 0; 0 < MAX_QUICK_TILESETS; j++) {
+			for (j = 0; 0 < get_num_graphics_modes(); j++) {
 				char buf[32], on;
-				if (j >= 4) break;
-				if (j && GFXNAME[j] == 0) break;
+				graphics_mode *gm = get_graphics_mode((byte)j);
+				if (!gm) break;
 				on = 0;
-				if (j && !strcmp(GFXBMP[j], td->font_file)) on = 1;
+				if (j && !strcmp(gm->file, td->pict_file)) on = 1;
 				if (!j && use_graphics == 0) on = 1;
 				if (j == use_graphics) on = 1;
 				strnfmt(buf, 32, " [%c] %-12s ", (on ? 'X' : '.'),
-				j ? GFXNAME[j] : "Off");
+				j ? gm->menuname : "Off");
 				renderTButton(td, sx, sy + j, buf, MENU_QUICK_GRAF0 + j);
+				sub_w = MATH_MAX(sub_w, strlen(gm->menuname) + 6);
 			}
 			td->menu_rect.h += j * grid_h;
-			sub_w = 18;
 			sub_x = sx;
 		}
 		cx += strlen("Graphics") + 1;
@@ -3007,13 +3004,15 @@ static errr handleMenu(int i, int x, int y) {
 
 	if (menu_hover >= MENU_QUICK_GRAF1 && menu_hover <= MENU_QUICK_GRAF8) {
 		int f = menu_hover - MENU_QUICK_GRAF0;
+		graphics_mode* gm;
 		use_graphics = f;
+		gm = get_graphics_mode((byte)use_graphics);
 //		unloadFont(&terms[i]);
 		unloadPict(&terms[i]);
-		strcpy(td->pict_file, GFXBMP[f]);
-		strcpy(td->mask_file, GFXMASK[f] ? GFXMASK[f] : "");
+		strcpy(td->pict_file, gm->file);
+		strcpy(td->mask_file, gm->mask);
 		applyTermConf(&terms[i]);
-		ANGBAND_GRAF = GFXNAME[f];
+		ANGBAND_GRAF = gm->pref;
 		refreshTerm(&terms[i]);
 		termConstrain(i);
 		net_visuals_update();
@@ -3144,10 +3143,11 @@ static errr loadConfig()
 
 	for (window_id = 0; window_id < TERM_MAX; window_id++)
 	{
+		graphics_mode* gm = get_graphics_mode((byte)use_graphics);
 		strnfmt(section, 128, "SDL2-Window-%d", window_id);
 		strncpy(terms[window_id].title, conf_get_string(section, "Title", ""), 128);
-		my_strcpy(terms[window_id].pict_file, GFXBMP[use_graphics], 128);
-		my_strcpy(terms[window_id].mask_file, GFXMASK[use_graphics] ? GFXMASK[use_graphics] : "", 128);
+		my_strcpy(terms[window_id].pict_file, gm->file, 128);
+		my_strcpy(terms[window_id].mask_file, gm->mask, 128);
 		strncpy(terms[window_id].font_file, conf_get_string(section, "FontFile", ""), 128);
 		terms[window_id].font_size = conf_get_int(section, "FontSize", 0);
 
@@ -3252,6 +3252,7 @@ static errr loadConfig()
 
 		if (window_id == TERM_MAIN)
 		{
+			graphics_mode* gm;
 
 			terms[window_id].x = conf_get_int("SDL2", "X", -1);
 			terms[window_id].y = conf_get_int("SDL2", "Y", -1);
@@ -3263,8 +3264,9 @@ static errr loadConfig()
 #ifdef MOBILE_UI
 			strcpy(default_font, "misc6x13.hex");
 			use_graphics = 3;
+			gm = get_graphics_mode((byte)use_graphics);
 			strcpy(terms[window_id].font_file, default_font);
-			strcpy(terms[window_id].pict_file, GFXBMP[use_graphics]);
+			strcpy(terms[window_id].pict_file, gm->file);
 			terms[window_id].x = 0;
 			terms[window_id].y = 0;
 			terms[window_id].width = 0;

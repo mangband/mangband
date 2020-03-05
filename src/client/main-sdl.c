@@ -26,16 +26,11 @@
 #undef SINGLE_SURFACE /* Eat more CPU, but less RAM (only signifcant when drawing GUI) */
 #define SHADE_FONTS /* Allow fonts with multiple colors */
 
-
 #include "c-angband.h"
 
 bool need_render = FALSE;	/* very important -- triggers frame redrawing */
 
 bool mouse_mode = FALSE;	/* pass mouse events to Angband !!! */
-
-static cptr GFXBMP[] = { "8x8.png", "8x8.png", "16x16.png", "32x32.png" };
-static cptr GFXMASK[] = { 0, 0, "mask.bmp", "mask32.bmp" };
-static cptr GFXNAME[] = { 0, "old", "new", "david" };
 
 bool quartz_hack = FALSE; /* Enable special mode on OSX */
 
@@ -2468,10 +2463,11 @@ bool init_one_term(int i, bool force)
 	td->gt = NULL;
 	if (use_graphics)
 	{
-		if (term_load_graf(i, GFXBMP[use_graphics], GFXMASK[use_graphics]))
+		graphics_mode* gm = get_graphics_mode((byte)use_graphics);
+		if (gm && term_load_graf(i, gm->file, gm->mask))
 		{
 			/* Tileset loaded */
-			ANGBAND_GRAF = GFXNAME[use_graphics];
+			ANGBAND_GRAF = gm->pref;
 		}
 	}
 

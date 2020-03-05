@@ -28,6 +28,7 @@ int graphics_mode_high_id = 0;
 int num_graphics_modes = 0;
 
 static enum parser_error parse_graf_n(struct parser *p) {
+	int i;
 	graphics_mode *list = parser_priv(p);
 	graphics_mode *mode = malloc(sizeof(graphics_mode));
 	if (!mode) {
@@ -41,8 +42,17 @@ static enum parser_error parse_graf_n(struct parser *p) {
 	mode->overdrawRow = 0;
 	mode->overdrawMax = 0;
 	strncpy(mode->file, "", 32);
+
 	strncpy(mode->pref, "none", 32);
-	
+
+	/* MAngband-specific properties: */
+	strncpy(mode->mask, "", 32);
+	mode->transparent = 0;
+	mode->lightmap = 0;
+	for (i = 0; i < 4; i++) {
+		mode->light_offset[i][0] = 0;
+		mode->light_offset[i][1] = 0;
+	}
 	parser_setpriv(p, mode);
 	return PARSE_ERROR_NONE;
 }
@@ -55,6 +65,15 @@ static enum parser_error parse_graf_i(struct parser *p) {
 	mode->cell_width = parser_getuint(p, "wid");
 	mode->cell_height = parser_getuint(p, "hgt");
 	strncpy(mode->file, parser_getstr(p, "filename"), 32);
+	return PARSE_ERROR_NONE;
+}
+
+static enum parser_error parse_graf_m(struct parser *p) {
+	graphics_mode *mode = parser_priv(p);
+	if (!mode) {
+		return PARSE_ERROR_INVALID_VALUE;
+	}
+	strncpy(mode->mask, parser_getstr(p, "filename"), 32);
 	return PARSE_ERROR_NONE;
 }
 
@@ -78,6 +97,32 @@ static enum parser_error parse_graf_x(struct parser *p) {
 	return PARSE_ERROR_NONE;
 }
 
+static enum parser_error parse_graf_t(struct parser *p) {
+	graphics_mode *mode = parser_priv(p);
+	if (!mode) {
+		return PARSE_ERROR_INVALID_VALUE;
+	}
+	mode->transparent = parser_getuint(p, "transparent");
+	mode->lightmap    = parser_getuint(p, "lightmap");
+	if (!mode->transparent) mode->lightmap = 0;
+	return PARSE_ERROR_NONE;
+}
+
+static enum parser_error parse_graf_l(struct parser *p) {
+	graphics_mode *mode = parser_priv(p);
+	u32b level;
+	if (!mode) {
+		return PARSE_ERROR_INVALID_VALUE;
+	}
+	level = parser_getuint(p, "level");
+	if (level > 3) {
+		return PARSE_ERROR_INVALID_VALUE;
+	}
+	mode->light_offset[level][0] = parser_getuint(p, "xoffset");
+	mode->light_offset[level][1] = parser_getuint(p, "yoffset");
+	return PARSE_ERROR_NONE;
+}
+
 static struct parser *init_parse_grafmode(void) {
 	struct parser *p = parser_new();
 	parser_setpriv(p, NULL);
@@ -85,8 +130,11 @@ static struct parser *init_parse_grafmode(void) {
 	parser_reg(p, "V sym version", ignored);
 	parser_reg(p, "N uint index str menuname", parse_graf_n);
 	parser_reg(p, "I uint wid uint hgt str filename", parse_graf_i);
+	parser_reg(p, "M str maskfilename", parse_graf_m);
 	parser_reg(p, "P str prefname", parse_graf_p);
 	parser_reg(p, "X uint alpha uint row uint max", parse_graf_x);
+	parser_reg(p, "T uint transparent uint lightmap", parse_graf_t);
+	parser_reg(p, "L uint level int xoffset int yoffset", parse_graf_l);
 
 	return p;
 }
@@ -292,4 +340,8 @@ graphics_mode* get_graphics_mode(byte id) {
 		test = test->pNext;
 	}
 	return NULL;
+}
+
+size_t get_num_graphics_modes(void) {
+	return num_graphics_modes;
 }
