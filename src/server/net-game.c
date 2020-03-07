@@ -792,7 +792,7 @@ int send_inven_DEPRECATED(player_type *p_ptr, char pos, byte attr, int wgt, int 
 	connection_type *ct;
 	if (p_ptr->conn == -1) return -1;
 	ct = Conn[p_ptr->conn];
-	if (cq_printf(&ct->wbuf, "%c" "%c%ud%d%c%b%b%s", PKT_INVEN, pos, attr, wgt, amt, tval, flag, s_tester, name) <= 0)
+	if (cq_printf(&ct->wbuf, "%c" "%c%c%ud%d%c%b%b%s", PKT_INVEN, pos, attr, wgt, amt, tval, flag, s_tester, name) <= 0)
 	{
 		client_withdraw(ct);
 	}
@@ -2248,7 +2248,7 @@ int send_store_DEPRECATED(player_type *p_ptr, char pos, byte attr, s16b wgt, s16
 	connection_type *ct;
 	if (p_ptr->conn == -1) return -1;
 	ct = Conn[p_ptr->conn];
-	if (cq_printf(&ct->wbuf, "%c%c%d%d%ul%s", PKT_STORE, pos, attr, wgt, number, price, name) <= 0)
+	if (cq_printf(&ct->wbuf, "%b" "%c%c%d%d%ul%s", PKT_STORE, pos, attr, wgt, number, price, name) <= 0)
 	{
 		client_withdraw(ct);
 	}
