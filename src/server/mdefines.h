@@ -568,7 +568,7 @@
 #define Stream_line(I,S,L) stream_line_as(Players[I],S,L,L)
 #define Stream_line_p(P,S,L) stream_line_as(P,S,L,L)
 
-#define DUNGEON_STREAM_p(P) ((P)->use_graphics > 1 ? STREAM_DUNGEON_GRAF2 : ((P)->use_graphics ? STREAM_DUNGEON_GRAF1 : STREAM_DUNGEON_ASCII ))
+#define DUNGEON_STREAM_p(P) ((P)->use_graphics > GRAPHICS_PLAIN ? STREAM_DUNGEON_GRAF2 : ((P)->use_graphics ? STREAM_DUNGEON_GRAF1 : STREAM_DUNGEON_ASCII ))
 #define MINIMAP_STREAM_p(P) ((P)->use_graphics ? STREAM_MINIMAP_GRAF : STREAM_MINIMAP_ASCII)
 #define BGMAP_STREAM_p(P) ((P)->use_graphics ? STREAM_BGMAP_GRAF : STREAM_BGMAP_ASCII)
 

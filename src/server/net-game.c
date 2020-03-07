@@ -1474,10 +1474,45 @@ int recv_settings(connection_type *ct, player_type *p_ptr) {
 		}
 		switch (i)
 		{
-			case 0:	p_ptr->use_graphics  = val; break;
-			case 3:	p_ptr->hitpoint_warn = (byte_hack)val; break;
-			case 5:	p_ptr->supports_slash_fx = (bool)val; break;
+			case 0: p_ptr->use_graphics  = val; break;
+			case 3: p_ptr->hitpoint_warn = (byte_hack)val; break;
+			case 5: p_ptr->supports_slash_fx = (bool)val; break;
 			default: break;
+		}
+		/* Hack -- light offsets for graphics mode */
+		if (i >= 6 && i < 6 + 4 * 2 && client_version_atleast(p_ptr->version, 1,5,3))
+		{
+			/* 2 offsets (x, y) * 4 levels, starting at setting "6" */
+			int level = (i - 6) / (2);
+			int which = (i - 6) - (level * 2);
+			p_ptr->graf_lit_offset[level][which] = (s16b)val;
+		}
+		/* Hack -- support OLD client graphics modes */
+		if (i == 0 && !client_version_atleast(p_ptr->version, 1,5,3))
+		{
+			/* Back then, "1" meant Original, "2" Adam Bolt
+			 * and "3" David Gervais, with very specific
+			 * layouts. We *know* those layouts, so we can
+			 * guess the offsets. */
+			if (p_ptr->use_graphics == 1)
+			{
+				/* "lit floor" - "open floor" tiles */
+				p_ptr->graf_lit_offset[0][0] = 0xCF - 0x80;
+				p_ptr->graf_lit_offset[0][1] = 0x8F - 0x80;
+				p_ptr->use_graphics = GRAPHICS_PLAIN;
+			}
+			if (p_ptr->use_graphics == 2)
+			{
+				p_ptr->graf_lit_offset[0][0] = 0;
+				p_ptr->graf_lit_offset[0][1] = +2;
+				p_ptr->use_graphics = GRAPHICS_TRANSPARENT;
+			}
+			if (p_ptr->use_graphics == 3)
+			{
+				p_ptr->graf_lit_offset[0][0] = 0;
+				p_ptr->graf_lit_offset[0][1] = -1;
+				p_ptr->use_graphics = GRAPHICS_TRANSPARENT;
+			}
 		}
 	}
 

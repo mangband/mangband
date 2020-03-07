@@ -666,8 +666,21 @@ void quit_hook(cptr s)
 
 void gather_settings()
 {
+	graphics_mode *gm;
+	int i, j;
+
 	/* Graphics */
-	Client_setup.settings[0] = use_graphics;
+	gm = use_graphics ? get_graphics_mode((byte)use_graphics) : NULL;
+	Client_setup.settings[0] = gm ? (
+		gm->lightmap ? GRAPHICS_LIGHTMAP :
+			(gm->transparent ? GRAPHICS_TRANSPARENT : GRAPHICS_PLAIN)
+	) : 0;
+	for (i = 0; i < 4; i++)
+	{
+		j = 6 + i * 2;
+		Client_setup.settings[j + 0] = gm ? gm->light_offset[i][0] : 0;
+		Client_setup.settings[j + 1] = gm ? gm->light_offset[i][1] : 0;
+	}
 
 	/* Hitpoint warning */
 	Client_setup.settings[3] = p_ptr->hitpoint_warn;

@@ -118,8 +118,8 @@ static enum parser_error parse_graf_l(struct parser *p) {
 	if (level > 3) {
 		return PARSE_ERROR_INVALID_VALUE;
 	}
-	mode->light_offset[level][0] = parser_getuint(p, "xoffset");
-	mode->light_offset[level][1] = parser_getuint(p, "yoffset");
+	mode->light_offset[level][0] = parser_getuint(p, "yoffset");
+	mode->light_offset[level][1] = parser_getuint(p, "xoffset");
 	return PARSE_ERROR_NONE;
 }
 
@@ -134,7 +134,7 @@ static struct parser *init_parse_grafmode(void) {
 	parser_reg(p, "P str prefname", parse_graf_p);
 	parser_reg(p, "X uint alpha uint row uint max", parse_graf_x);
 	parser_reg(p, "T uint transparent uint lightmap", parse_graf_t);
-	parser_reg(p, "L uint level int xoffset int yoffset", parse_graf_l);
+	parser_reg(p, "L uint level int yoffset int xoffset", parse_graf_l);
 
 	return p;
 }

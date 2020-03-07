@@ -8,7 +8,8 @@
 # I: tile width : tile height : tileset file name
 # M: mask file name
 # X: alphblending : start row : end row of double high tiles
-# T: transperancy : lightmaps
+# T: transperancy : lightmap
+# L: level : yoffset : xoffset
 
 # 'N' indicates the beginning of an entry. The serial number must
 # increase for each new item. The pref file name is the name used
@@ -30,11 +31,11 @@
 
 # 'T' is for MAngband-specific extra information. 'transperancy' indicates
 # this tileset has separate layers for terrain and entities and drawing
-# on on top of the other is possible. 'lightmaps' indicates if this
-# tileset support automatic lighting.
+# one on top of the other is possible. 'lightmap' indicates if this
+# tileset supports automatic lighting.
 
 # 'L' is for specifying lighting offsets. 'num' selects light mode
-# (0 - unlit, 2 - torch lit, 3 - dark, 3 - very dark), and offset
+# (0 - torch lit, 1 - los, 2 - lit, 3 - dark), and offset
 # values indicate where the new tile lies, relative to original tiles.
 
 N:1:Original Tiles
@@ -42,7 +43,7 @@ I:8:8:8x8.png
 P:old
 X:0:0:0
 T:0:0
-L:0:0:0
+L:0:+79:+15
 L:1:0:0
 L:2:0:0
 L:3:0:0
@@ -52,7 +53,7 @@ I:16:16:16x16.png
 P:new
 X:0:0:0
 T:1:0
-L:0:0:0
+L:0:0:+2
 L:1:0:0
 L:2:0:0
 L:3:0:0
@@ -62,7 +63,7 @@ I:32:32:32x32.png
 P:david
 X:0:0:0
 T:1:0
-L:0:0:0
+L:0:0:-1
 L:1:0:0
 L:2:0:0
 L:3:0:0
