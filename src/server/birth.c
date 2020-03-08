@@ -547,6 +547,13 @@ void player_wipe(player_type *p_ptr)
 	p_ptr->pr_attr = pr_attr; p_ptr->pr_char = pr_char;
 	p_ptr->cbuf.buf = c_buf;
 
+	/* Wipe grafmode offsets */
+	for (i = 0; i < LIGHTING_MAX; i++)
+	{
+		p_ptr->graf_lit_offset[i][0] = 0;
+		p_ptr->graf_lit_offset[i][1] = 0;
+	}
+
 	/* Set default options */
 	for (i = 0; i < OPT_MAX; i++)
 	{

@@ -1387,7 +1387,7 @@ struct player_type
 
 	byte dungeon_stream;
 	int use_graphics;
-	s16b graf_lit_offset[4][2];
+	s16b graf_lit_offset[LIGHTING_MAX][2];
 	byte screen_wid;
 	byte screen_hgt;
 

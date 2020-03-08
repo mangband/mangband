@@ -231,6 +231,13 @@
  */
 #define MAX_SHORT       32767
 
+/*** Ligthing modes ***/
+#define LIGHTING_TORCH 0
+#define LIGHTING_LOS   1
+#define LIGHTING_LITE  2
+#define LIGHTING_DARK  3
+#define LIGHTING_MAX   4
+
 /*
  * RLE encoding modes
  */
