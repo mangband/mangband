@@ -1,0 +1,1400 @@
+### Tangar 1-bit roguelike font mapping.
+##
+###
+### Terrain definitions
+###
+# 76 --> water
+F:76:0x01:0x8B
+
+# 97 --> tree
+F:97:0x01:0x8A
+
+# 98 --> dark tree
+F:98:0x01:0x86
+
+
+
+###
+### Object definitions
+###
+# 31 --> & Bastard Sword~
+K:31:0x01:0xA2
+
+# 34 --> & Broad Sword~
+K:34:0x01:0xA2
+
+# 35 --> & Short Sword~
+K:35:0x01:0xA2
+
+# 37 --> & Two-Handed Sword~
+K:37:0x01:0xA2
+
+# 40 --> & Executioner's Sword~
+K:40:0x01:0xA2
+
+# 42 --> & Long Sword~
+K:42:0x01:0xA2
+
+# 46 --> & Small Sword~
+K:46:0x01:0xA2
+
+# 47 --> & Broken Sword~
+K:47:0x01:0xA2
+
+
+
+###
+### Monster definitions
+###
+# 2 --> Scrawny cat
+R:2:0x01:0xAE
+
+# 3 --> Scruffy little dog
+R:3:0x01:0x9B
+
+# 4 --> Farmer Maggot
+R:4:0x01:0xDD
+
+# 22 --> Large brown snake
+R:22:0x01:0xE0
+
+# 23 --> Large white snake
+R:23:0x01:0xE0
+
+# 24 --> Small kobold
+R:24:0x01:0xC9
+
+# 25 --> Kobold
+R:25:0x01:0xC9
+
+# 26 --> White worm mass
+R:26:0x01:0xF8
+
+# 27 --> Floating eye
+R:27:0x01:0xD8
+
+# 28 --> Rock lizard
+R:28:0x01:0xEE
+
+# 29 --> Jackal
+R:29:0x01:0x9B
+
+# 31 --> Fruit bat
+R:31:0x00:0xC0
+
+# 35 --> Novice warrior
+R:35:0x01:0xE6
+
+# 36 --> Novice rogue
+R:36:0x01:0xE6
+
+# 37 --> Novice priest
+R:37:0x01:0xE6
+
+# 38 --> Novice mage
+R:38:0x01:0xE6
+
+# 40 --> White jelly
+R:40:0x01:0xDF
+
+# 41 --> Giant green frog
+R:41:0x01:0xEE
+
+# 43 --> Salamander
+R:43:0x01:0xEE
+
+# 44 --> White harpy
+R:44:0x01:0xDE
+
+# 46 --> Grip, Farmer Maggot's dog
+R:46:0x01:0x9B
+
+# 47 --> Fang, Farmer Maggot's dog
+R:47:0x01:0xA8
+
+# 48 --> Green worm mass
+R:48:0x01:0xF8
+
+# 49 --> Large yellow snake
+R:49:0x01:0xE0
+
+# 50 --> Cave spider
+R:50:0x01:0xF0
+
+# 51 --> Wild cat
+R:51:0x01:0xAE
+
+# 52 --> Smeagol
+R:52:0x01:0xDD
+
+# 53 --> Green ooze
+R:53:0x01:0xDF
+
+# 54 --> Poltergeist
+R:54:0x01:0xDB
+
+# 59 --> Silver jelly
+R:59:0x01:0xDF
+
+# 60 --> Yellow jelly
+R:60:0x01:0xDF
+
+# 61 --> Scruffy looking hobbit
+R:61:0x01:0xDD
+
+# 65 --> Yellow worm mass
+R:65:0x01:0xF8
+
+# 66 --> Clear worm mass
+R:66:0x01:0xF8
+
+# 67 --> Radiation eye
+R:67:0x01:0xD8
+
+# 68 --> Cave lizard
+R:68:0x01:0xEE
+
+# 69 --> Novice ranger
+R:69:0x01:0xE6
+
+# 70 --> Novice paladin
+R:70:0x01:0xE6
+
+# 71 --> Blue jelly
+R:71:0x01:0xDF
+
+# 74 --> Blue worm mass
+R:74:0x01:0xF8
+
+# 75 --> Large grey snake
+R:75:0x01:0xE0
+
+# 76 --> Bullroarer the Hobbit
+R:76:0x01:0xDD
+
+# 77 --> Novice mage
+R:77:0x01:0xE6
+
+# 79 --> Blue ooze
+R:79:0x01:0xDF
+
+# 80 --> Green glutton ghost
+R:80:0x01:0xDB
+
+# 81 --> Green jelly
+R:81:0x01:0xDF
+
+# 82 --> Large kobold
+R:82:0x01:0xC9
+
+# 83 --> Skeleton kobold
+R:83:0x01:0xEF
+
+# 85 --> Disenchanter eye
+R:85:0x01:0xD8
+
+# 86 --> Red worm mass
+R:86:0x01:0xF8
+
+# 87 --> Copperhead snake
+R:87:0x01:0xE0
+
+# 89 --> Novice priest
+R:89:0x01:0xE6
+
+# 90 --> Novice warrior
+R:90:0x01:0xE6
+
+# 91 --> Novice rogue
+R:91:0x01:0xE6
+
+# 93 --> Giant brown bat
+R:93:0x00:0xC0
+
+# 94 --> Kobold archer
+R:94:0x01:0xC9
+
+# 96 --> Snaga
+R:96:0x01:0xC8
+
+# 97 --> Rattlesnake
+R:97:0x01:0xE0
+
+# 98 --> Cave orc
+R:98:0x01:0xC8
+
+# 99 --> Wood spider
+R:99:0x01:0xF0
+
+# 100 --> Manes
+R:100:0x01:0xF1
+
+# 101 --> Bloodshot eye
+R:101:0x01:0xD8
+
+# 103 --> Red jelly
+R:103:0x01:0xDF
+
+# 104 --> Giant red frog
+R:104:0x01:0xEE
+
+# 106 --> Zombified kobold
+R:106:0x01:0xFC
+
+# 107 --> Lost soul
+R:107:0x01:0xDB
+
+# 108 --> Dark elf
+R:108:0x01:0xDD
+
+# 109 --> Night lizard
+R:109:0x01:0xEE
+
+# 110 --> Mughash the Kobold Lord
+R:110:0x01:0xC9
+
+# 111 --> Wormtongue, Agent of Saruman
+R:111:0x01:0xE6
+
+# 112 --> Lagduf, the Snaga
+R:112:0x01:0xC8
+
+# 114 --> Novice ranger
+R:114:0x01:0xE6
+
+# 115 --> Giant salamander
+R:115:0x01:0xEE
+
+# 117 --> Skeleton orc
+R:117:0x01:0xEF
+
+# 118 --> Novice paladin
+R:118:0x01:0xE6
+
+# 119 --> Lemure
+R:119:0x01:0xF1
+
+# 120 --> Hill orc
+R:120:0x01:0xC8
+
+# 121 --> Bandit
+R:121:0x01:0xE6
+
+# 122 --> Yeti
+R:122:0x01:0xCF
+
+# 125 --> Black harpy
+R:125:0x01:0xDE
+
+# 126 --> Orc shaman
+R:126:0x01:0xC8
+
+# 133 --> Brodda, the Easterling
+R:133:0x01:0xE6
+
+# 134 --> King cobra
+R:134:0x01:0xE0
+
+# 135 --> Giant spider
+R:135:0x01:0xF0
+
+# 136 --> Dark elven mage
+R:136:0x01:0xDD
+
+# 138 --> Dark elven warrior
+R:138:0x01:0xDD
+
+# 140 --> Grishnakh, the Hill Orc
+R:140:0x01:0xC8
+
+# 141 --> Giant white tick
+R:141:0x01:0xF0
+
+# 145 --> Tengu
+R:145:0x01:0xF1
+
+# 147 --> Wolf
+R:147:0x01:0x9B
+
+# 149 --> Panther
+R:149:0x01:0xAE
+
+# 150 --> Brigand
+R:150:0x01:0xE6
+
+# 152 --> Hippogriff
+R:152:0x01:0xDE
+
+# 153 --> Zombified orc
+R:153:0x01:0xFC
+
+# 154 --> Gnome mage
+R:154:0x01:0xDD
+
+# 155 --> Black mamba
+R:155:0x01:0xE0
+
+# 156 --> White wolf
+R:156:0x01:0x9B
+
+# 157 --> Grape jelly
+R:157:0x01:0xDF
+
+# 158 --> Nether worm mass
+R:158:0x01:0xF8
+
+# 159 --> Golfimbul, the Hill Orc Chief
+R:159:0x01:0xC8
+
+# 161 --> Priest
+R:161:0x01:0xE6
+
+# 162 --> Dark elven priest
+R:162:0x01:0xDD
+
+# 163 --> Air spirit
+R:163:0x01:0xD9
+
+# 164 --> Skeleton human
+R:164:0x01:0xEF
+
+# 165 --> Zombified human
+R:165:0x01:0xFC
+
+# 166 --> Tiger
+R:166:0x01:0xAE
+
+# 167 --> Moaning spirit
+R:167:0x01:0xDB
+
+# 168 --> Swordsman
+R:168:0x01:0xE6
+
+# 170 --> Spotted jelly
+R:170:0x01:0xDF
+
+# 171 --> Drider
+R:171:0x01:0xF0
+
+# 176 --> Illusionist
+R:176:0x01:0xE6
+
+# 177 --> Druid
+R:177:0x01:0xE6
+
+# 178 --> Black orc
+R:178:0x01:0xC8
+
+# 179 --> Ochre jelly
+R:179:0x01:0xDF
+
+# 181 --> Ufthak of Cirith Ungol
+R:181:0x01:0xC8
+
+# 184 --> Hill giant
+R:184:0x01:0xE9
+
+# 185 --> Flesh golem
+R:185:0x01:0xDA
+
+# 186 --> Warg
+R:186:0x01:0x9B
+
+# 193 --> Light hound
+R:193:0x01:0x101
+
+# 194 --> Dark hound
+R:194:0x01:0x101
+
+# 195 --> Half-orc
+R:195:0x01:0xC8
+
+# 196 --> Giant tarantula
+R:196:0x01:0xF0
+
+# 198 --> Mirkwood spider
+R:198:0x01:0xF0
+
+# 199 --> Frost giant
+R:199:0x01:0xE9
+
+# 200 --> Griffon
+R:200:0x01:0xDE
+
+# 201 --> Homunculus
+R:201:0x01:0xF1
+
+# 202 --> Gnome mage
+R:202:0x01:0xDD
+
+# 203 --> Clear hound
+R:203:0x01:0x101
+
+# 204 --> Clay golem
+R:204:0x01:0xDA
+
+# 206 --> Orc captain
+R:206:0x01:0xC8
+
+# 207 --> Gelatinous cube
+R:207:0x01:0xDF
+
+# 209 --> Fire giant
+R:209:0x01:0xE9
+
+# 211 --> Ulfast, Son of Ulfang
+R:211:0x01:0xE6
+
+# 212 --> Quasit
+R:212:0x01:0xF1
+
+# 213 --> Imp
+R:213:0x01:0xF1
+
+# 214 --> Forest troll
+R:214:0x01:0xBF
+
+# 215 --> Nar, the Dwarf
+R:215:0x01:0xDD
+
+# 217 --> Water spirit
+R:217:0x01:0xD9
+
+# 218 --> Giant red scorpion
+R:218:0x01:0xF0
+
+# 219 --> Earth spirit
+R:219:0x01:0xD9
+
+# 220 --> Fire spirit
+R:220:0x01:0xD9
+
+# 221 --> Fire hound
+R:221:0x01:0x101
+
+# 222 --> Cold hound
+R:222:0x01:0x101
+
+# 223 --> Energy hound
+R:223:0x01:0x101
+
+# 225 --> Blink dog
+R:225:0x01:0x9B
+
+# 226 --> Uruk
+R:226:0x01:0xC8
+
+# 227 --> Shagrat, the Orc Captain
+R:227:0x01:0xC8
+
+# 228 --> Gorbag, the Orc Captain
+R:228:0x01:0xC8
+
+# 230 --> Stone giant
+R:230:0x01:0xE9
+
+# 232 --> Stone golem
+R:232:0x01:0xDA
+
+# 235 --> Bolg, Son of Azog
+R:235:0x01:0xC8
+
+# 236 --> Phase spider
+R:236:0x01:0xF0
+
+# 238 --> Earth hound
+R:238:0x01:0x101
+
+# 239 --> Air hound
+R:239:0x01:0x101
+
+# 240 --> Sabre-tooth tiger
+R:240:0x01:0xAE
+
+# 241 --> Water hound
+R:241:0x01:0x101
+
+# 242 --> Chimaera
+R:242:0x01:0xDE
+
+# 243 --> Quylthulg
+R:243:0x01:0xED
+
+# 244 --> Sasquatch
+R:244:0x01:0xCF
+
+# 245 --> Werewolf
+R:245:0x01:0x9B
+
+# 246 --> Dark elven lord
+R:246:0x01:0xDD
+
+# 247 --> Cloud giant
+R:247:0x01:0xE9
+
+# 248 --> Lugdush, the Uruk
+R:248:0x01:0xC8
+
+# 249 --> Ugluk, the Uruk
+R:249:0x01:0xC8
+
+# 250 --> Blue dragon bat
+R:250:0x00:0xC0
+
+# 252 --> Fire vortex
+R:252:0x01:0xF7
+
+# 253 --> Water vortex
+R:253:0x01:0xF7
+
+# 254 --> Cold vortex
+R:254:0x01:0xF7
+
+# 255 --> Energy vortex
+R:255:0x01:0xF7
+
+# 256 --> Mummified orc
+R:256:0x01:0xFC
+
+# 258 --> Iron golem
+R:258:0x01:0xDA
+
+# 259 --> Giant yellow scorpion
+R:259:0x01:0xF0
+
+# 260 --> Black ooze
+R:260:0x01:0xDF
+
+# 261 --> Hardened warrior
+R:261:0x01:0xE6
+
+# 262 --> Azog, King of the Uruk-Hai
+R:262:0x01:0xC8
+
+# 263 --> Master rogue
+R:263:0x01:0xE6
+
+# 264 --> Red dragon bat
+R:264:0x00:0xC0
+
+# 267 --> Forest wight
+R:267:0x01:0xFB
+
+# 268 --> Ibun, Son of Mim
+R:268:0x01:0xDD
+
+# 269 --> Khim, Son of Mim
+R:269:0x01:0xDD
+
+# 271 --> Mummified human
+R:271:0x01:0xFC
+
+# 272 --> Vampire bat
+R:272:0x00:0xC0
+
+# 273 --> Sangahyando of Umbar
+R:273:0x01:0xE6
+
+# 274 --> Angamaite of Umbar
+R:274:0x01:0xE6
+
+# 275 --> Banshee
+R:275:0x01:0xDB
+
+# 276 --> Pukelman
+R:276:0x01:0xDA
+
+# 277 --> Dark elven druid
+R:277:0x01:0xDD
+
+# 278 --> Stone troll
+R:278:0x01:0xBF
+
+# 279 --> Troll priest
+R:279:0x01:0xBF
+
+# 280 --> Wereworm
+R:280:0x01:0xF8
+
+# 284 --> Ulwarth, Son of Ulfang
+R:284:0x01:0xE6
+
+# 285 --> Displacer beast
+R:285:0x01:0xAE
+
+# 286 --> Giant fire tick
+R:286:0x01:0xF0
+
+# 288 --> White wraith
+R:288:0x01:0xFB
+
+# 290 --> Mim, Betrayer of Turin
+R:290:0x01:0xDD
+
+# 293 --> Algroth
+R:293:0x01:0xBF
+
+# 294 --> Vibration hound
+R:294:0x01:0x101
+
+# 295 --> Nexus hound
+R:295:0x01:0x101
+
+# 299 --> Gorgimaera
+R:299:0x01:0xDE
+
+# 300 --> Colbran
+R:300:0x01:0xDA
+
+# 303 --> Black knight
+R:303:0x01:0xE6
+
+# 304 --> Uldor the Accursed
+R:304:0x01:0xE6
+
+# 305 --> Mage
+R:305:0x01:0xE6
+
+# 306 --> Mind flayer
+R:306:0x01:0xDD
+
+# 307 --> Draebor, the Imp
+R:307:0x01:0xF1
+
+# 308 --> Basilisk
+R:308:0x01:0xEE
+
+# 309 --> Ice troll
+R:309:0x01:0xBF
+
+# 310 --> Purple worm
+R:310:0x01:0xF8
+
+# 312 --> Catoblepas
+R:312:0x01:0xEB
+
+# 318 --> Mithril golem
+R:318:0x01:0xDA
+
+# 320 --> Skeleton troll
+R:320:0x01:0xEF
+
+# 321 --> Manticore
+R:321:0x01:0xDE
+
+# 324 --> Grave wight
+R:324:0x01:0xFB
+
+# 326 --> Ghost
+R:326:0x01:0xDB
+
+# 329 --> Nexus quylthulg
+R:329:0x01:0xED
+
+# 330 --> Shelob, Spider of Darkness
+R:330:0x01:0xF0
+
+# 331 --> Ninja
+R:331:0x01:0xE6
+
+# 333 --> Storm giant
+R:333:0x01:0xE9
+
+# 334 --> Cave troll
+R:334:0x01:0xBF
+
+# 335 --> Half-troll
+R:335:0x01:0xBF
+
+# 336 --> Mystic
+R:336:0x01:0xE6
+
+# 337 --> Barrow wight
+R:337:0x01:0xFB
+
+# 338 --> Skeleton ettin
+R:338:0x01:0xEF
+
+# 343 --> Bert the Stone Troll
+R:343:0x01:0xBF
+
+# 344 --> Bill the Stone Troll
+R:344:0x01:0xBF
+
+# 345 --> Tom the Stone Troll
+R:345:0x01:0xBF
+
+# 346 --> Shade
+R:346:0x01:0xDB
+
+# 347 --> Spectre
+R:347:0x01:0xDB
+
+# 348 --> Water troll
+R:348:0x01:0xBF
+
+# 349 --> Fire elemental
+R:349:0x01:0xD9
+
+# 351 --> Water elemental
+R:351:0x01:0xD9
+
+# 352 --> Invisible stalker
+R:352:0x01:0xD9
+
+# 354 --> Master thief
+R:354:0x01:0xE6
+
+# 355 --> Ulfang the Black
+R:355:0x01:0xE6
+
+# 356 --> Lich
+R:356:0x01:0xE2
+
+# 358 --> Giant grey scorpion
+R:358:0x01:0xF0
+
+# 359 --> Earth elemental
+R:359:0x01:0xD9
+
+# 360 --> Air elemental
+R:360:0x01:0xD9
+
+# 361 --> Hellhound
+R:361:0x01:0x9B
+
+# 362 --> Eog golem
+R:362:0x01:0xDA
+
+# 363 --> Olog
+R:363:0x01:0xBF
+
+# 364 --> Dagashi
+R:364:0x01:0xE6
+
+# 365 --> Gravity hound
+R:365:0x01:0x101
+
+# 366 --> Acidic cytoplasm
+R:366:0x01:0xDF
+
+# 367 --> Inertia hound
+R:367:0x01:0x101
+
+# 368 --> Impact hound
+R:368:0x01:0x101
+
+# 369 --> Dread
+R:369:0x01:0xDB
+
+# 370 --> Ooze elemental
+R:370:0x01:0xD9
+
+# 371 --> Smoke elemental
+R:371:0x01:0xD9
+
+# 373 --> Mumak
+R:373:0x01:0xEB
+
+# 377 --> Shadow
+R:377:0x01:0xDB
+
+# 378 --> Phantom
+R:378:0x01:0xDB
+
+# 379 --> Grey wraith
+R:379:0x01:0xFB
+
+# 381 --> Colossus
+R:381:0x01:0xDA
+
+# 383 --> Rogrog the Black Troll
+R:383:0x01:0xBF
+
+# 389 --> Bodak
+R:389:0x01:0xF1
+
+# 390 --> Ice elemental
+R:390:0x01:0xD9
+
+# 391 --> Necromancer
+R:391:0x01:0xE6
+
+# 392 --> Lorgan, Chief of the Easterlings
+R:392:0x01:0xE6
+
+# 393 --> Demonologist
+R:393:0x01:0xE6
+
+# 394 --> Mummified troll
+R:394:0x01:0xFC
+
+# 396 --> Will o' the wisp
+R:396:0x01:0xD9
+
+# 397 --> Magma elemental
+R:397:0x01:0xD9
+
+# 398 --> Black pudding
+R:398:0x01:0xDF
+
+# 400 --> Nexus vortex
+R:400:0x01:0xF7
+
+# 401 --> Plasma vortex
+R:401:0x01:0xF7
+
+# 407 --> Death knight
+R:407:0x01:0xE6
+
+# 408 --> Castamir the Usurper
+R:408:0x01:0xE6
+
+# 409 --> Time vortex
+R:409:0x01:0xF7
+
+# 410 --> Shimmering vortex
+R:410:0x01:0xF7
+
+# 411 --> Ancient blue dragon
+R:411:0x01:0xD3
+
+# 412 --> Ancient bronze dragon
+R:412:0x01:0xD3
+
+# 413 --> Beholder
+R:413:0x01:0xD8
+
+# 414 --> Emperor wight
+R:414:0x01:0xFB
+
+# 416 --> Vargo, Tyrant of Fire
+R:416:0x01:0xD9
+
+# 417 --> Black wraith
+R:417:0x01:0xFB
+
+# 418 --> Erinyes
+R:418:0x01:0xF4
+
+# 419 --> Nether wraith
+R:419:0x01:0xFB
+
+# 420 --> Eldrak
+R:420:0x01:0xBF
+
+# 421 --> Ettin
+R:421:0x01:0xBF
+
+# 422 --> Waldern, King of Water
+R:422:0x01:0xD9
+
+# 424 --> Ancient white dragon
+R:424:0x01:0xD3
+
+# 425 --> Ancient green dragon
+R:425:0x01:0xD3
+
+# 427 --> Night mare
+R:427:0x01:0xEB
+
+# 429 --> Ancient black dragon
+R:429:0x01:0xD3
+
+# 430 --> Disenchanter worm mass
+R:430:0x01:0xF8
+
+# 431 --> Rotting quylthulg
+R:431:0x01:0xED
+
+# 432 --> Spirit troll
+R:432:0x01:0xDB
+
+# 433 --> Lesser titan
+R:433:0x01:0xE9
+
+# 435 --> Enchantress
+R:435:0x01:0xE6
+
+# 436 --> Knight Templar
+R:436:0x01:0xE6
+
+# 437 --> Sorcerer
+R:437:0x01:0xE6
+
+# 439 --> Giant roc
+R:439:0x01:0x9A
+
+# 440 --> Uvatha the Horseman
+R:440:0x01:0xFB
+
+# 441 --> Minotaur
+R:441:0x01:0xDE
+
+# 443 --> Death drake
+R:443:0x01:0xD3
+
+# 444 --> Ancient red dragon
+R:444:0x01:0xD3
+
+# 445 --> Ancient gold dragon
+R:445:0x01:0xD3
+
+# 446 --> Great crystal drake
+R:446:0x01:0xD3
+
+# 447 --> Vrock
+R:447:0x01:0xF4
+
+# 448 --> Death quasit
+R:448:0x01:0xF1
+
+# 449 --> Adunaphel the Quiet
+R:449:0x01:0xFB
+
+# 450 --> Dark elven sorcerer
+R:450:0x01:0xDD
+
+# 451 --> Master lich
+R:451:0x01:0xE2
+
+# 452 --> Hezrou
+R:452:0x01:0xF4
+
+# 453 --> Akhorahil the Blind
+R:453:0x01:0xFB
+
+# 454 --> Gorlim, Betrayer of Barahir
+R:454:0x01:0xE6
+
+# 456 --> Glabrezu
+R:456:0x01:0xF4
+
+# 457 --> Ren the Unclean
+R:457:0x01:0xFB
+
+# 458 --> Nalfeshnee
+R:458:0x01:0xF4
+
+# 459 --> Undead beholder
+R:459:0x01:0xD8
+
+# 460 --> Dread
+R:460:0x01:0xDB
+
+# 461 --> Mumak
+R:461:0x01:0xEB
+
+# 462 --> Ancient multi-hued dragon
+R:462:0x01:0xD3
+
+# 463 --> Ethereal dragon
+R:463:0x01:0xD3
+
+# 464 --> Ji Indur Dawndeath
+R:464:0x01:0xFB
+
+# 465 --> Marilith
+R:465:0x01:0xF4
+
+# 466 --> Quaker, Master of Earth
+R:466:0x01:0xD9
+
+# 467 --> Lesser Balrog
+R:467:0x01:0xF4
+
+# 468 --> Ariel, Queen of Air
+R:468:0x01:0xD9
+
+# 470 --> Patriarch
+R:470:0x01:0xE6
+
+# 471 --> Dreadmaster
+R:471:0x01:0xDB
+
+# 472 --> Drolem
+R:472:0x01:0xDA
+
+# 473 --> Scatha the Worm
+R:473:0x01:0xD3
+
+# 474 --> Dwar, Dog Lord of Waw
+R:474:0x01:0xFB
+
+# 475 --> Smaug the Golden
+R:475:0x01:0xD5
+
+# 476 --> Dracolich
+R:476:0x01:0xD3
+
+# 477 --> Greater titan
+R:477:0x01:0xE9
+
+# 478 --> Dracolisk
+R:478:0x01:0xD3
+
+# 480 --> Itangast the Fire Drake
+R:480:0x01:0xD3
+
+# 481 --> Glaurung, Father of the Dragons
+R:481:0x01:0xD7
+
+# 482 --> Master mystic
+R:482:0x01:0xE6
+
+# 483 --> The Balrog of Moria
+R:483:0x01:0xF4
+
+# 484 --> Nightwing
+R:484:0x01:0xFB
+
+# 485 --> Nether hound
+R:485:0x01:0x101
+
+# 486 --> Time hound
+R:486:0x01:0x101
+
+# 487 --> Plasma hound
+R:487:0x01:0x101
+
+# 488 --> Demonic quylthulg
+R:488:0x01:0xED
+
+# 489 --> Great Storm Wyrm
+R:489:0x01:0xD4
+
+# 490 --> Baphomet the Minotaur Lord
+R:490:0x01:0xDE
+
+# 491 --> Harowen the Black Hand
+R:491:0x01:0xE6
+
+# 492 --> Hoarmurath of Dir
+R:492:0x01:0xFB
+
+# 493 --> Grand master mystic
+R:493:0x01:0xE6
+
+# 494 --> Khamul, the Black Easterling
+R:494:0x01:0xFB
+
+# 495 --> Ethereal hound
+R:495:0x01:0x101
+
+# 496 --> Great Ice Wyrm
+R:496:0x01:0xD4
+
+# 497 --> The Phoenix
+R:497:0x01:0x9A
+
+# 498 --> Nightcrawler
+R:498:0x01:0xFB
+
+# 499 --> Hand druj
+R:499:0x01:0xEF
+
+# 500 --> Eye druj
+R:500:0x01:0xEF
+
+# 501 --> Skull druj
+R:501:0x01:0xEF
+
+# 502 --> Chaos vortex
+R:502:0x01:0xF7
+
+# 503 --> Aether vortex
+R:503:0x01:0xF7
+
+# 506 --> Great Hell Wyrm
+R:506:0x01:0xD4
+
+# 507 --> Draconic quylthulg
+R:507:0x01:0xED
+
+# 508 --> Fundin Bluecloak
+R:508:0x01:0xDD
+
+# 511 --> Ancalagon the Black
+R:511:0x01:0xD6
+
+# 512 --> Nightwalker
+R:512:0x01:0xFB
+
+# 514 --> Saruman of Many Colours
+R:514:0x01:0xE6
+
+# 515 --> Dreadlord
+R:515:0x01:0xDB
+
+# 516 --> The Cat Lord
+R:516:0x01:0xAE
+
+# 517 --> Jabberwock
+R:517:0x01:0xDE
+
+# 518 --> Chaos hound
+R:518:0x01:0x101
+
+# 519 --> Great Wyrm of Chaos
+R:519:0x01:0xD4
+
+# 520 --> Great Wyrm of Law
+R:520:0x01:0xD4
+
+# 521 --> Great Wyrm of Balance
+R:521:0x01:0xD4
+
+# 522 --> Tselakus, the Dreadlord
+R:522:0x01:0xDB
+
+# 523 --> Great Wyrm of Many Colours
+R:523:0x01:0xD4
+
+# 524 --> Black reaver
+R:524:0x01:0xE2
+
+# 525 --> Greater demonic quylthulg
+R:525:0x01:0xED
+
+# 526 --> Greater draconic quylthulg
+R:526:0x01:0xED
+
+# 527 --> Greater rotting quylthulg
+R:527:0x01:0xED
+
+# 528 --> Feagwath, the Undead Sorcerer
+R:528:0x01:0xE2
+
+# 529 --> Omarax, the Eye Tyrant
+R:529:0x01:0xD8
+
+# 530 --> Ungoliant, the Unlight
+R:530:0x01:0xF0
+
+# 531 --> Aether hound
+R:531:0x01:0x101
+
+# 532 --> The Mouth of Sauron
+R:532:0x01:0xE6
+
+# 533 --> Master quylthulg
+R:533:0x01:0xED
+
+# 534 --> Qlzqqlzuup, the Emperor Quylthulg
+R:534:0x01:0xED
+
+# 535 --> The Witch-King of Angmar
+R:535:0x01:0xFB
+
+# 536 --> Pazuzu, Lord of Air
+R:536:0x01:0xF4
+
+# 537 --> Hellhound
+R:537:0x01:0x9B
+
+# 538 --> Cantoras, the Skeletal Lord
+R:538:0x01:0xEF
+
+# 539 --> The Tarrasque
+R:539:0x01:0xEE
+
+# 540 --> Lungorthin, the Balrog of White Fire
+R:540:0x01:0xF4
+
+# 541 --> Draugluin, Sire of All Werewolves
+R:541:0x01:0x9B
+
+# 542 --> Vecna, the Emperor Lich
+R:542:0x01:0xE2
+
+# 543 --> Huan, Wolfhound of the Valar
+R:543:0x01:0x9B
+
+# 544 --> Carcharoth, the Jaws of Thirst
+R:544:0x01:0x9B
+
+# 545 --> Gothmog, the High Captain of Balrogs
+R:545:0x01:0xF4
+
+# 546 --> Sauron, the Sorcerer
+R:546:0x01:0xE6
+
+# 547 --> Morgoth, Lord of Darkness
+R:547:0x01:0xEA
+
+# 549 --> Rot jelly
+R:549:0x01:0xDF
+
+# 550 --> Giant tan bat
+R:550:0x00:0xC0
+
+# 552 --> Giant brown tick
+R:552:0x01:0xF0
+
+# 553 --> Disenchanter bat
+R:553:0x00:0xC0
+
+# 557 --> Demilich
+R:557:0x01:0xE2
+
+# 558 --> Archlich
+R:558:0x01:0xE2
+
+# 559 --> Crow
+R:559:0x01:0x9A
+
+# 560 --> Raven
+R:560:0x01:0x9A
+
+# 561 --> Crebain
+R:561:0x01:0x9A
+
+# 562 --> Winged Horror
+R:562:0x01:0x9A
+
+# 563 --> Cave bear
+R:563:0x01:0xEB
+
+# 564 --> Grizzly bear
+R:564:0x01:0xEB
+
+# 565 --> Werebear
+R:565:0x01:0xEB
+
+# 566 --> Beorn, the Shape-Changer
+R:566:0x01:0xEB
+
+# 567 --> Barbazu
+R:567:0x01:0xF4
+
+# 568 --> Bile Demon
+R:568:0x01:0xF4
+
+# 569 --> Osyluth
+R:569:0x01:0xF4
+
+# 570 --> Gelugon
+R:570:0x01:0xF4
+
+# 571 --> Horned Reaper
+R:571:0x01:0xF4
+
+# 572 --> Pit Fiend
+R:572:0x01:0xF4
+
+# 573 --> Greater Balrog
+R:573:0x01:0xF4
+
+# 576 --> Great Swamp Wyrm
+R:576:0x01:0xD4
+
+# 577 --> Great Wyrm of Perplexity
+R:577:0x01:0xD4
+
+# 578 --> Great Bile Wyrm
+R:578:0x01:0xD4
+
+# 579 --> Great Wyrm of Thunder
+R:579:0x01:0xD4
+
+# 580 --> Ranger
+R:580:0x01:0xE6
+
+# 581 --> Paladin
+R:581:0x01:0xE6
+
+# 582 --> Ranger Chieftain
+R:582:0x01:0xE6
+
+# 583 --> Berserker
+R:583:0x01:0xE6
+
+# 584 --> Cyclops
+R:584:0x01:0xE9
+
+# 585 --> Polyphemus, the Blind Cyclops
+R:585:0x01:0xE9
+
+# 586 --> Atlas, the Titan
+R:586:0x01:0xE9
+
+# 587 --> Kronos, Lord of the Titans
+R:587:0x01:0xE9
+
+# 588 --> Evil eye
+R:588:0x01:0xD8
+
+# 589 --> Spectator
+R:589:0x01:0xD8
+
+# 590 --> Gauth
+R:590:0x01:0xD8
+
+# 591 --> Beholder hive-mother
+R:591:0x01:0xD8
+
+# 594 --> Eol, the Dark Elf
+R:594:0x01:0xDD
+
+# 595 --> Maeglin, the Traitor of Gondolin
+R:595:0x01:0xDD
+
+# 597 --> Silent watcher
+R:597:0x01:0xDA
+
+# 598 --> Nighthawk
+R:598:0x01:0x9A
+
+# 599 --> Ghoul
+R:599:0x01:0xFC
+
+# 600 --> Ghast
+R:600:0x01:0xFC
+
+# 601 --> Greater basilisk
+R:601:0x01:0xEE
+
+# 602 --> Aranea
+R:602:0x01:0xF0
+
+# 603 --> Elder aranea
+R:603:0x01:0xF0
+
+# 604 --> Kobold shaman
+R:604:0x01:0xC9
+
+# 605 --> Bat of Gorgoroth
+R:605:0x00:0xC0
+
+# 606 --> Doombat
+R:606:0x00:0xC0
+
+# 607 --> Wolf chieftain
+R:607:0x01:0x9B
+
+# 608 --> Bone golem
+R:608:0x01:0xDA
+
+# 609 --> Bronze golem
+R:609:0x01:0xDA
+
+# 611 --> Ar-Pharazon the Golden
+R:611:0x01:0xE6
+
+# 612 --> Troll chieftain
+R:612:0x01:0xBF
+
+# 613 --> Shardstorm
+R:613:0x01:0xF7
+
+# 614 --> Storm of Unmagic
+R:614:0x01:0xF7
+
+# 615 --> Greater mummy
+R:615:0x01:0xFC
+
+# 616 --> Multi-hued hound
+R:616:0x01:0x101
+
+
+

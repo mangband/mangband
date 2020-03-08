@@ -10,6 +10,7 @@ pref_DATA = \
 		lib/pref/font-win.prf \
 		lib/pref/font-x11.prf \
 		lib/pref/font-xxx.prf \
+		lib/pref/font-tng.prf \
 		\
 		lib/pref/graf.prf \
 		lib/pref/graf-ami.prf \
