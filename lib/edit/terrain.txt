@@ -450,7 +450,7 @@ M:4
 
 N:95:arena entrance
 G:#:b
-M:60
+#M:60
 
 
 # 0x60 --> logs, used for log cabin

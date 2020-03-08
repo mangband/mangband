@@ -40,6 +40,9 @@ F:120:0x99/0xBE #closed door 8 yellow / tavern
 #real tavern!
 F:15:0x9b/0xB0
 
+# pvp arena wall
+F:95:0x98/0xAD
+
 K:399:0x98/0xF2 # house foundation stone
 
 # Feature attr/char definitions
