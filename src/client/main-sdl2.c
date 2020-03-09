@@ -4200,7 +4200,6 @@ static void renderMIcon(SDL_Rect *panel, SDL_Rect *pos, int action, int sub_acti
 	}
 
 	num_icons++;
-	return id;
 }
 
 static void drawIconPanel_Commands(SDL_Rect *size, int filter)
