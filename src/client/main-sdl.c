@@ -1602,9 +1602,8 @@ static errr Term_tile_sdl(int x, int y, Uint8 a, Uint8 c, Uint8 ta, Uint8 tc){
 	dst = bigface;
 #endif
 
-	if ((use_graphics == GRAPHICS_ADAM_BOLT) ||
-		    (use_graphics == GRAPHICS_DAVID_GERVAIS))
-		{
+	if (use_graphics >= GRAPHICS_TRANSPARENT)
+	{
 			nsr.x = (tc & 0x7F) * gt_ptr->w;
 			nsr.y = (ta & 0x7F) * gt_ptr->h;
 			SDL_BlitSurface(gt_ptr->face, &nsr, dst, &dr);
@@ -1616,7 +1615,7 @@ static errr Term_tile_sdl(int x, int y, Uint8 a, Uint8 c, Uint8 ta, Uint8 tc){
 				SDL_BlitSurface(gt_ptr->face, &sr, dst, &dr);
 				SDL_SetColorKey(gt_ptr->face, SDL_RLEACCEL, 0);
 			}
-		}
+	}
 	else
 		SDL_BlitSurface(gt_ptr->face, &sr, dst, &dr);
 
