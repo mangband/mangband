@@ -371,6 +371,11 @@ extern bool (*cave_char_aux)(int x, int y, byte a, char c, byte ta, char tc);
 extern void (*query_size_aux)(s16b *x, s16b *y, int st);
 extern void (*refresh_char_aux)(int x, int y);
 extern void (*screen_keyboard_aux)(int show, int hint);
+extern bool (*z_ask_confirm_aux)(char *prompt);
+extern bool (*z_ask_command_aux)(char *prompt);
+extern bool (*z_ask_dir_aux)(char *prompt, bool allow_target, bool allow_friend);
+extern bool (*z_ask_item_aux)(const char *prompt, bool mode, bool inven, bool equip, bool onfloor);
+extern bool (*z_ask_spell_aux)(const char *prompt, int realm, int book);
 
 /**** Available Variables ****/
 

@@ -1,0 +1,108 @@
+=======================================================================
+Roguelike UI Icon Font.
+Version 1.0
+=======================================================================
+This font is composed of icons made by
+
+ Delapouite (http://delapouite.com/)
+ Lorc (http://lorcblog.blogspot.com/)
+
+with additional icons by
+ wildabeast (http://wjbstories.blogspot.com/)
+ skoll
+ sbed (https://opengameart.org/content/95-game-icons)
+
+Licensed under CC-BY (https://creativecommons.org/licenses/by/3.0/)
+
+------------------------------------------------------------------------
+
+Mr.Att logo was made by ajps (https://trac.rephial.org/ticket/85)
+Licensed under CC-0 (https://creativecommons.org/publicdomain/zero/1.0/)
+See (https://angband.oook.cz/forum/showthread.php?t=9558) for details.
+
+========================================================================
+Notes about glyph composition.
+========================================================================
+
+The UI Icon Font is made to provide readily-usable icons for various
+commands, in the Moria-Angband family of roguelikes. Therefore, each glyph
+is mapped to an 'underlying' command key. For example, underlying command 
+'c' is (usually) 'Close Door', therefore, glyph 'c' (0x63) will contain an
+icon with a closed door.
+
+Other ranges can/will also be used. Lookup table follows:
+
+0x00 - 0x1F (000-031) Control ASCII range.
+                      Used as is. Notable values here are
+                      '\r' (0x0D), '\n'(0x0A), '\t' (0x09),
+                      backspace (0x08), escape (0x1B), etc.
+                      (CURRENTLY EMPTY)
+0x20 - 0x7F (032-127) Printable ASCII range. Most glyphs are here!
+                      Used for commands (such as 'c' - close door).
+0x80 - 0xA0 (128-160) Range is RESERVED.
+0xA1 - 0xAF (161-175) Range is UNUSED.
+0xB0 - 0xB9 (176-185) Ctrl+Number range. Will be used for digging or running.
+0xBA - 0xE0 (186-224) Additional icons range. Add new icons here!
+0xE1 - 0xFA (225-250) Ctrl+Key range (^A - ^Z).
+                      Used for commands (such as ^F - feeling).
+0xFB - 0xFF (251-255) Range is RESERVED.
+
+For icons in the primary range (0x20 - 0x7F), see 'lib/help/commands.txt'.
+Some tricky commands, like 'process user pref file' may be missing an icon.
+Additional 'bonus' icons are listed below.
+
+========================================================================
+Ctrl+Key reference table for your convenience (0xE1 - 0xFA):
+========================================================================
+(Numbers. Note, that Ctrl+Numbers is not actually a thing.)
+B0 176 ^0   B2 178 ^2   B4 180 ^4   B6 182 ^6   B8 184 ^8
+B1 177 ^1   B3 179 ^3   B5 181 ^5   B7 183 ^7   B9 185 ^9
+
+(Letters. Some of those do not actually exist as stand-alone keys.)
+E1 225 ^A   E6 230 ^F   EB 235 ^K   F0 240 ^P   F5 245 ^U   FA 250 ^Z
+E2 226 ^B   E7 231 ^G   EC 236 ^L   F1 241 ^Q   F6 246 ^V
+E3 227 ^C   E8 232 ^H   ED 237 ^M   F2 242 ^R   F7 247 ^W
+E4 228 ^D   E9 233 ^I   EE 238 ^N   F3 243 ^S   F8 248 ^X
+E5 229 ^E   EA 234 ^J   EF 239 ^O   F4 244 ^T   F9 249 ^Y
+
+Notable "fake" commands here are:
+0xE1 ^A - grovel
+0xE2 ^B - purchase item from store
+0xF3 ^N - sell item to a store
+0xF4 ^T - toggle time-bubbles
+0xF5 ^U - use item (generic)
+0xF9 ^Y - toggle fire-till-kill
+
+
+========================================================================
+Additional icons in (0xBA - 0xE0) range:
+========================================================================
+
+0xBA - 'keyboard' icon
+0xBB - 'settings' icon
+0xBC - 'accept' icon
+0xBD - 'decline' icon
+0xBE - 'dirpad' icon
+0xBF - 'speaker on' icon
+0xC0 - 'speaker off' icon
+0xC1 - 'mr.att' icon (Angband logo)
+0xC2 - 'open folder' icon
+0xC3 - 'save floppy' icon
+0xC4 - 'dungeon gate' icon
+0xC5 - 'finger click' icon
+0xC6 - 'sword in stone' icon
+0xC7 - 'treasure map' icon
+0xC8 - 'tombstone' icon
+0xC9 - 'floor item' icon
+0xCA - 'quiver' icon
+.... - add new icons here
+0xD0 - 'spell - book' icon
+0xD1 - 'spell - item' icon
+0xD2 - 'spell - hand' icon
+0xD3 - 'spell - ball' icon
+0xD4 - 'spell - beam' icon
+0XD5 - 'spell - unknown' icon
+0xD6 - 'spell - illegible' icon
+0XD7 - 'spell - projectable' icon
+.... - add new icons here
+0xE0 - till we're out of space

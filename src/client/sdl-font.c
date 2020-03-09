@@ -85,6 +85,42 @@ static errr strtoii(const char *str, Uint32 *w, Uint32 *h) {
 	return 0;
 }
 
+
+/* Generate a surface with a filled circle on a transparent background */
+SDL_Surface* SDL_CreateCircleSurface32(int w, int h, int r, SDL_Color *c)
+{
+	int x, y, cx, cy;
+	SDL_Surface *face;
+	face = SDL_CreateRGBSurface(0, w, h, 32, RGBAMASK);
+	if (!face) return NULL;
+	
+	/* Center pixel */	
+	cx = w / 2;
+	cy = h / 2;
+
+	/* Iterate over each pixel... */
+	for (y = 0; y < h; y++)
+	{
+		for (x = 0; x < w; x++)
+		{
+			Uint32 col; Uint32 *px;
+			if (IHYPOT(cx - x, cy - y) > r)
+			{
+				col = SDL_MapRGBA(face->format, 0, 0, 0, 0);
+			}
+			else
+			{
+				col = SDL_MapRGBA(face->format, c->r, c->g, c->b, 255);
+			}
+			/* Get pointer and set color */
+			px = (Uint32*)((Uint8*)face->pixels
+				+ (y * face->pitch + x * face->format->BytesPerPixel));
+			*px = col;
+		}
+	}
+	return face;
+}
+
 /* Create a software, 8-bpp SDL Surface */
 SDL_Surface* SDL_Create8BITSurface(int w, int h)
 {
@@ -198,6 +234,12 @@ SDL_Surface* ttfToFont(SDL_Rect *fd, cptr filename, int fontsize, int smoothing)
     if (minx+maxx > width) width = minx+maxx;
     if (miny+maxy > height) height = miny+maxy;
   }
+  /* Hack -- square'ize */
+  if (smoothing == 2)
+  {
+    if (width > height) height = width;
+    else if (height > width) width = height;
+  }
   // For .fon files, try the NxN-in-filename approach
   if (isuffix(filename, ".fon")) {
     int _width = 0;
@@ -210,8 +252,9 @@ SDL_Surface* ttfToFont(SDL_Rect *fd, cptr filename, int fontsize, int smoothing)
 
   fd->w = width;
   fd->h = height;
+
   // Create our glyph surface that will store 256 characters in a 16x16 matrix
-  surface = SDL_CreateRGBSurface(0, width*16, height*16, 32, 0, 0, 0, 0);
+  surface = SDL_CreateRGBSurface(0, width*16, height*16, 32, RGBAMASK);
   if (surface == NULL) {
     plog_fmt("ttfToFont: %s", SDL_GetError());
     TTF_CloseFont(font);

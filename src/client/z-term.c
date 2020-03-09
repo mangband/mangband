@@ -502,6 +502,11 @@ bool (*cave_char_aux)(int x, int y, byte a, char c, byte ta, char tc) = NULL;
 void (*query_size_aux)(s16b *x, s16b *y, int st) = NULL;
 void (*refresh_char_aux)(int x, int y) = NULL;
 void (*screen_keyboard_aux)(int show, int hint) = NULL;
+bool (*z_ask_command_aux)(char *prompt) = NULL;
+bool (*z_ask_yn_aux)(char *prompt) = NULL;
+bool (*z_ask_dir_aux)(char *prompt, bool allow_target, bool allow_friend) = NULL;
+bool (*z_ask_item_aux)(const char *prompt, bool mode, bool inven, bool equip, bool allow_floor) = NULL;
+bool (*z_ask_spell_aux)(const char *prompt, int realm, int book) = NULL;
 
 /*** Efficient routines ***/
 

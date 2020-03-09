@@ -156,3 +156,89 @@ static void termConstrain(int i);
 static void wipeTermCell_UI(int x, int y, int cutout);
 static errr textTermHook_ALT(int x, int y, int n, byte attr, cptr s);
 static errr pictTermHook_ALT(int x, int y, int n, const byte *ap, const char *cp, const byte *tap, const char *tcp);
+
+
+/* LISENGLAS Overlay */
+#define LISEN_W 96
+#define LISEN_H 96
+static errr loadUiCircle(void);
+static void unloadUiCircle(void);
+static void updateLisenglas(int wx, int wy);
+static void renderZoomOverlay(TermData *td);
+
+/* MIcons Overlay */
+enum IconAction {
+
+	MICON_DO_NOTHING,
+
+	MICON_RUN_COMMAND,
+	MICON_LOCAL_COMMAND_HACK,
+	MICON_PICK_DIRECTION,
+	MICON_SINGLE_KEY,
+
+	MICON_TOGGLE_ROOT,
+
+	MICON_SELECT_INVEN,
+	MICON_SELECT_EQUIP,
+	MICON_SELECT_SPELL,
+
+	MICON_ESCAPE,
+	MICON_TOGGLE_KEYBOARD,
+	MICON_TOGGLE_OVERLAY,
+	
+	MICON_LOCAL_QUICK_SLOT,
+	MICON_LOCAL_EXECUTE_MACRO,
+
+};
+#define MICON_W 32
+#define MICON_H 32
+#define MICON_S 16
+static errr loadCmdFont(cptr filename);
+static void unloadCmdFont(void);
+static errr loadTinyFont(cptr filename);
+static void unloadTinyFont(void);
+static void renderIconOverlay(TermData *td);
+static void altCoord(int wx, int wy, int *x, int *t);
+static void renderLisenGlas(TermData *td);
+static void drawIconPanel(SDL_Rect *size, int ctx);
+static void drawIconPanel_Commands(SDL_Rect *size, int filter);
+static void drawIconPanel_Direction(SDL_Rect *size, bool allow_target, bool allow_friend);
+static void drawIconPanel_Selector(SDL_Rect *size, int filter);
+static void drawIconPanel_Inventory(SDL_Rect *size, bool allow_inven, bool allow_equip, bool allow_floor);
+static void drawIconPanel_Equipment(SDL_Rect *size, bool allow_inven, bool allow_equip, bool allow_floor);
+static void drawIconPanel_Spells(SDL_Rect *size, int spell_realm, int spell_book);
+static void drawIconPanel_Slots(SDL_Rect *size);
+static errr iconPict(SDL_Rect *pos, byte a, char c, bool remember);
+static void drawUiIcon(SDL_Rect *pos, int k);
+static int matchIcon(int wx, int wy);
+static void handleMIcon(int action, int sub_action);
+static void renderMIcon(SDL_Rect *panel, SDL_Rect *pos, int action, int sub_action, int draw, int spacing);
+static void convertIconToSlot(void *slot, void *icon, int slot_id);
+
+/* Defines for 'additional' icons in the icon font.
+ * See graf/ui-cmd.txt for source list. */
+#define MICO_KBD 0xBA
+#define MICO_SETTINGS 0xBB
+#define MICO_YES 0xBC
+#define MICO_NO 0xBD
+#define MICO_DIRPAD 0xBE
+#define MICO_SPEAKER_ON 0xBF
+#define MICO_SPEAKER_OFF 0xBF
+#define MICO_ONE_ATT 0xC1
+#define MICO_OPEN_FOLDER 0xC2
+#define MICO_SAVE_FLOPPY 0xC3
+#define MICO_DUNGEON 0xC4
+#define MICO_FINGER_CLICK 0xC5
+#define MICO_SWORD_IN_STONE 0xC6
+#define MICO_TREASURE_MAP 0xC7
+#define MICO_TOMBSTONE 0xC8
+#define MICO_FLOOR_ITEM 0xC9
+#define MICO_QUIVER 0xCA
+#define MICO_SPELL_BOOK 0xD0
+#define MICO_SPELL_ITEM 0xD1
+#define MICO_SPELL_HAND 0xD2
+#define MICO_SPELL_BALL 0xD3
+#define MICO_SPELL_BEAM 0xD4
+#define MICO_SPELL_UNKNOWN 0xD5
+#define MICO_SPELL_ILLEGIBLE 0xD6
+#define MICO_SPELL_PROJECT 0xD7
