@@ -4833,7 +4833,7 @@ static errr saveConfig()
 		conf_set_int(section, "FontSize", terms[window_id].font_size);
 
 		conf_set_int(section, "Zoom", terms[window_id].zoom);
-		if (window_id)
+		if (!window_id)
 			conf_set_int(section, "AltDungeon", (terms[window_id].config & TERM_DO_SCALE));
 
 		if (terms[window_id].pict_mode == TERM_PICT_STATIC)
