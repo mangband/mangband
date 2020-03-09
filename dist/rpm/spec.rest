@@ -6,19 +6,27 @@ Group:       Amusements/Games
 URL:       http://www.mangband.org
 Source:       http://www.mangband.org/download/%{name}-%{version}.tar.gz
 License:        Public Use
-#Requires:       SDL, libX11, ncurses
-#BuildRequires:  SDL-devel, libX11-devel, ncurses-devel
+#Requires:       SDL2, SDL, libX11, ncurses
+#BuildRequires:  SDL2-devel, SDL-devel, libX11-devel, ncurses-devel
 Buildroot:      %{_tmppath}/%{name}-buildroot
 
 %description
  MAngband is a free online multiplayer real-time roguelike game,
  derived from the single player game Angband.
 
+%package -n mangclient-sdl2
+Summary:      SDL2 client
+Requires: SDL2
+BuildRequires:  SDL2-devel
+Conflicts: mangclient-sdl, mangclient-x11, mangclient-gcu
+%description -n mangclient-sdl2
+SDL2 version of client.
+
 %package -n mangclient-sdl
 Summary:      SDL client
 Requires: SDL
 BuildRequires:  SDL-devel
-Conflicts: mangclient-x11, mangclient-gcu
+Conflicts: mangclient-sdl2, mangclient-x11, mangclient-gcu
 %description -n mangclient-sdl
 SDL version of client.
 
@@ -26,7 +34,7 @@ SDL version of client.
 Summary:      X11 client
 Requires: xorg-x11
 BuildRequires:  libX11-devel
-Conflicts: mangclient-sdl, mangclient-gcu
+Conflicts: mangclient-sdl2, mangclient-sdl, mangclient-gcu
 %description -n mangclient-x11
 X11 version of client.
 
@@ -34,7 +42,7 @@ X11 version of client.
 Summary:      GCU client
 Requires: ncurses
 BuildRequires:  ncurses-devel
-Conflicts: mangclient-sdl, mangclient-x11
+Conflicts: mangclient-sdl2, mangclient-sdl, mangclient-x11
 %description -n mangclient-gcu
 GCU version of client (ncurses).
 

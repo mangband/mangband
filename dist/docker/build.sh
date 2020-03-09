@@ -91,7 +91,7 @@ if [ $1 = "DEB" ]; then
 	apt-get update -qq
 	apt-get install -yqq make gcc autoconf automake dh-make >/dev/null
 	apt-get install -yqq dpkg-dev # needed on Ubuntu14 >/dev/null
-	apt-get install -yqq libncurses5-dev libsdl1.2-dev >/dev/null
+	apt-get install -yqq libncurses5-dev libsdl1.2-dev libsdl2-dev >/dev/null
 	apt-get install -yqq libX11-dev >/dev/null || \
 		apt-get install -y libx11-dev >/dev/null
 # make dist
@@ -107,6 +107,7 @@ if [ $1 = "DEB" ]; then
 	./debit.sh # server
 	./debit.sh gcu
 	./debit.sh sdl
+	./debit.sh sdl2
 	./debit.sh x11
 	cd -
 	cp dist/deb/*.deb dist/docker/builds/.
@@ -116,7 +117,7 @@ fi
 if [ $1 = "RPM" ]; then
 	printf "\n *** Doing rpm builds *** \n\n"
 	yum install -yq wget which make gcc automake autoconf rpmdevtools
-	yum install -yq ncurses-devel libX11-devel SDL-devel
+	yum install -yq ncurses-devel libX11-devel SDL-devel SDL2-devel
 # make dist
 #	ls
 #	./autogen.sh -n
@@ -132,6 +133,7 @@ if [ $1 = "RPM" ]; then
 	./rpmit.sh # server
 	./rpmit.sh gcu
 	./rpmit.sh sdl
+	./rpmit.sh sdl2
 	./rpmit.sh x11
 	cd -
 	cp dist/rpm/*.rpm dist/docker/builds/.
