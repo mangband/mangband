@@ -29,7 +29,7 @@ different display frontends. From then on, porting Angband to a new
 platform was a matter of writing a main-xxx file, implementing 10-20
 functions, responsible for initializing windows, drawing text on screen,
 plotting graphics and playing sounds. We're still using this idiom in
-2019.
+2020s.
 
 When Keldon Jones set out to make a multi-player version, he had split
 the Angband code into two parts, the client and the server. The server
@@ -97,7 +97,7 @@ speed, each tick would add a different amount to the counter. Thus, fast
 monsters could reach the desired "100" value faster. Therefore, turning
 such turn-based game into "real-time" was relatively straight-forward:
 you just run ticks on a timer, and add appropriate energy, already
-ballanced well, by speed.
+balanced well, by speed.
 
 Finally, the "amount of energy needed to perform full-turn action" was
 also hacked upon. Each dungeon level got assigned a pre-defined factor,
@@ -110,7 +110,7 @@ all rely heavily of this.
 
 Finally, a concept of "ghosts" was introduced. This gave players a
 chance to avoid permadeath, and to continue playing even after death.
-Ghosts could float up from the dungeon and ressurect themselves at the
+Ghosts could float up from the dungeon and resurrect themselves at the
 temple (shop '4') losing 50% of their experience. Along those lines, PvP
 (player-versus-player) combat was added, making it a true multi-player
 roguelike.
@@ -123,7 +123,7 @@ game into a multiplayer/real-time experience. We owe it all to him.
 
 == Reign of Alex Dingle ==
 
-After about a year of hacking on MAngband, Keldon Jones went to on to
+After about a year of hacking on MAngband, Keldon Jones went to 
 create other interesting things. True to Angband tradition, a new
 maintainer had to be chosen. Keep in mind, that beside taking care of
 the codebase, a MAngband maintainer is also responsible for hosting the
@@ -131,15 +131,15 @@ the codebase, a MAngband maintainer is also responsible for hosting the
 
 Alex Dingle was responsible for turning this proof-of-concept game into
 a proper MMO. Things like player houses, wilderness, ability to
-ressurect other players by reading a Scroll of Life, proper XP sharing
+resurrect other players by reading a Scroll of Life, proper XP sharing
 between party members, healing prayers for priests and paladins (along
 with an option to target friendly characters and not just
 monsters/hostile players), ensuring that things like "slow monster"
 spells actually affect other players, multitude of interface
-imporvements, DM menu and admin characters, the list goes on and on.
+improvements, DM menu and admin characters, the list goes on and on.
 
 Most of the MAngband "traditions" come from this era (years 1998-2002,
-version 0.5.4D to 0.7.0). The most important techincal achivement was
+version 0.5.4D to 0.7.0). The most important technical achievement was
 the switch to proper TCP/IP, leaving UDP/IP and the various hacks on top
 of it behind. A lot of fine-tuning to the game speed and command
 handling was done to make the gameplay as smooth as possible for a
@@ -176,7 +176,7 @@ item/gold transactions, to prevent abuse and "cheeze".
 
 At the very end of his time, an SVN repository was created, to hold the
 code in a proper version-controlled system. As he was looking for the
-next mainatainer, he wanted to make sure the code history would get
+next maintainer, he wanted to make sure the code history would get
 preserved.
 
 == MAngband Project Team ==
@@ -202,13 +202,13 @@ of 1.1.0 became a cornerstone, which allowed us to host server instances
 uninterrupted for years.
 
 For the first time ever, new code from upsteam Angband has began to pour
-back into MAngband. Angband developement has been sproadic, with huge
+back into MAngband. Angband development has been sporadic, with huge
 downtimes, but during that time a new dev.team (led by takkaria) took
 over, so there were a lot of new and exciting improvements, which
 MAngband absorbed. That included new monsters and spells from Angband
-3.0.6, along with several new game mechanics and re-ballancing.
+3.0.6, along with several new game mechanics and re-balancing.
 
-Most improtantly, the band, that has formed under his command, worked
+Most importantly, the band, that has formed under his command, worked
 long and hard to release 1.1.0, fixing over 100+ critical bugs, in a
 true team effort. A set of guidelines was formed (what "MAngband is and
 isn't", "how to work with issues", "how to format commits") which is
@@ -227,7 +227,7 @@ of the game, to make modding and future work easier. One of the driving
 ideas was to allow variant development that doesn't break protocol
 compatibility ("generalizing" parts of the protocol).
 
-This long haul took about 10 years, culiminating, finally in the release
+This long haul took about 10 years, culminating, finally in the release
 of 1.5.0 version. There have been around 2000 commits, and 1000 closed
 issues, so it would be pointless to list it all here. Thankfully, all
 that is documented in our source repository and the closed
@@ -237,7 +237,7 @@ Among interesting changes, was the move to automake/autoconf build
 system (instead of custom Makefiles for each platform), addition of
 virtually all Angband features (to a certain date), complete rewrite of
 the lower-level network layers and the introduction of Time Bubbles, which,
-in my mind, add the last missing piece to the whole "online rogulike"
+in my mind, add the last missing piece to the whole "online roguelike"
 concept. That's also the version that finally added custom House Building.
 
 This is pretty much where we are now. I would like to conclude this by
@@ -245,10 +245,10 @@ three additional "chapters".
 
 == On XPilot, netcode and GPL ==
 
-When MAngband was concieved, the whole low-level networking code was
+When MAngband was conceived, the whole low-level networking code was
 copy-pasted from a classic Unix game, called "XPilot". XPilot was a
 fast-paced arcade game, which pitted players, who controlled
-physics-based space figthers in a deathmatch arena, with a top-down
+physics-based space fighters in a deathmatch arena, with a top-down
 perspective.
 
 This brought two important consequences.
@@ -257,7 +257,7 @@ Firstly, the game was using the UDP protocol, which is best-suited for
 twitch-based games, where losing a packet or two, is considered fine, as
 long as you receive subsequent updates. Since it was pretty clear that
 this approach is not suitable for online roguelikes, where each and
-every packet is of deadly imprtance and the order of packets *MUST* be
+every packet is of deadly importance and the order of packets *MUST* be
 sequential, a new "guaranteed delivery" protocol was written *on top* of
 UDP, turning it into a crude version of TCP.
 
@@ -283,8 +283,8 @@ To complicate matters even more, additional code written by MAngband
 maintainers over time, was explicitly non-GPL.
 
 Two interesting developments happened since then. First, the "Angband
-open-source initiative" begain in the early 2000s, and finished in 2009.
-That is an interesting story in itself, best descibred elsewhere, but
+open-source initiative" began in the early 2000s, and finished in 2009.
+That is an interesting story in itself, best described elsewhere, but
 long story short, around 200+ contributors were tracked down and asked
 to re-license their work for GPL. Bits of codes that weren't
 re-licensed, were nuked from the codebase.
@@ -318,7 +318,7 @@ mind, simplifying things tenfold.
 Being a variant by itself, MAngband has also spawned several notorious
 variants.
 
-First came PernMAngband, which was developed in conjuction with
+First came PernMAngband, which was developed in conjunction with
 PernAngband, by DarkGod (yes, it was easy enough to add the same change
 to an Angband variant, AND a MAngband variant, due to codebases being
 practically identical). For a while, we shared the same metaserver, as
@@ -331,7 +331,7 @@ to document, so I direct you elsewhere.
 Around the same time, PWMAngband began development. The one and only
 author, PowerWyrm, has adopted parts of all then-existing forks,
 adding even more stuff on top of them. The game is still in
-development, and, unbelivably, has all the latest codebase changes from
+development, and, unbelievably, has all the latest codebase changes from
 Angband (unlike MAngband, which is still stuck in 2.7-3.2 era).
 
 MAngband, at it's core, still resembles Angband 2.7.9 (with bits of
