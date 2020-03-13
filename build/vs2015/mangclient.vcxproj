@@ -345,6 +345,7 @@
     <ClCompile Include="..\..\src\client\c-birth.c" />
     <ClCompile Include="..\..\src\client\c-cmd.c" />
     <ClCompile Include="..\..\src\client\c-cmd0.c" />
+    <ClCompile Include="..\..\src\client\grafmode.c" />
     <ClCompile Include="..\..\src\client\ui.c" />
     <ClCompile Include="..\..\src\client\c-files.c" />
     <ClCompile Include="..\..\src\client\c-init.c" />
@@ -370,6 +371,7 @@
     <ClCompile Include="..\..\src\client\win\readpng.c" />
     <ClCompile Include="..\..\src\client\sdl-font.c" />
     <ClCompile Include="..\..\src\client\sdl-sound.c" />
+    <ClCompile Include="..\..\src\common\base64encode.c" />
     <ClCompile Include="..\..\src\common\md5.c" />
     <ClCompile Include="..\..\src\common\net-basics.c" />
     <ClCompile Include="..\..\src\client\net-client.c" />
@@ -379,6 +381,7 @@
     <ClCompile Include="..\..\src\client\set_focus.c" />
     <ClCompile Include="..\..\src\client\c-variable.c" />
     <ClCompile Include="..\..\src\common\parser.c" />
+    <ClCompile Include="..\..\src\common\sha1.c" />
     <ClCompile Include="..\..\src\common\z-bitflag.c" />
     <ClCompile Include="..\..\src\common\z-form.c" />
     <ClCompile Include="..\..\src\common\z-rand.c" />
@@ -388,6 +391,7 @@
     <ClCompile Include="..\..\src\common\z-file.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\src\client\grafmode.h" />
     <ClInclude Include="..\..\src\client\main-sdl2.h" />
     <ClInclude Include="..\..\src\client\sdl-font.h" />
     <ClInclude Include="..\..\src\client\lupng\lupng.h" />
@@ -396,8 +400,10 @@
     <ClInclude Include="..\..\src\common\angband.h" />
     <ClInclude Include="..\..\src\client\c-angband.h" />
     <ClInclude Include="..\..\src\client\c-externs.h" />
+    <ClInclude Include="..\..\src\common\base64encode.h" />
     <ClInclude Include="..\..\src\common\defines.h" />
     <ClInclude Include="..\..\src\common\h-basic.h" />
+    <ClInclude Include="..\..\src\common\sha1.h" />
     <ClInclude Include="..\..\src\h-config.h" />
     <ClInclude Include="..\..\src\common\h-define.h" />
     <ClInclude Include="..\..\src\common\h-net.h" />

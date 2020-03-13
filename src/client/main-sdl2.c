@@ -10,6 +10,8 @@
     * 'lib/xtra/font/AnonymousPro.ttf'
       - The default TTF font, licensed under the Open Font License
       - NOTE: This can be overridden in MAngband.ini as "font_file".
+    * 'lib/xtra/font/ui-cmd.ttf'
+       - "UI" font for Mobile UI. See 'ui-cmd.txt' for details.
 
 TODO:
   * Actually use all possible settings in MAngband.ini
@@ -43,6 +45,11 @@ double fmin(double x, double y)
 #define WM_TITLEBAR_OFFSET 0
 #endif
 
+#ifdef MOBILE_UI
+#define USE_LISENGLAS
+#define USE_ICON_OVERLAY
+#endif
+
 /* Color definitions. Carefully copied from kettek's values. */
 enum {
 	GUI_COLOR_BACKGROUND,
@@ -69,6 +76,8 @@ static SDL_Color GUI_COLORS[GUI_COLOR__MAX] = {
 #define GUI_COLOR(GCI) GUI_COLORS[GUI_COLOR_ ## GCI]
 #define GUI_COLOR3(GCI) GUI_COLOR(GCI).r, GUI_COLOR(GCI).g, GUI_COLOR(GCI).b
 #define GUI_COLOR4(GCI) GUI_COLOR3(GCI), GUI_COLOR(GCI).a
+
+#define TERM_RGB(ATTR) color_table[ATTR][1],color_table[ATTR][2],color_table[ATTR][3]
 
 /* plog() hook to display a message box. similar to WIN32 client */
 static void hack_plog(cptr str)
@@ -122,12 +131,6 @@ const int ttf_font_sizes[MAX_FONT_SIZES] = {
 	16, 18, 20, 24, 30, 32, 36, 48, 0
 };
 
-
-static cptr GFXBMP[] = { "8x8.png", "8x8.png", "16x16.png", "32x32.png", 0 };
-static cptr GFXMASK[] = { 0, 0, "mask.bmp", "mask32.bmp", 0 };
-static cptr GFXNAME[] = { 0, "old", "new", "david", 0 };
-#define MAX_QUICK_TILESETS 3
-
 #define MAX_ZOOM_LEVELS 6
 static int zoom_levels[MAX_ZOOM_LEVELS] = {
 	25,
@@ -143,6 +146,11 @@ void Term2_refresh_char(int x, int y);
 bool Term2_cave_char(int x, int y, byte a, char c, byte ta, char tc);
 void Term2_query_area_size(s16b *x, s16b *y, int st);
 void Term2_screen_keyboard(int show, int hint);
+bool Term2_ask_dir(char *prompt, bool allow_target, bool allow_friend);
+bool Term2_ask_command(char *prompt);
+bool Term2_ask_item(const char *prompt, bool mode, bool inven, bool equip, bool onfloor);
+bool Term2_ask_spell(const char *prompt, int realm, int book);
+
 
 /* Helpers */
 
@@ -155,6 +163,7 @@ static void getRendererSize(TermData *td, int *w, int *h)
 	SDL_GL_GetDrawableSize(td->window, w, h);
 #else
 	/* Assume there are no further bugs... */
+	SDL_SetRenderTarget(td->renderer, NULL);
 	SDL_GetRendererOutputSize(td->renderer, w, h);
 #endif
 }
@@ -180,7 +189,8 @@ static void mobileAutoLayout(void)
 
 	getRendererSize(td, &maxw, &maxh);
 
-	maxh -= 32;
+	maxh -= 64;
+	maxw -= 64;
 #ifdef MOBILE_UI
 	if (SDL_IsTablet() || isHighDPI())
 	{
@@ -200,6 +210,97 @@ static void mobileAutoLayout(void)
 	refreshTerm(td);
 }
 
+  ////////////////////////////
+ /* ==== Icon Overlay ==== */
+////////////////////////////
+static struct FontData tiny_font;
+static struct FontData cmd_font;
+static SDL_Texture *tx_tiny = NULL;
+static SDL_Texture *tx_cmd = NULL;
+
+enum IconContext {
+
+	MICONS_SELECTOR_ROOT,
+	MICONS_DIRECTION,
+	MICONS_ITEM,
+	MICONS_SPELL,
+	MICONS_COMMANDS,
+
+	MICONS_SYSTEM,
+	MICONS_QUICKEST,
+	MICONS_ALTER,
+	MICONS_INVEN,
+	MICONS_EQUIP,
+	MICONS_SPELLS,
+	MICONS_SELECTOR_CLOSE,
+
+};
+
+/* TODO: move those to a struct? */
+static int icon_hover = -1;
+static int icon_pressed = -1;
+static int icon_pressed_x = -1;
+static int icon_pressed_y = -1;
+static int term2_icon_context = -1;
+static int term2_icon_pref = -1;
+static int term2_item_pref = -1;
+static int term2_spell_pref = -1;
+static int micon_command_filter = MICONS_QUICKEST;
+static bool micon_allow_target = FALSE;
+static bool micon_allow_friend = FALSE;
+static bool micon_allow_inven = FALSE;
+static bool micon_allow_equip = FALSE;
+static bool micon_allow_floor = FALSE;
+static int micon_spell_realm = -1;
+static int micon_spell_book = -1;
+
+typedef struct IconData IconData;
+struct IconData {
+	SDL_Rect pos;
+	int action;
+	int sub_action;
+	int draw;	/* Icon index from UI font (or -1) */
+	byte a;     /* Attr on tileset (or 0) */
+	byte c;     /* Char on tileset (or 0) */
+};
+static int num_icons = 0;
+static IconData icons[256] = { 0 };
+
+/* Quick-slots */
+static IconData drag_icon = { 0 };
+static bool dragging_icon = FALSE;
+typedef struct SlotData SlotData;
+struct SlotData {
+	char macro_act[1024]; /* Macro to execute */
+	int action;     /* IconAction to execute */
+	int sub_action; /* IconAction argument */
+	int draw;   /* Icon index from UI font */
+	byte a;     /* Attr on tileset */
+	byte c;     /* Char on tileset */
+	byte attr;  /* Text color */
+	char display[1024]; /* Text */
+};
+static SlotData drag_slot = { 0 };
+static SlotData quick_slots[10] = { 0 };
+/* End quick-slots */
+
+#ifdef USE_LISENGLAS
+  /////////////////////////
+ /* ==== Lisenglas ==== */
+/////////////////////////
+static SDL_Texture *tx_circle = NULL;
+static SDL_Texture *tx_lisen = NULL;
+static SDL_Texture *lg_tex = NULL;
+
+static bool lisen_enabled = FALSE;
+static bool lisen_viable = FALSE;
+static bool lisen_pressed = FALSE;
+static int lisen_x = 0;
+static int lisen_y = 0;
+static int lisen_sx = 0;
+static int lisen_sy = 0;
+#endif
+
 /* ==== Help ==== */
 const char help_sdl2[] = "";
 
@@ -215,11 +316,6 @@ errr init_sdl2(void) {
 
 	// **** Load in Configuration ****
 	// The following global vars are set AFTER init_sdl2(), but as per below, we need 'em
-	use_graphics = conf_get_int("SDL2", "Graphics", 0);
-	if (use_graphics)
-	{
-		ANGBAND_GRAF = GFXNAME[use_graphics];
-	}
 	ANGBAND_SYS = "sdl2";
 
 	// FIXME: this should be handled elsewhere, but we want colors now.
@@ -244,6 +340,17 @@ errr init_sdl2(void) {
 	if (sdl_font_init() != 0) {
 		plog("sdl_font_init(): fatal error");
 		return 3;
+	}
+
+	/* load the possible graphics modes */
+	init_graphics_modes("graphics.txt");
+
+	/* set graphics mode */
+	use_graphics = conf_get_int("SDL2", "Graphics", 0);
+	if (use_graphics)
+	{
+		graphics_mode* gm = get_graphics_mode((byte)use_graphics);
+		ANGBAND_GRAF = gm ? gm->pref : "none";
 	}
 
 #ifdef USE_SOUND
@@ -288,6 +395,19 @@ errr init_sdl2(void) {
 		termConstrain(i);
 	}
 
+#ifdef USE_ICON_OVERLAY
+	loadCmdFont("ui-cmd.ttf");
+#ifdef USE_SDL2_TTF
+	loadTinyFont("5X8.FON");
+#else
+	loadTinyFont("misc6x13.hex");
+#endif
+	#endif
+
+#ifdef USE_LISENGLAS
+	loadUiCircle();
+#endif
+
 	// **** Activate Main z-term and gooo ****
 	Term_activate(&(terms[TERM_MAIN].t)); // set active Term to terms[TERM_MAIN]
 	term_screen = Term;                   // set term_screen to terms[TERM_MAIN]
@@ -297,6 +417,10 @@ errr init_sdl2(void) {
 	query_size_aux = Term2_query_area_size;
 	refresh_char_aux = Term2_refresh_char;
 	screen_keyboard_aux = Term2_screen_keyboard;
+	z_ask_command_aux = Term2_ask_command;
+	z_ask_dir_aux = Term2_ask_dir;
+	z_ask_item_aux = Term2_ask_item;
+	z_ask_spell_aux = Term2_ask_spell;
 
 	return 0;
 }
@@ -309,6 +433,9 @@ void quit_sdl2(cptr s)
 
 	/* Call regular quit hook */
 	quit_hook(s);
+
+	/* Forget grafmodes */
+	close_graphics_modes();
 
 	/* Do SDL-specific stuff */
 #ifdef USE_SOUND
@@ -643,6 +770,36 @@ void Term2_screen_keyboard(int show, int hint)
 		SDL_StopTextInput();
 	}
 #endif
+}
+
+bool Term2_ask_command(char *prompt)
+{
+	term2_icon_context = MICONS_COMMANDS;
+	return FALSE;
+}
+
+bool Term2_ask_dir(char *prompt, bool allow_target, bool allow_friend)
+{
+	term2_icon_context = MICONS_DIRECTION;
+	micon_allow_target = allow_target;
+	micon_allow_friend = allow_friend;
+	return FALSE;
+}
+bool Term2_ask_item(const char *prompt, bool mode, bool inven, bool equip, bool onfloor)
+{
+	term2_icon_context = MICONS_ITEM;
+	if (mode) term2_icon_context = MICONS_EQUIP;
+	micon_allow_inven = inven;
+	micon_allow_equip = equip;
+	micon_allow_floor = onfloor;
+	return FALSE;
+}
+bool Term2_ask_spell(const char *prompt, int realm, int book)
+{
+	term2_icon_context = MICONS_SPELL;
+	micon_spell_realm = realm;
+	micon_spell_book = book;
+	return FALSE;
 }
 
 void net_stream_clamp(int addr, int *x, int *y) {
@@ -1067,6 +1224,9 @@ static int dragging = -1;
 static int gripping = 0;
 static float accum_pinch = 0;
 
+static int alt_cursor_x = -1;
+static int alt_cursor_y = -1;
+
 static void renderWindow(TermData *mtd)
 {
 	SDL_Color *bgcol;
@@ -1089,6 +1249,18 @@ static void renderWindow(TermData *mtd)
 		dst.h = dst.h * terms[0].zoom /100;
 
 		SDL_RenderCopy(terms[0].renderer, terms[0].alt_framebuffer, &src, &dst);
+		/* Render cursor */
+		if (mtd->pict_data)
+		{
+			SDL_Rect cell_rect;
+			cell_rect.w = mtd->pict_data->w * terms[0].zoom /100;
+			cell_rect.h = mtd->pict_data->h * terms[0].zoom /100;
+			cell_rect.x = dst.x + alt_cursor_x * cell_rect.w;
+			cell_rect.y = dst.y + alt_cursor_y * cell_rect.h;
+			SDL_SetRenderDrawColor(mtd->renderer, 128, 255, 64, 255);
+			SDL_RenderDrawRect(mtd->renderer, &cell_rect);
+		}
+
 	}
 
 	/* Render all terms */
@@ -1099,6 +1271,17 @@ static void renderWindow(TermData *mtd)
 		if (td->window_id != mtd->window_id) continue;
 
 		renderTerm(td);
+	}
+
+	/* Render MOBILE OVERLAY */
+	if (mtd->id == TERM_MAIN && mtd->alt_framebuffer && mtd->pict_data)
+	{
+#ifdef USE_LISENGLAS
+		renderLisenGlas(mtd);
+#endif
+#ifdef USE_ICON_OVERLAY
+		renderIconOverlay(mtd);
+#endif
 	}
 
 	SDL_RenderPresent(mtd->renderer);
@@ -1499,20 +1682,20 @@ static errr renderGui(TermData *td)
 			int sy = y + 1;
 			int si = 0;
 			int j;
-			for (j = 0; 0 < MAX_QUICK_TILESETS; j++) {
+			for (j = 0; 0 < get_num_graphics_modes(); j++) {
 				char buf[32], on;
-				if (j >= 4) break;
-				if (j && GFXNAME[j] == 0) break;
+				graphics_mode *gm = get_graphics_mode((byte)j);
+				if (!gm) break;
 				on = 0;
-				if (j && !strcmp(GFXBMP[j], td->font_file)) on = 1;
+				if (j && !strcmp(gm->file, td->pict_file)) on = 1;
 				if (!j && use_graphics == 0) on = 1;
 				if (j == use_graphics) on = 1;
 				strnfmt(buf, 32, " [%c] %-12s ", (on ? 'X' : '.'),
-				j ? GFXNAME[j] : "Off");
+				j ? gm->menuname : "Off");
 				renderTButton(td, sx, sy + j, buf, MENU_QUICK_GRAF0 + j);
+				sub_w = MATH_MAX(sub_w, strlen(gm->menuname) + 6);
 			}
 			td->menu_rect.h += j * grid_h;
-			sub_w = 18;
 			sub_x = sx;
 		}
 		cx += strlen("Graphics") + 1;
@@ -2228,14 +2411,80 @@ static void handleMouseEvent(SDL_Event *ev)
 	if (menu_mode)
 	{
 		bool handled = handleMouseEvent_Menu(ev);
-		if (handled) return;	
+		if (handled) return;
 	}
 
 	eventMouseCoordinates(ev, &wx, &wy);
 
 	if (ev->type == SDL_MOUSEBUTTONDOWN)
 	{
-		
+		if (ev->button.button == SDL_BUTTON_LEFT)
+		{
+#ifdef USE_ICON_OVERLAY
+			//icon_hover =
+			icon_pressed = matchIcon(wx, wy);
+			icon_pressed_x = wx;
+			icon_pressed_y = wy;
+#endif
+#if defined(USE_LISENGLAS) && defined(USE_ICON_OVERLAY)
+			if (icon_hover < 0)
+				lisen_pressed = TRUE;
+#endif
+		}
+	}
+	else if (ev->type == SDL_MOUSEMOTION)
+	{
+#ifdef USE_ICON_OVERLAY
+		if (icon_pressed > -1 && icon_pressed < num_icons
+		&& icon_hover == icon_pressed)
+		{
+			if (!dragging_icon)
+			{
+				if ((ABS(icon_pressed_x - wx) > 16)
+				|| (ABS(icon_pressed_y - wy) > 16))
+				{
+					dragging_icon = TRUE;
+					drag_icon = icons[icon_pressed];
+					icon_pressed = -1;
+					terms[0].need_render = TRUE;
+					return;
+				}
+			}
+		}
+		if (dragging_icon)
+		{
+			drag_icon.pos.x = wx - drag_icon.pos.w/2;
+			drag_icon.pos.y = wy - drag_icon.pos.h/2;
+			terms[0].need_render = TRUE;
+		}
+
+		icon_hover = matchIcon(wx, wy);
+#endif
+#ifdef USE_LISENGLAS
+		if (lisen_pressed)
+		{
+			updateLisenglas(wx, wy);
+		}
+#endif
+
+		/* Still here? Good, let's pass this event to Angband */
+		{
+			for (i = 0; i < TERM_MAX; i++)
+			{
+				if (terms[i].window_id == ev->window.windowID)
+				{
+					int w = MAX(terms[i].fb_w, terms[i].dng_rect.x + terms[i].alt_fb_w);
+					int h = MAX(terms[i].fb_w, terms[i].dng_rect.y + terms[i].alt_fb_h);
+					if (wx >= terms[i].ren_rect.x && wy >= terms[i].ren_rect.y
+					 && wx <= terms[i].ren_rect.y + w
+					 && wy <= terms[i].ren_rect.y + h)
+					{
+						handleMouseClick(i, wx, wy, 0);
+						break;
+					}
+				}
+			}
+		}
 	}
 	else if (ev->type == SDL_MOUSEBUTTONUP)
 	{
@@ -2257,6 +2506,33 @@ static void handleMouseEvent(SDL_Event *ev)
 			return;
 		}
 		if (ev->button.button == SDL_BUTTON_LEFT)
+		{
+#ifdef USE_LISENGLAS
+			lisen_pressed = FALSE;
+			lisen_viable = FALSE;
+#endif
+#ifdef USE_ICON_OVERLAY
+			icon_pressed = -1;
+			if (dragging_icon)
+			{
+				/* Only allow drop onto quickslots */
+				if (icon_hover > -1 && icon_hover < num_icons
+				&& icons[icon_hover].action == MICON_LOCAL_QUICK_SLOT)
+				{
+					handleMIcon(icons[icon_hover].action, icons[icon_hover].sub_action);
+				}
+				dragging_icon = FALSE;
+				return;
+			}
+			//icon_hover = matchIcon(wx, wy);
+			if (icon_hover >= 0)
+			{
+				handleMIcon(icons[icon_hover].action, icons[icon_hover].sub_action);
+			 	return;
+			}
+#endif
+		}
+		/* Still here? Good, let's pass this event to Angband */
 		{
 			for (i = 0; i < TERM_MAX; i++)
 			{
@@ -2339,7 +2615,11 @@ static void handleKeyboardEvent(SDL_Event *ev)
 	/* Hack -- "Back" button */
 	if (ev->key.keysym.scancode == SDL_SCANCODE_AC_BACK)
 	{
+#ifdef USE_ICON_OVERLAY
+		handleMIcon(MICON_ESCAPE, 0);
+#else
 		Term_keypress(ESCAPE);
+#endif
 		return;
 	}
 
@@ -2468,7 +2748,7 @@ static errr xtraTermHook(int n, int v) {
 	int i;
 	switch (n) {
 	case TERM_XTRA_NOISE: // generic noise
-		//return (Term_xtra_win_noise());
+		sdl_bell();
 		return 0;
 	case TERM_XTRA_SOUND:
 #ifdef USE_SOUND
@@ -2581,8 +2861,18 @@ static errr cursTermHook(int x, int y)
 	     td->cell_w,
 	     td->cell_h
 	};
+
+	/* Regular cursor */
 	SDL_SetRenderDrawColor(td->renderer, 128, 255, 64, 255);
 	SDL_RenderDrawRect(td->renderer, &cell_rect);
+
+	/* Alt.Dungeon cursor */
+	if (td->config & TERM_DO_SCALE)
+	{
+		alt_cursor_x = x - DUNGEON_OFFSET_X;
+		alt_cursor_y = y - DUNGEON_OFFSET_Y;
+	}
+
 	return 0;
 }
 
@@ -2642,6 +2932,12 @@ static errr wipeTermHook(int x, int y, int n)
 
 	if (td->config & TERM_DO_SCALE)
 	{
+		if ((x - DUNGEON_OFFSET_X == alt_cursor_x)
+		 && (y - DUNGEON_OFFSET_Y == alt_cursor_y))
+		{
+			alt_cursor_x = -1;
+			alt_cursor_y = -1;
+		}
 		td->need_cutout = TRUE;
 	}
 	return 0;
@@ -2696,7 +2992,7 @@ static errr textTermHook_ALT(int x, int y, int n, byte attr, cptr s)
 	TermData *td = (TermData*)(Term->data);
 	if (!td->font_data || !td->pict_data) return -1;
 
-	SDL_SetTextureColorMod(td->font_texture, color_table[attr][1], color_table[attr][2], color_table[attr][3]);
+	SDL_SetTextureColorMod(td->font_texture, TERM_RGB(attr));
 
 	SDL_SetRenderTarget(td->renderer, td->alt_framebuffer);
 	SDL_SetRenderDrawColor(td->renderer, 255, 255, 255, 255);
@@ -2736,7 +3032,7 @@ static errr textTermHook(int x, int y, int n, byte attr, cptr s)
 	int i, alt_dungeon = 0;
 	TermData *td = (TermData*)(Term->data);
 	struct FontData *fd = td->font_data;
-	SDL_SetTextureColorMod(td->font_texture, color_table[attr][1], color_table[attr][2], color_table[attr][3]);
+	SDL_SetTextureColorMod(td->font_texture, TERM_RGB(attr));
 
 	SDL_SetRenderTarget(td->renderer, td->framebuffer);
 	SDL_SetRenderDrawColor(td->renderer, 255, 255, 255, 255);
@@ -3001,13 +3297,15 @@ static errr handleMenu(int i, int x, int y) {
 
 	if (menu_hover >= MENU_QUICK_GRAF1 && menu_hover <= MENU_QUICK_GRAF8) {
 		int f = menu_hover - MENU_QUICK_GRAF0;
+		graphics_mode* gm;
 		use_graphics = f;
+		gm = get_graphics_mode((byte)use_graphics);
 //		unloadFont(&terms[i]);
 		unloadPict(&terms[i]);
-		strcpy(td->pict_file, GFXBMP[f]);
-		strcpy(td->mask_file, GFXMASK[f] ? GFXMASK[f] : "");
+		strcpy(td->pict_file, gm->file);
+		strcpy(td->mask_file, gm->mask);
 		applyTermConf(&terms[i]);
-		ANGBAND_GRAF = GFXNAME[f];
+		ANGBAND_GRAF = gm->pref;
 		refreshTerm(&terms[i]);
 		termConstrain(i);
 		net_visuals_update();
@@ -3072,7 +3370,7 @@ static errr sysText(TermData *td, int x, int y, int n, byte attr, cptr s)
 {
 	int i;
 	struct FontData *fd = td->font_data;
-	SDL_SetTextureColorMod(td->font_texture, color_table[attr][1], color_table[attr][2], color_table[attr][3]);
+	SDL_SetTextureColorMod(td->font_texture, TERM_RGB(attr));
 
 	for (i = 0; i < n; i++)
 	{
@@ -3089,6 +3387,1243 @@ static errr sysText(TermData *td, int x, int y, int n, byte attr, cptr s)
 	}
 	return 0;
 }
+
+
+#ifdef USE_LISENGLAS
+/* ===== Lisenglass ===== */
+
+static errr loadUiCircle()
+{
+	SDL_Surface *sf_circle;
+	SDL_Color darkness = { 0, 0, 0, 0 };
+	sf_circle = SDL_CreateCircleSurface32(96, 96, 48, &darkness);
+	if (sf_circle == NULL) return -1;
+	tx_circle = SDL_CreateTextureFromSurface(terms[0].renderer, sf_circle);
+	//SDL_FreeSurface(sf_circle);
+	if (tx_circle == NULL) return -1;
+	return 0;
+}
+static void unloadUiCircle(void)
+{
+	if (tx_circle != NULL) SDL_DestroyTexture(tx_circle);
+	tx_circle = NULL;
+	if (tx_lisen != NULL) SDL_DestroyTexture(tx_lisen);
+	tx_lisen = NULL;
+}
+
+static void updateLisenglas(int wx, int wy)
+{
+	int ax, ay;
+	int lw = LISEN_W + LISEN_W/2;
+	int lh = LISEN_H + LISEN_H/2;
+	SDL_Rect *r = &terms[0].ren_rect;
+
+	if (icon_hover >= 0 || screen_icky || state != PLAYER_PLAYING)
+	{
+		lisen_viable = FALSE;
+		return;
+	}
+
+	altCoord(wx, wy, &ax, &ay);
+
+	/* Is it even viable ? */
+	lisen_viable = TRUE;
+	if (ax < 0 || ay < 0
+	|| ax > terms[0].dng_cols
+	|| ay >= terms[0].dng_rows)
+	{
+		lisen_viable = FALSE;
+		return;
+	}
+
+	/* Force-rerender */
+	terms[0].need_render = TRUE;
+
+	/* Center */
+	lisen_x = wx - LISEN_W;
+	lisen_y = wy - LISEN_H;
+
+	/* Upwards */
+	lisen_y -= lh;
+
+	/* Clamp */
+	if (lisen_y <= 0) lisen_y = 0;
+
+	/* Finger inside */
+	if (wy >= lisen_y && wy <= lisen_y + LISEN_H*2 + 32)
+	{
+		/* Downwards */
+		lisen_y = wy + LISEN_H - 32;
+	}
+
+	/* Clamp left/right */
+	if (lisen_x <= 0) lisen_x = 0;
+	if (lisen_x + LISEN_W*2 >= terms[0].width) lisen_x = terms[0].width - LISEN_W*2;
+
+	/* Clamp source tile */
+	lisen_sx = ax - 1;
+	lisen_sy = ay - 1;
+	if (lisen_sx < -1) lisen_sx = -1;
+	if (lisen_sy < -1) lisen_sy = -1;
+	if (lisen_sx >= terms[0].dng_cols-1) lisen_sx = terms[0].dng_cols-2;
+	if (lisen_sy >= terms[0].dng_rows-1) lisen_sy = terms[0].dng_rows-2;
+}
+
+static void renderLisenGlas(TermData *td)
+{
+	int tile_w = td->pict_data->w;
+	int tile_h = td->pict_data->h;
+
+	SDL_Rect src = {
+		lisen_sx * 32,
+		lisen_sy * 32,
+		32 * 3, 32 * 3
+	};
+	SDL_Rect dst = {
+		lisen_x,
+		lisen_y,
+		32 * 3 * 2, 32 * 3 * 2
+	};
+	SDL_Rect dst2 = {
+		0, 0, dst.w, dst.h
+	};
+
+	/* Highlighted tile in abolute coords */
+	SDL_Rect main_tile = {
+		(lisen_sx+1) * 32 + td->dng_rect.x + td->ren_rect.x,
+		(lisen_sy+1) * 32 + td->dng_rect.y + td->ren_rect.y,
+		32, 32
+	};
+
+	if (!lisen_pressed || !lisen_viable) return;
+
+	if (tx_lisen == NULL)
+	{
+		tx_lisen = SDL_CreateTexture(td->renderer,
+			SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET,
+			32 * 9, 32 * 9);
+		if (tx_lisen == NULL) return;
+	}
+
+	SDL_SetRenderDrawBlendMode(td->renderer, SDL_BLENDMODE_BLEND);
+
+	/* Draw lines */
+	SDL_SetRenderTarget(td->renderer, NULL);
+	SDL_SetRenderDrawColor(td->renderer, 255, 255, 255, 128);
+#if 0
+	SDL_RenderDrawLine(td->renderer,
+		lisen_x + LISEN_W,
+		lisen_y,
+		main_tile.x + main_tile.w / 2,
+		main_tile.y);
+	SDL_RenderDrawLine(td->renderer,
+		lisen_x + LISEN_W,
+		lisen_y + LISEN_H * 2,
+		main_tile.x + main_tile.w / 2,
+		main_tile.y + main_tile.h);
+#endif
+	SDL_RenderDrawLine(td->renderer,
+		lisen_x + 1,
+		lisen_y + LISEN_H,
+		main_tile.x,
+		main_tile.y + main_tile.h / 2);
+	SDL_RenderDrawLine(td->renderer,
+		lisen_x + LISEN_W * 2 - 1,
+		lisen_y + LISEN_H,
+		main_tile.x + main_tile.w,
+		main_tile.y + main_tile.h / 2);
+
+	SDL_RenderDrawRect(td->renderer, &main_tile);
+
+	/* Draw on temp. texture */
+	SDL_SetRenderTarget(td->renderer, tx_lisen);
+
+	/* Clear it */
+	//SDL_SetRenderDrawColor(td->renderer, 255, 255, 255, 0);
+	//SDL_SetRenderDrawBlendMode(td->renderer, SDL_BLENDMODE_NONE);
+	//SDL_RenderFillRect(td->renderer, &dst2);
+
+	/* Draw circle */
+	if (1) {
+		SDL_Rect csrc = { 0, 0, LISEN_W, LISEN_H };
+		SDL_Rect cdst = { 0, 0, 96*2, 96*2 };
+		SDL_SetRenderDrawColor(td->renderer, 255, 255, 255, 255);
+		SDL_SetRenderDrawColor(td->renderer, 255, 255, 255, 0);
+		//SDL_SetRenderDrawColor(td->renderer, 255, 255, 0, 255);
+		SDL_SetTextureBlendMode(tx_circle, SDL_BLENDMODE_NONE);
+		SDL_RenderCopy(td->renderer, tx_circle, &csrc, &cdst);
+	}
+	/* Draw copy of alt.dungeon */
+	if (1) {
+		SDL_SetRenderDrawColor(td->renderer, 255, 255, 255, 0);
+		SDL_SetRenderDrawColor(td->renderer, 255, 255, 255, 255);
+		//SDL_SetRenderDrawColor(td->renderer, 0, 0, 0, 0);
+		SDL_SetTextureBlendMode(td->alt_framebuffer, SDL_BLENDMODE_ADD);
+		SDL_RenderCopy(td->renderer, td->alt_framebuffer, &src, &dst2);
+	}
+
+	/* Render to screen */
+	SDL_SetRenderTarget(td->renderer, NULL);
+	SDL_SetRenderDrawBlendMode(td->renderer, SDL_BLENDMODE_BLEND);
+	SDL_SetTextureBlendMode(tx_lisen, SDL_BLENDMODE_BLEND);
+	SDL_RenderCopy(td->renderer, tx_lisen, &dst2, &dst);
+}
+#endif /* USE_LISENGLAS */
+
+
+#ifdef USE_ICON_OVERLAY
+/* ===== Icon Overlay ===== */
+
+static void renderIconOverlay(TermData *td)
+{
+	/* Let's figure out some good positions */
+	int max_w, max_h;
+	int left = 0;
+	int top = td->cell_h;
+
+	int icon_w = cmd_font.w;
+	int icon_h = cmd_font.h;
+	int icon_ws = cmd_font.w + MICON_S;
+	int icon_hs = cmd_font.h + MICON_S;
+
+	num_icons = 0;
+
+	getRendererSize(td, &max_w, &max_h);
+
+	/* Display Dragged Icon */
+	if (dragging_icon)
+	{
+		iconPict(&drag_icon.pos, drag_icon.a, drag_icon.c, FALSE);
+		drawUiIcon(&drag_icon.pos, drag_icon.draw);
+	}
+
+
+	SDL_SetRenderTarget(td->renderer, NULL);
+	SDL_SetTextureBlendMode(tx_cmd, SDL_BLENDMODE_BLEND);
+	SDL_SetTextureAlphaMod(tx_cmd, 200);
+
+	if (section_icky_row)
+		SDL_SetTextureAlphaMod(tx_cmd, 64);
+	else
+		SDL_SetTextureAlphaMod(tx_cmd, 200);
+
+	/* Escape icon */
+	{
+		SDL_Rect pos = { 0, top, icon_w, icon_h };
+		if (section_icky_row) pos.y = section_icky_row * td->cell_h;
+		renderMIcon(&pos, &pos, MICON_ESCAPE, 0, 0x7F, 10);
+	}
+	/* KBD icon */
+	{
+		SDL_Rect pos = { max_w - icon_w, top, icon_w, icon_h };
+		renderMIcon(&pos, &pos, MICON_TOGGLE_KEYBOARD, 0, MICO_KBD, 10);
+	}
+	/* Toggle overlay icon */
+	if (term2_icon_context != MICONS_DIRECTION)
+	{
+		SDL_Rect pos = { max_w - icon_w, max_h - icon_h, icon_w, icon_h };
+		renderMIcon(&pos, &pos, MICON_TOGGLE_OVERLAY, 0, MICO_FINGER_CLICK, 10);
+	}
+
+	if (state != PLAYER_PLAYING) return;
+
+	/* Quick-slots */
+	if (term2_icon_context != MICONS_DIRECTION)
+	{
+		SDL_Rect pane2 = { (max_w - (icon_ws*10))/2, max_h - icon_hs, icon_ws * 10, icon_hs };
+		drawIconPanel_Slots(&pane2);
+	}
+
+	if (screen_icky) return;
+	if (section_icky_row) return;
+
+	SDL_SetRenderDrawBlendMode(td->renderer, SDL_BLENDMODE_BLEND);
+	SDL_SetTextureColorMod(td->pict_texture, 255,255,255);
+	SDL_SetTextureAlphaMod(td->pict_texture, 255);
+
+	/** Gameplay icons **/
+	/* Contextual */
+	if (term2_icon_context == MICONS_DIRECTION)
+	{
+		SDL_Rect pane = { max_w - icon_ws * 3, max_h - icon_hs * 3, icon_ws * 3, icon_hs * 3 };
+		drawIconPanel_Direction(&pane, micon_allow_target, micon_allow_friend);
+	}
+	else if (term2_icon_context == MICONS_ITEM)
+	{
+		SDL_Rect pane2 = { max_w - (64) * 4 - 1, top + icon_hs, (64) * 4 + 1, (64) * 5 };
+		drawIconPanel_Inventory(&pane2, micon_allow_inven, micon_allow_equip, micon_allow_floor);
+	}
+	else if (term2_icon_context == MICONS_EQUIP)
+	{
+		SDL_Rect pane2 = { max_w - (64) * 5, top + 64, (64) * 5, (64) * 5 };
+		drawIconPanel_Equipment(&pane2, 0, 0, 0);
+	}
+	else if (term2_icon_context == MICONS_SPELL)
+	{
+		SDL_Rect pane2 = { max_w - (64) * 5, top + 64, (64) * 5, (64) * 5 };
+		drawIconPanel_Spells(&pane2, micon_spell_realm, micon_spell_book);
+	}
+	/* User pref */
+	else if (term2_icon_pref == MICONS_INVEN)
+	{
+		SDL_Rect pane2 = { max_w - (64) * 4 - 1, top + icon_hs, (64) * 4 + 1, (64) * 5 };
+		drawIconPanel_Inventory(&pane2, 0, 0, 0);
+
+		micon_command_filter = MICONS_INVEN;
+
+		SDL_Rect pane = { 0, top + 64, 32 * 9, max_h };
+		drawIconPanel_Commands(&pane, micon_command_filter);
+	}
+	else if (term2_icon_pref == MICONS_EQUIP)
+	{
+		SDL_Rect pane2 = { max_w - (64) * 5, top + 64, (64) * 5, (64) * 5 };
+		drawIconPanel_Equipment(&pane2, 0, 0, 0);
+
+		micon_command_filter = MICONS_EQUIP;
+
+		SDL_Rect pane = { 0, top + 64, 32 * 9, max_h };
+		drawIconPanel_Commands(&pane, micon_command_filter);
+	}
+	else if (term2_icon_pref == MICONS_SPELLS)
+	{
+		SDL_Rect pane2 = { max_w - (64+1) * 5, top + 64, (64+1) * 5, (64) * 5 };
+		drawIconPanel_Spells(&pane2, -1, -1);
+
+		micon_command_filter = MICONS_SPELLS;
+
+		SDL_Rect pane = { 0, top + 64, 32 * 9, max_h };
+		drawIconPanel_Commands(&pane, micon_command_filter);
+	}
+	else if (term2_icon_pref == MICONS_SELECTOR_CLOSE)
+	{
+		/* Nothing */
+	}
+	else
+	{
+		SDL_Rect pane = { 0, top + 64, 32 * 9, max_h };
+		drawIconPanel_Commands(&pane, micon_command_filter);
+
+		SDL_Rect pane2 = { max_w - 32 - 32, top + 64, 32 + 16, max_h };
+		drawIconPanel_Selector(&pane2, 0);
+	}
+}
+
+static errr loadCmdFont(cptr filename)
+{
+#if 0
+	if (imgToPict(&uipict, filename, NULL) != 0)
+	{
+		return -1;
+	}
+	tx_cmd = SDL_CreateTextureFromSurface(terms[0].renderer, cmd_pict.surface);
+#else
+	cleanFontData(&cmd_font);
+	sdl_graf_prefer_rgba = TRUE;
+	if (fileToFont(&cmd_font, filename, 55, 2) != 0)
+	{
+		return -1;
+	}
+	//printf("UI-CMD font size: %d x %d\n", cmd_font.w, cmd_font.h);
+	tx_cmd = SDL_CreateTextureFromSurface(terms[0].renderer, cmd_font.surface);
+#endif
+	return 0;
+}
+static void unloadCmdFont(void)
+{
+	if (tx_cmd) SDL_DestroyTexture(tx_cmd);
+	tx_cmd = NULL;
+}
+
+static errr loadTinyFont(cptr filename)
+{
+	cleanFontData(&tiny_font);
+	sdl_graf_prefer_rgba = TRUE;
+	if (fileToFont(&tiny_font, filename, 0, 0) != 0)
+	{
+		return -1;
+	}
+	tx_tiny = SDL_CreateTextureFromSurface(terms[0].renderer, tiny_font.surface);
+	return 0;
+}
+static void unloadTinyFont(void)
+{
+	cleanFontData(&tiny_font);
+	if (tx_tiny) SDL_DestroyTexture(tx_tiny);
+	tx_tiny = NULL;
+}
+
+static errr iconText(int x, int y, byte attr, cptr s, bool tiny)
+{
+	int i;
+	TermData *td = &terms[0];
+	const char *c = s;
+	struct FontData *fd = td->font_data;
+	SDL_Texture *tx = td->font_texture;
+
+	/* Use tiny font instead */
+	if (tiny)
+	{
+		fd = &tiny_font;
+		tx = tx_tiny;
+	}
+
+	/* Set color */
+	SDL_SetTextureColorMod(tx, TERM_RGB(attr));
+
+	/* Dump each character */
+	while (*c)
+	{
+		SDL_Rect cell_rect = { x, y, fd->w, fd->h	};
+		int si = *c;
+		int row = si / 16;
+		int col = si - (row * 16);
+		SDL_Rect char_rect = { col*fd->w, row*fd->h, fd->w, fd->h };
+		SDL_RenderCopy(td->renderer, tx, &char_rect, &cell_rect);
+		x += fd->w;
+		c++;
+	}
+	return 0;
+}
+
+static errr iconPict(SDL_Rect *pos, byte a, char c, bool remember)
+{
+	TermData *td = &terms[0];
+	struct PictData *pd = td->pict_data;
+
+	int col = c & 0x7F;
+	int row = a & 0x7F;
+
+	SDL_Rect src_rect = { col*pd->w, row*pd->h, pd->w, pd->h };
+	SDL_Rect dst_rect = { pos->x, pos->y, pos->w, pos->h };
+
+	SDL_RenderCopy(td->renderer, td->pict_texture, &src_rect, &dst_rect);
+
+	if (remember)
+	{
+		IconData *id = &icons[num_icons];
+		id->a = a;
+		id->c = c;
+	}
+
+	return 0;
+}
+
+static void drawUiIcon(SDL_Rect *dst, int k)
+{
+	TermData *td = &terms[0];
+	int sy = k / 16;
+	int sx = k - (sy * 16);
+	SDL_Rect cell_rect = {
+		sx * cmd_font.w - 3,
+		sy * cmd_font.h - 3,
+		cmd_font.w, cmd_font.h
+	};
+	SDL_RenderCopy(td->renderer, tx_cmd, &cell_rect, dst);
+}
+
+static void convertIconToSlot(void *slot_p, void *icon_p, int slot_id)
+{
+	SlotData *slot = (SlotData*)slot_p;
+	IconData *icon = (IconData*)icon_p;
+
+	slot->draw = icon->draw;
+	slot->action = icon->action;
+	slot->sub_action = icon->sub_action;
+
+	slot->a = 0;
+	slot->c = 0;
+
+	slot->macro_act[0] = '\0';
+	slot->display[0] = '\0';
+
+	/* Copy quick slot */
+	if (icon->action == MICON_LOCAL_QUICK_SLOT)
+	{
+		SlotData *orig = &quick_slots[icon->sub_action];
+
+		if (orig->action == MICON_LOCAL_EXECUTE_MACRO)
+		{
+			slot->action = orig->action;
+			slot->sub_action = slot_id; /* Important */		
+			my_strcpy(slot->macro_act, orig->macro_act, 1024);
+			my_strcpy(slot->display, orig->display, 1024);
+
+			slot->draw = orig->draw;
+			slot->a = orig->a;
+			slot->c = orig->c;
+			slot->attr = orig->attr;
+		}
+	}
+	else if (icon->action == MICON_SELECT_SPELL)
+	{
+		char cmd;
+		char buf[1024];
+		int idx = icon->sub_action;
+		int book = idx / SPELLS_PER_BOOK;
+		int sn = idx - (book * SPELLS_PER_BOOK);
+
+		slot->macro_act[0] = '\0';
+		buf[0] = '\0';
+
+		cmd = command_by_item(book, TRUE);
+		spell_as_keystroke(sn, book, cmd, buf, 1024, (CTXT_WITH_CMD));
+
+		/* Do not project */
+		if ((spell_flag[idx] & PY_SPELL_PROJECT))
+		{
+			my_strcat(buf, "n", 1024);
+		}
+
+		/* Add '*t' to the macro */
+		if ((spell_flag[idx] & PY_SPELL_AIM))
+		{
+			my_strcat(buf, "*t", 1024);
+		}
+
+		text_to_ascii(slot->macro_act, 1024, buf);
+
+		my_strcpy(slot->display, spell_info[book][sn] + 5,
+			(icon->pos.w+16+1) / tiny_font.w);
+		slot->attr = inventory[book].sval;
+
+		slot->action = MICON_LOCAL_EXECUTE_MACRO;
+		slot->sub_action = slot_id;
+	}
+	else if ((icon->action == MICON_SELECT_INVEN)
+	 || (icon->action == MICON_SELECT_EQUIP))
+	{
+		char cmd;
+		char buf[1024];
+		custom_command_type *cc_ptr;
+		int idx = icon->sub_action;
+		slot->a = inventory[idx].ix;
+		slot->c = inventory[idx].iy;
+
+		slot->macro_act[0] = '\0';
+		buf[0] = '\0';
+
+		cmd = command_by_item(idx, TRUE);
+		item_as_keystroke(idx, cmd, buf, 1024, (CTXT_WITH_CMD));
+
+		/* Add '*t' to the macro */
+		if ((cc_ptr = match_custom_command(cmd, FALSE)))
+		{
+			if (cc_ptr->flag & COMMAND_TARGET_ALLOW)
+			{
+				my_strcat(buf, "*t", 1024);
+			}
+		}
+
+		text_to_ascii(slot->macro_act, 1024, buf);
+
+		slot->action = MICON_LOCAL_EXECUTE_MACRO;
+		slot->sub_action = slot_id;
+	}
+}
+
+static void handleMIcon(int action, int sub_action)
+{
+	terms[0].win_need_render = TRUE;
+		switch (action)
+		{
+			/* Escape */
+			case MICON_ESCAPE:
+			{
+				Term_keypress(ESCAPE);
+				if (section_icky_row || screen_icky) return;
+				if (term2_icon_pref != MICONS_SELECTOR_CLOSE)
+				{
+					if (term2_icon_pref != MICONS_COMMANDS)
+						term2_icon_pref = -1;
+					//if (term2_icon_pref != MICONS_COMMANDS)
+					//	micon_command_filter = MICONS_QUICKEST;
+					term2_item_pref = -1;
+					term2_spell_pref = -1;
+				}
+			}
+			break;
+			/* Toggle onscreen keyboard */
+			case MICON_TOGGLE_KEYBOARD:
+			{
+				if (SDL_IsTextInputActive() || SDL_IsScreenKeyboardShown(terms[0].window))
+				{
+					SDL_StopTextInput();
+				}
+				else
+				{
+					SDL_StartTextInput();
+				}
+			}
+			break;
+			/* Toggle icon overlay */
+			case MICON_TOGGLE_OVERLAY:
+			{
+				if (term2_icon_pref != MICONS_SELECTOR_CLOSE)
+				{
+					term2_icon_pref = MICONS_SELECTOR_CLOSE;
+				}
+				else
+				{
+					term2_icon_pref = -1;
+					//micon_command_filter = MICONS_QUICKEST;
+					term2_item_pref = -1;
+					term2_spell_pref = -1;
+				}
+			}
+			break;
+			/* Root selector */
+			case MICON_TOGGLE_ROOT:
+			{
+				term2_icon_pref = sub_action;
+				if (sub_action == MICONS_QUICKEST) micon_command_filter = MICONS_QUICKEST;
+				if (sub_action == MICONS_ALTER) micon_command_filter = MICONS_ALTER;
+				if (sub_action == MICONS_SYSTEM) micon_command_filter = MICONS_SYSTEM;
+			}
+			break;
+			/* Local command */
+			case MICON_LOCAL_COMMAND_HACK:
+			{
+				int key = sub_action;
+				Term_keypress(29);
+				Term_keypress('\f');
+				Term_keypress(ESCAPE);
+				Term_keypress(ESCAPE);
+				Term_keypress(ESCAPE);
+				Term_keypress('\\');
+				Term_keypress(key);
+				Term_keypress(30);
+			}
+			break;
+			/* Command! */
+			case MICON_RUN_COMMAND:
+			{
+				int key = sub_action;
+				custom_command_type *cmd = &custom_command[sub_action];
+				Term_keypress(29);
+				Term_keypress('\f');
+				Term_keypress(ESCAPE);
+				Term_keypress(ESCAPE);
+				Term_keypress(ESCAPE);
+				Term_keypress('\\');
+				Term_keypress(cmd->m_catch);
+				if (micon_command_filter == MICONS_SPELLS)
+				{
+					if (term2_spell_pref > -1)
+					{
+						int book = term2_spell_pref / SPELLS_PER_BOOK;
+						int sn = term2_spell_pref - (book * SPELLS_PER_BOOK);
+						Term_keypress('a' + book);
+						Term_keypress('a' + sn);
+					}
+				}
+				if (micon_command_filter == MICONS_EQUIP)
+				{
+					if (term2_item_pref > -1)
+					{
+						/* Command is equip-only, yet we're in inven. context */
+						if ((cmd->flag & COMMAND_ITEM_INVEN)
+						&& (term2_icon_context != MICONS_EQUIP))
+						{
+							Term_keypress('/');
+						}
+						Term_keypress('a' + term2_item_pref - INVEN_WIELD);
+					}
+					/* Player is already examining Equip panel */
+					else if (term2_icon_pref == MICONS_EQUIP
+					|| term2_icon_pref == -1)
+					{
+						if ((cmd->flag & COMMAND_ITEM_INVEN)
+						/*&& (term2_icon_context != MICONS_EQUIP)*/)
+						{
+							Term_keypress('/');
+						}
+					}
+					else {
+					}
+				}
+				if (micon_command_filter == MICONS_INVEN)
+				{
+					if (term2_item_pref > -1)
+					{
+						Term_keypress('a' + term2_item_pref);
+					}
+				}
+				Term_keypress(30);
+			}
+			break;
+			/* Direction */
+			case MICON_PICK_DIRECTION:
+			{
+				int key = '0' + sub_action;
+				Term_keypress(key);
+			}
+			break;
+			/* Item selection */
+			case MICON_SELECT_INVEN:
+			{
+				int key = 'a' + sub_action;
+				int ind = sub_action;
+				/* Waiting for an item */
+				if (term2_icon_context == MICONS_ITEM)
+				{
+					Term_keypress(key);
+				}
+				else
+				{
+					term2_item_pref = ind;
+				}
+			}
+			break;
+			/* Equip selection */
+			case MICON_SELECT_EQUIP:
+			{
+				int key = 'a' + sub_action - INVEN_WIELD;
+				int ind = sub_action;
+				/* Waiting for an item */
+				if (term2_icon_context == MICONS_EQUIP)
+				{
+					Term_keypress(key);
+				}
+				else
+				{
+					term2_item_pref = ind;
+				}
+			}
+			break;
+			/* Select spell */
+			case MICON_SELECT_SPELL:
+			{
+				int book = sub_action / SPELLS_PER_BOOK;
+				int sn = sub_action - (book*SPELLS_PER_BOOK);
+				int sn_key = 'a' + sn;
+				int bk_key = 'a' + book;
+				//printf("BOOK: %d SPELL: %d\n", book, sn);
+				/* Waiting for a spell */
+				if (term2_icon_context == MICONS_SPELL)
+				{
+					Term_keypress(sn_key);
+				}
+				/* Waiting for an item */
+				else if (term2_icon_context == MICONS_ITEM)
+				{
+					Term_keypress(bk_key);
+					Term_keypress(sn_key);
+				}
+				else
+				{
+					term2_spell_pref = sub_action;
+				}
+			}
+			break;
+			/* Execute quick slot */
+			case MICON_LOCAL_QUICK_SLOT:
+			{
+				SlotData *slot = &quick_slots[sub_action];
+				/* Assign to quick slot */
+				if (dragging_icon)
+				{
+					convertIconToSlot(slot, &drag_icon, sub_action);
+					break;
+				}
+				/* If this slot has some kind of action */
+				if ((slot->action != MICON_DO_NOTHING)
+				 && (slot->action != MICON_LOCAL_QUICK_SLOT))
+				{
+					/* Recurse */
+					handleMIcon(slot->action, slot->sub_action);
+				}
+			}
+			break;
+			/* Quickslots -> Execute macro */
+			case MICON_LOCAL_EXECUTE_MACRO:
+			{
+				SlotData *slot = &quick_slots[sub_action];
+				char *s;
+				s = slot->macro_act;
+				Term_keypress(29);
+				while (*s) Term_keypress(*s++);
+				Term_keypress(30);
+			}
+			break;
+			default:
+			break;
+		}
+}
+
+static int matchIcon(int wx, int wy)
+{
+	int i;
+	for (i = 0; i < num_icons; i++)
+	{
+		IconData *id = &icons[i];
+		if (wx >= id->pos.x && wy >= id->pos.y
+		&& wx <= id->pos.x + id->pos.w
+		&& wy <= id->pos.y + id->pos.h)
+		{
+			return i;
+		}
+	}
+	return -i;
+}
+
+static void renderMIcon(SDL_Rect *panel, SDL_Rect *pos, int action, int sub_action, int draw, int spacing)
+{
+	IconData *id = &icons[num_icons];
+
+	id->pos.x = pos->x;
+	id->pos.y = pos->y;
+	id->pos.w = pos->w;
+	id->pos.h = pos->h;
+
+	id->action = action;
+	id->sub_action = sub_action;
+
+	id->draw = draw;
+	/* Hack -- we have already set "a","c" elsewhere */
+	if (draw != -2)
+	{
+		id->a = 0;
+		id->c = 0;
+	}
+	//id->attr = 0;
+
+	if (draw >= 0) drawUiIcon(pos, draw);
+
+	/* move */
+	pos->x += pos->w;
+	pos->x += spacing;
+	if (pos->x + pos->w >= panel->x + panel->w)
+	{
+		pos->x = panel->x;
+		pos->y += pos->h;
+		pos->y += spacing;
+	}
+
+	num_icons++;
+}
+
+static void drawIconPanel_Commands(SDL_Rect *size, int filter)
+{
+	int i;
+	int spacing = 16;
+	SDL_Rect pos = { 0, 0, 32, 32 };
+	pos.x = size->x;
+	pos.y = size->y;
+	pos.w *= 2;
+	pos.h *= 2;
+
+	/* Hack -- add some commands */
+	if (filter == MICONS_QUICKEST)
+	{
+		SDL_SetTextureColorMod(tx_cmd, TERM_RGB(TERM_WHITE));
+		renderMIcon(size, &pos, MICON_LOCAL_COMMAND_HACK, 'R', 'R', spacing);
+	}
+	if (filter == MICONS_SYSTEM)
+	{
+		SDL_SetTextureColorMod(tx_cmd, TERM_RGB(TERM_WHITE));
+		renderMIcon(size, &pos, MICON_LOCAL_COMMAND_HACK, 'C', 'C', spacing);
+	}
+	for (i = 0; i < custom_commands; i++)
+	{
+		custom_command_type *cmd = &custom_command[i];
+		byte attr = TERM_WHITE;
+		int draw_key = cmd->m_catch;
+		if (draw_key < 32) draw_key += 224;
+		if (filter == MICONS_QUICKEST)
+		{
+			if (!(cmd->flag == 0)) continue;
+			if (cmd->flag & COMMAND_STORE) continue;
+			/* HACK -- simply ignore searching */
+			if (cmd->m_catch == 's') continue;
+			/* HACK -- simply ignore 'stay' */
+			//if (cmd->m_catch == 'g') continue;
+		}
+		if (filter == MICONS_ALTER)
+		{
+			if (!(cmd->flag & COMMAND_TARGET_DIR)) continue;
+			if (cmd->flag & COMMAND_STORE) continue;
+		}
+		if (filter == MICONS_SYSTEM)
+		{
+			if (!(cmd->flag & COMMAND_INTERACTIVE)) continue;
+			/* HACK -- simply ignore some commands */
+			if (cmd->m_catch == '&') continue;
+			if (cmd->m_catch == 'M') continue;
+		}
+		if (filter == MICONS_INVEN)
+		{
+			if (!(cmd->flag & COMMAND_ITEM_INVEN)) continue;
+			if (cmd->flag & COMMAND_STORE) continue;
+			if (term2_item_pref < 0)
+			{
+				if (cmd->tval) continue;
+			}
+			else
+			{
+				if (!command_tester_okay(i, term2_item_pref)) continue;
+				if (cmd->tval != 0)
+				{
+					attr = inventory[term2_item_pref].sval;
+				}
+			}
+		}
+		if (filter == MICONS_EQUIP)
+		{
+			if (!(cmd->flag & COMMAND_ITEM_EQUIP)) continue;
+			if (cmd->flag & COMMAND_STORE) continue;
+			if (term2_item_pref < 0)
+			{
+				if (cmd->tval) continue;
+			}
+			else
+			{
+				if (!command_tester_okay(i, term2_item_pref)) continue;
+				if (cmd->tval != 0)
+				{
+					attr = inventory[term2_item_pref].sval;
+				}
+			}
+		}
+		if (filter == MICONS_SPELLS)
+		{
+			if (!(cmd->flag & COMMAND_SPELL_BOOK)
+			&&  !(cmd->flag & COMMAND_SPELL_RESET)) continue;
+			if (cmd->flag & COMMAND_STORE) continue;
+		}
+		//iconText(pos.x, pos.y, TERM_WHITE, cmd->display, FALSE);
+		//
+		SDL_SetTextureColorMod(tx_cmd, TERM_RGB(attr));
+		renderMIcon(size, &pos, MICON_RUN_COMMAND, i, draw_key, spacing);
+
+		if (pos.y >= size->y + size->h) break;
+	}
+	/* More local commands */
+	if (filter == MICONS_QUICKEST)
+	{
+		SDL_SetTextureColorMod(tx_cmd, TERM_RGB(TERM_WHITE));
+		renderMIcon(size, &pos, MICON_LOCAL_COMMAND_HACK, 'M', 'M', spacing);
+		renderMIcon(size, &pos, MICON_LOCAL_COMMAND_HACK, '*', '*', spacing);
+		renderMIcon(size, &pos, MICON_LOCAL_COMMAND_HACK, '(', '(', spacing);
+	}
+	if (filter == MICONS_SYSTEM)
+	{
+		SDL_SetTextureColorMod(tx_cmd, TERM_RGB(TERM_WHITE));
+		renderMIcon(size, &pos, MICON_LOCAL_COMMAND_HACK, ':', ':', spacing);
+		renderMIcon(size, &pos, MICON_LOCAL_COMMAND_HACK, KTRL('D'), 0xE4, spacing);
+		renderMIcon(size, &pos, MICON_LOCAL_COMMAND_HACK, KTRL('P'), 0xF0, spacing);
+	}
+	
+	/* Undo modulation */
+	SDL_SetTextureColorMod(tx_cmd, 255, 255, 255);
+}
+static void drawIconPanel_Direction(SDL_Rect *size, bool allow_target, bool allow_friend)
+{
+	int i, j;
+	int spacing = 16;
+	int dirs[10] = { 7, 8, 9, 4, 5, 6, 1, 2, 3 };
+	SDL_Rect pos = { 0, 0, 32, 32 };
+	pos.x = size->x;
+	pos.y = size->y;
+	pos.w *= 2;
+	pos.h *= 2;
+	for (i = 0; i < 9; i++)
+	{
+		int j = dirs[i];
+		int draw = '0' + j;
+		renderMIcon(size, &pos, MICON_PICK_DIRECTION, j, draw, spacing);
+		if (pos.y >= size->y + size->h) break;
+	}
+}
+
+static void drawIconPanel_Selector(SDL_Rect *size, int filter)
+{
+	int imgs[] = { ',', '+', MICO_ONE_ATT, 'i', 'e', MICO_SPELL_BOOK };
+	int acts[] = {
+		MICONS_QUICKEST,
+		MICONS_ALTER,
+		MICONS_SYSTEM,
+		MICONS_INVEN,
+		MICONS_EQUIP,
+		MICONS_SPELLS,
+	};
+	int i;
+	int spacing = 8;
+	SDL_Rect pos = { 0, 0, 32, 32 };
+	pos.x = size->x;
+	pos.y = size->y;
+	pos.w *= 2;
+	pos.h *= 2;
+	for (i = 0; i < 6; i++)
+	{
+		if (acts[i] == micon_command_filter)
+		{
+			SDL_SetRenderDrawColor(terms[0].renderer, 255, 255, 255, 210);
+			SDL_RenderFillRect(terms[0].renderer, &pos);
+		}
+		
+		renderMIcon(size, &pos, MICON_TOGGLE_ROOT, acts[i], imgs[i], spacing);
+		if (pos.y >= size->y + size->h) break;
+	}
+}
+
+static void drawIconPanel_Inventory(SDL_Rect *size, bool inven, bool equip, bool onfloor)
+{
+	int i;
+	int spacing = 0;
+	SDL_Rect pos = { 0, 0, 32, 32 };
+	int fw = terms[0].font_data->w;
+	int fh = terms[0].font_data->h;
+	char numbuf[8] = { 0 };
+
+	pos.x = size->x;
+	pos.y = size->y;
+	pos.w *= 2;
+	pos.h *= 2;
+
+	SDL_SetRenderDrawColor(terms[0].renderer, 0, 0, 0, 255);
+	SDL_RenderDrawRect(terms[0].renderer, size);
+
+	for (i = 0; i < INVEN_WIELD; i++)
+	{
+		/* Highlight selected item */
+		if (term2_item_pref == i)
+		{
+			SDL_Rect box = { size->x + size->w - 60 * fw, 32+16,
+				60 * fw, fh * 2 };
+			SDL_SetRenderDrawColor(terms[0].renderer, 0, 0, 0, 200);
+			SDL_RenderFillRect(terms[0].renderer, &box);
+			iconText(box.x+fw, box.y+fh/3, inventory[i].sval, inventory_name[i], FALSE);
+			SDL_SetRenderDrawColor(terms[0].renderer, 255, 255, 255, 210);
+		}
+		else
+		{
+			SDL_SetRenderDrawColor(terms[0].renderer, 64, 32, 0, 200);
+		}
+		SDL_RenderFillRect(terms[0].renderer, &pos);
+		
+		/* Draw border */
+		SDL_SetRenderDrawColor(terms[0].renderer, 127, 64, 0, 255);
+		SDL_RenderDrawRect(terms[0].renderer, &pos);
+		
+		/* Draw inventory item */
+		if (inventory[i].number)
+		{
+			iconPict(&pos, inventory[i].ix, inventory[i].iy, TRUE);
+			if (inventory[i].number > 1)
+			{
+				sprintf(numbuf, "%2d", inventory[i].number);
+				iconText(pos.x + pos.w - fw*2, pos.y + pos.h-fh, inventory[i].sval, numbuf, FALSE);
+			}
+		}
+		/* And an actual icon */
+		renderMIcon(size, &pos, MICON_SELECT_INVEN, i, -2, spacing);
+		if (pos.y >= size->y + size->h) break;
+	}
+}
+
+static void drawIconPanel_Equipment(SDL_Rect *size, bool inven, bool equip, bool onfloor)
+{
+	IconData *id;
+	int i;
+	int spacing = 1;
+	SDL_Rect pos = { 0, 0, 32, 32 };
+	SDL_Rect rsize, xsize;
+	int fw = terms[0].font_data->w;
+	int fh = terms[0].font_data->h;
+	char posbuf[2] = { 0 };
+	pos.x = size->x;
+	pos.y = size->y;
+	pos.w *= 2;
+	pos.h *= 2;
+
+	rsize.x = size->x + pos.w/2;
+	rsize.y = size->y + pos.h/2;
+	rsize.w = size->w - pos.w;
+	rsize.h = size->h - pos.h;
+	
+	SDL_SetRenderDrawColor(terms[0].renderer, 0, 0, 0, 200);
+	SDL_RenderFillRect(terms[0].renderer, size);
+	SDL_RenderDrawRect(terms[0].renderer, size);
+	
+	SDL_SetRenderDrawColor(terms[0].renderer, 255, 255, 255, 200);
+	SDL_RenderDrawRect(terms[0].renderer, size);
+	SDL_SetRenderDrawColor(terms[0].renderer, 255, 255, 255, 100);
+	SDL_RenderDrawRect(terms[0].renderer, &rsize);
+	
+	for (i = INVEN_WIELD; i < INVEN_TOTAL; i++)
+	{
+		float fx = (float)eq_xpos[i] / 256;
+		float fy = (float)eq_ypos[i] / 256;
+#if 0
+		int ix = fx * (rsize.w);
+		int iy = fy * (rsize.h);
+		pos.x = ix + rsize.x - pos.w/2;
+		pos.y = iy + rsize.y - pos.h/2;
+#else
+		int slotx = fx * 5;
+		int sloty = fy * 5;
+		pos.x = slotx * pos.w + size->x;
+		pos.y = sloty * pos.h + size->y;
+#endif
+
+		/* Highlight selected item */
+		if (term2_item_pref == i)
+		{
+			SDL_Rect box = { size->x + size->w - 60 * fw, 32+16,
+				60 * fw, fh * 2 };
+			SDL_SetRenderDrawColor(terms[0].renderer, 0, 0, 0, 200);
+			SDL_RenderFillRect(terms[0].renderer, &box);
+			iconText(box.x+fw, box.y+fh/3, inventory[i].sval, inventory_name[i], FALSE);
+
+			SDL_SetRenderDrawColor(terms[0].renderer, 255, 255, 255, 64);
+			SDL_RenderFillRect(terms[0].renderer, &pos);
+		}
+		
+		/* Draw inventory item */
+		if (inventory[i].number)
+		{
+			iconPict(&pos, inventory[i].ix, inventory[i].iy, TRUE);
+		}
+		/* And a "fake" icon */
+		renderMIcon(size, &pos, MICON_SELECT_EQUIP, i, -2, spacing);
+		//if (pos.y >= size->y + size->h) break;
+	}
+	
+	/* And a giant "fake" icon to prevent click-through */
+	xsize = *size;
+	renderMIcon(&xsize, &xsize, -1, -1, -1, 0);
+}
+
+static void drawIconPanel_Spells(SDL_Rect *size, int spell_realm, int spell_book)
+{
+	int i, sn, idx, icon;
+	int spacing = 0;
+	SDL_Rect pos = { 0, 0, 32, 32 };
+	int fw = terms[0].font_data->w;
+	int fh = terms[0].font_data->h;
+	char numbuf[8] = { 0 };
+	char namebuf[80] = { 0 };
+
+	static char header_sp[80] = "     Name                          Lv Mana Fail";
+
+
+	pos.x = size->x;
+	pos.y = size->y;
+	pos.w *= 2;
+	pos.h *= 2;
+
+	SDL_SetRenderDrawColor(terms[0].renderer, 0, 0, 0, 255);
+	SDL_RenderDrawRect(terms[0].renderer, size);
+
+	for (i = 0; i < INVEN_TOTAL; i++)
+	{
+		if (inventory[i].tval == 0) continue;
+		if (spell_book > -1 && spell_book != i) continue;
+		for (sn = 0; sn < PY_MAX_SPELLS; sn++)
+		{
+			SDL_Rect pre_pos;
+			if (spell_info[i][sn][0] == '\0') break;
+
+			idx = i * SPELLS_PER_BOOK + sn;
+
+			icon = MICO_SPELL_HAND;
+			if (spell_flag[idx] & PY_SPELL_AIM) icon = MICO_SPELL_BEAM;
+			if (spell_flag[idx] & PY_SPELL_ITEM) icon = MICO_SPELL_ITEM;
+			if (spell_flag[idx] & PY_SPELL_PROJECT) icon = MICO_SPELL_PROJECT;
+
+			if (!(spell_flag[idx] & PY_SPELL_LEARNED)
+			 ||  (spell_flag[idx] & PY_SPELL_FORGOTTEN)) icon = MICO_SPELL_UNKNOWN;
+
+			/* Highlight selected spell */
+			if (term2_spell_pref == idx)
+			{
+				SDL_Rect box = { size->x + size->w - 60 * fw, 32,
+					60 * fw, fh * 3 };
+				SDL_SetRenderDrawColor(terms[0].renderer, 0, 0, 0, 200);
+				SDL_RenderFillRect(terms[0].renderer, &box);
+				iconText(box.x+fw, box.y+fh/3+fh*0, TERM_WHITE, header_sp, FALSE);
+				iconText(box.x+fw, box.y+fh/3+fh*1, TERM_WHITE, spell_info[i][sn], FALSE);
+				SDL_SetRenderDrawColor(terms[0].renderer, 255, 255, 255, 210);			
+			}
+			else
+			{
+				SDL_SetRenderDrawColor(terms[0].renderer, 64, 32, 0, 200);
+			}
+			SDL_RenderFillRect(terms[0].renderer, &pos);
+
+			/* Draw border */
+			SDL_SetRenderDrawColor(terms[0].renderer, 127, 64, 0, 255);
+			SDL_RenderDrawRect(terms[0].renderer, &pos);
+
+			/* And an actual icon */
+			pre_pos = pos;
+			renderMIcon(size, &pos, MICON_SELECT_SPELL, idx, icon, spacing);
+	
+			/* Text on top */
+			{
+				int max_chars = (pre_pos.w+1) / tiny_font.w;
+				my_strcpy(namebuf, spell_info[i][sn] + 5, max_chars);
+				iconText(pre_pos.x + 1, pre_pos.y + pos.h - tiny_font.h - 1,
+					inventory[i].sval, namebuf, TRUE);
+			}
+	
+
+			if (pos.y >= size->y + size->h) break;
+		}
+	}
+}
+
+static void drawIconPanel_Slots(SDL_Rect *size)
+{
+	int i, j;
+	int spacing = 16;
+	SDL_Rect pos = { 0, 0, 32, 32 };
+	char posbuf[2] = { 0 };
+	pos.x = size->x;
+	pos.y = size->y;
+	pos.w *= 2;
+	pos.h *= 2;
+	SDL_SetTextureAlphaMod(terms[0].pict_texture, 255);
+	SDL_SetTextureColorMod(terms[0].pict_texture, 255,255,255);
+	for (i = 0; i < 10; i++)
+	{
+		SDL_Rect pre_pos;
+		SlotData *slot = &quick_slots[i];
+		posbuf[0] = '0' + i;
+		
+		if (dragging_icon)
+		{
+			if (num_icons == icon_hover)
+			{
+				SDL_SetRenderDrawColor(terms[0].renderer, 255, 255, 255, 255);
+			}
+			else
+			{
+				SDL_SetRenderDrawColor(terms[0].renderer, 255, 255, 255, 190);			
+			}	
+		}
+		else
+		{
+			SDL_SetRenderDrawColor(terms[0].renderer, 255, 255, 255, 64);
+		}
+		SDL_RenderDrawRect(terms[0].renderer, &pos);
+
+		iconText(pos.x+1, pos.y+1, TERM_WHITE, posbuf, FALSE);
+
+		if (slot->a && slot->c) iconPict(&pos, slot->a, slot->c, FALSE);
+
+		pre_pos = pos;
+		renderMIcon(size, &pos, MICON_LOCAL_QUICK_SLOT, i, slot->draw, spacing);
+
+		if (!STRZERO(slot->display))
+			iconText(pre_pos.x + 1, pre_pos.y + pos.h - tiny_font.h - 1,
+				slot->attr, slot->display, TRUE);
+
+		if (pos.y >= size->y + size->h) break;
+	}
+}
+#endif /* USE_ICON_OVERLAY */
+
 
 
 /* ==== Configuration loading/saving functions ==== */
@@ -3138,10 +4673,11 @@ static errr loadConfig()
 
 	for (window_id = 0; window_id < TERM_MAX; window_id++)
 	{
+		graphics_mode* gm = get_graphics_mode((byte)use_graphics);
 		strnfmt(section, 128, "SDL2-Window-%d", window_id);
 		strncpy(terms[window_id].title, conf_get_string(section, "Title", ""), 128);
-		my_strcpy(terms[window_id].pict_file, GFXBMP[use_graphics], 128);
-		my_strcpy(terms[window_id].mask_file, GFXMASK[use_graphics] ? GFXMASK[use_graphics] : "", 128);
+		my_strcpy(terms[window_id].pict_file, gm->file, 128);
+		my_strcpy(terms[window_id].mask_file, gm->mask, 128);
 		strncpy(terms[window_id].font_file, conf_get_string(section, "FontFile", ""), 128);
 		terms[window_id].font_size = conf_get_int(section, "FontSize", 0);
 
@@ -3246,6 +4782,7 @@ static errr loadConfig()
 
 		if (window_id == TERM_MAIN)
 		{
+			graphics_mode* gm;
 
 			terms[window_id].x = conf_get_int("SDL2", "X", -1);
 			terms[window_id].y = conf_get_int("SDL2", "Y", -1);
@@ -3257,8 +4794,9 @@ static errr loadConfig()
 #ifdef MOBILE_UI
 			strcpy(default_font, "misc6x13.hex");
 			use_graphics = 3;
+			gm = get_graphics_mode((byte)use_graphics);
 			strcpy(terms[window_id].font_file, default_font);
-			strcpy(terms[window_id].pict_file, GFXBMP[use_graphics]);
+			strcpy(terms[window_id].pict_file, gm->file);
 			terms[window_id].x = 0;
 			terms[window_id].y = 0;
 			terms[window_id].width = 0;
@@ -3294,7 +4832,7 @@ static errr saveConfig()
 		conf_set_int(section, "FontSize", terms[window_id].font_size);
 
 		conf_set_int(section, "Zoom", terms[window_id].zoom);
-		if (window_id)
+		if (!window_id)
 			conf_set_int(section, "AltDungeon", (terms[window_id].config & TERM_DO_SCALE));
 
 		if (terms[window_id].pict_mode == TERM_PICT_STATIC)

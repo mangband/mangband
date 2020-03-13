@@ -40,6 +40,55 @@
 ?:[EQU $FONTNAME silm8x16.bmp]
 %:font-silm.prf
 
+?:[IOR [EQU $FONTNAME 21X31TG.FON] [EQU $FONTNAME 21X31TG.bdf]]
+%:font-tng.prf
+
+# Other possible fontsizes for Tangar 1-bit font.
+?:[IOR [EQU $FONTNAME 5X8TG.FON] [EQU $FONTNAME 5X8TG.bdf]]
+%:font-tng.prf
+?:[IOR [EQU $FONTNAME 6X9TG.FON] [EQU $FONTNAME 6X9TG.bdf]]
+%:font-tng.prf
+?:[IOR [EQU $FONTNAME 6X10TG.FON] [EQU $FONTNAME 6X10TG.bdf]]
+%:font-tng.prf
+?:[IOR [EQU $FONTNAME 6X12TG.FON] [EQU $FONTNAME 6X12TG.bdf]]
+%:font-tng.prf
+?:[IOR [EQU $FONTNAME 6X13TG.FON] [EQU $FONTNAME 6X13TG.bdf]]
+%:font-tng.prf
+?:[IOR [EQU $FONTNAME 7X13TG.FON] [EQU $FONTNAME 7X13TG.bdf]]
+%:font-tng.prf
+?:[IOR [EQU $FONTNAME 8X13TG.FON] [EQU $FONTNAME 8X13TG.bdf]]
+%:font-tng.prf
+?:[IOR [EQU $FONTNAME 9X15TG.FON] [EQU $FONTNAME 9X15TG.bdf]]
+%:font-tng.prf
+?:[IOR [EQU $FONTNAME 10X14TG.FON] [EQU $FONTNAME 10X14TG.bdf]]
+%:font-tng.prf
+?:[IOR [EQU $FONTNAME 10X16TG.FON] [EQU $FONTNAME 10X16TG.bdf]]
+%:font-tng.prf
+?:[IOR [EQU $FONTNAME 10X17TG.FON] [EQU $FONTNAME 10X17TG.bdf]]
+%:font-tng.prf
+?:[IOR [EQU $FONTNAME 10X20TG.FON] [EQU $FONTNAME 10X20TG.bdf]]
+%:font-tng.prf
+?:[IOR [EQU $FONTNAME 12X17TG.FON] [EQU $FONTNAME 12X17TG.bdf]]
+%:font-tng.prf
+?:[IOR [EQU $FONTNAME 12X18TG.FON] [EQU $FONTNAME 12X18TG.bdf]]
+%:font-tng.prf
+?:[IOR [EQU $FONTNAME 12X24TG.FON] [EQU $FONTNAME 12X24TG.bdf]]
+%:font-tng.prf
+?:[IOR [EQU $FONTNAME 14X20TG.FON] [EQU $FONTNAME 14X20TG.bdf]]
+%:font-tng.prf
+?:[IOR [EQU $FONTNAME 16X16TG.FON] [EQU $FONTNAME 16X16TG.bdf]]
+%:font-tng.prf
+?:[IOR [EQU $FONTNAME 16X22TG.FON] [EQU $FONTNAME 16X22TG.bdf]]
+%:font-tng.prf
+?:[IOR [EQU $FONTNAME 16X24TG.FON] [EQU $FONTNAME 16X24TG.bdf]]
+%:font-tng.prf
+?:[IOR [EQU $FONTNAME 17X25TG.FON] [EQU $FONTNAME 17X25TG.bdf]]
+%:font-tng.prf
+?:[IOR [EQU $FONTNAME 19X29TG.FON] [EQU $FONTNAME 19X29TG.bdf]]
+%:font-tng.prf
+?:[IOR [EQU $FONTNAME 24X36TG.FON] [EQU $FONTNAME 24X36TG.bdf]]
+%:font-tng.prf
+
 ?:[EQU $SYS lfb]
 %:font-lfb.prf
 

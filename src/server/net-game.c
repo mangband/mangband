@@ -219,7 +219,8 @@ int send_option_info(connection_type *ct, player_type *p_ptr, int id)
 	return 1;
 }
 
-int send_inventory_info(connection_type *ct)
+/* XXX REMOVE ME XXX Remove at next protocol upgrade. */
+int send_inventory_info_DEPRECATED(connection_type *ct)
 {
 	u32b i, off = 0;
 	char buf[80];
@@ -242,7 +243,7 @@ int send_inventory_info(connection_type *ct)
 	for (i = 0; i < INVEN_TOTAL; i++)
 	{
 		off += strlen(buf) + 1;
-		if (i < INVEN_WIELD) 
+		if (i < INVEN_WIELD)
 		{
 			off = 0;
 		}
@@ -250,6 +251,52 @@ int send_inventory_info(connection_type *ct)
 		my_strcpy(buf, mention_use(0, i), MAX_CHARS);
 
 		if (cq_printf(&ct->wbuf, "%s%ul", buf, off) <= 0)
+		{
+			ct->wbuf.len = start_pos; /* rollback */
+			client_withdraw(ct);
+		}
+	}
+	return 1;
+}
+
+int send_inventory_info(connection_type *ct)
+{
+	u32b i, off = 0;
+	char buf[80];
+
+	int start_pos = ct->wbuf.len; /* begin cq "transaction" */
+
+	if (cq_printf(&ct->wbuf, "%c%c", PKT_STRUCT_INFO, STRUCT_INFO_INVEN) <= 0)
+	{
+		ct->wbuf.len = start_pos; /* rollback */
+		client_withdraw(ct);
+	}
+
+	if (cq_printf(&ct->wbuf, "%ud%ul%ul%ul", INVEN_TOTAL, eq_name_size, INVEN_WIELD, INVEN_PACK) <= 0)
+	{
+		ct->wbuf.len = start_pos; /* rollback */
+		client_withdraw(ct);
+	}
+
+	buf[0] = '\0';
+	for (i = 0; i < INVEN_TOTAL; i++)
+	{
+		byte xpos = 0, ypos = 0;
+
+		off += strlen(buf) + 1;
+		if (i < INVEN_WIELD)
+		{
+			off = 0;
+		}
+		else
+		{
+			xpos = eq_pos[i-INVEN_WIELD][0];
+			ypos = eq_pos[i-INVEN_WIELD][1];
+		}
+
+		my_strcpy(buf, mention_use(0, i), MAX_CHARS);
+
+		if (cq_printf(&ct->wbuf, "%s%ul%c%c", buf, off, xpos, ypos) <= 0)
 		{
 			ct->wbuf.len = start_pos; /* rollback */
 			client_withdraw(ct);
@@ -709,7 +756,7 @@ int send_air_char(player_type *p_ptr, byte y, byte x, char a, char c, u16b delay
 	return 1;
 }
 
-int send_floor(player_type *p_ptr, byte attr, int amt, byte tval, byte flag, byte s_tester, cptr name)
+int send_floor_DEPRECATED(player_type *p_ptr, byte attr, int amt, byte tval, byte flag, byte s_tester, cptr name)
 {
 	connection_type *ct;
 	if (p_ptr->conn == -1) return -1;
@@ -721,12 +768,50 @@ int send_floor(player_type *p_ptr, byte attr, int amt, byte tval, byte flag, byt
 	return 1;
 }
 
-int send_inven(player_type *p_ptr, char pos, byte attr, int wgt, int amt, byte tval, byte flag, byte s_tester, cptr name)
+int send_floor(player_type *p_ptr, byte ga, char gc, byte attr, int amt, byte tval, byte flag, byte s_tester, cptr name, cptr name_one)
+{
+	connection_type *ct;
+	/* Hack -- use old version of the function */
+	if (!client_version_atleast(p_ptr->version, 1,5,3))
+	{
+		return send_floor_DEPRECATED(p_ptr, attr, amt, tval, flag, s_tester, name);
+	}
+	if (p_ptr->conn == -1) return -1;
+	ct = Conn[p_ptr->conn];
+	if (cq_printf(&ct->wbuf, "%b" "%c%c%c%c" "%d%c%b%b%s%s", PKT_FLOOR,
+		0, ga, gc, attr,
+		amt, tval, flag, s_tester, name, name_one) <= 0)
+	{
+		client_withdraw(ct);
+	}
+	return 1;
+}
+
+int send_inven_DEPRECATED(player_type *p_ptr, char pos, byte attr, int wgt, int amt, byte tval, byte flag, byte s_tester, cptr name)
 {
 	connection_type *ct;
 	if (p_ptr->conn == -1) return -1;
 	ct = Conn[p_ptr->conn];
 	if (cq_printf(&ct->wbuf, "%c" "%c%c%ud%d%c%b%b%s", PKT_INVEN, pos, attr, wgt, amt, tval, flag, s_tester, name) <= 0)
+	{
+		client_withdraw(ct);
+	}
+	return 1;
+}
+
+int send_inven(player_type *p_ptr, char pos, byte ga, char gc, byte attr, int wgt, int amt, byte tval, byte flag, byte s_tester, cptr name, cptr name_one)
+{
+	connection_type *ct;
+	/* Hack -- use old version of the function */
+	if (!client_version_atleast(p_ptr->version, 1,5,3))
+	{
+		return send_inven_DEPRECATED(p_ptr, pos, attr, wgt, amt, tval, flag, s_tester, name);
+	}
+	if (p_ptr->conn == -1) return -1;
+	ct = Conn[p_ptr->conn];
+	if (cq_printf(&ct->wbuf, "%b" "%c%c%c%c" "%ud%d%c%b%b%s%s", PKT_INVEN,
+		pos, ga, gc, attr,
+		wgt, amt, tval, flag, s_tester, name, name_one) <= 0)
 	{
 		client_withdraw(ct);
 	}
@@ -1389,10 +1474,45 @@ int recv_settings(connection_type *ct, player_type *p_ptr) {
 		}
 		switch (i)
 		{
-			case 0:	p_ptr->use_graphics  = val; break;
-			case 3:	p_ptr->hitpoint_warn = (byte_hack)val; break;
-			case 5:	p_ptr->supports_slash_fx = (bool)val; break;
+			case 0: p_ptr->use_graphics  = val; break;
+			case 3: p_ptr->hitpoint_warn = (byte_hack)val; break;
+			case 5: p_ptr->supports_slash_fx = (bool)val; break;
 			default: break;
+		}
+		/* Hack -- light offsets for graphics mode */
+		if (i >= 6 && i < 6 + 4 * 2 && client_version_atleast(p_ptr->version, 1,5,3))
+		{
+			/* 2 offsets (x, y) * 4 levels, starting at setting "6" */
+			int level = (i - 6) / (2);
+			int which = (i - 6) - (level * 2);
+			p_ptr->graf_lit_offset[level][which] = (s16b)val;
+		}
+		/* Hack -- support OLD client graphics modes */
+		if (i == 0 && !client_version_atleast(p_ptr->version, 1,5,3))
+		{
+			/* Back then, "1" meant Original, "2" Adam Bolt
+			 * and "3" David Gervais, with very specific
+			 * layouts. We *know* those layouts, so we can
+			 * guess the offsets. */
+			if (p_ptr->use_graphics == 1)
+			{
+				/* "lit floor" - "open floor" tiles */
+				p_ptr->graf_lit_offset[0][0] = 0xCF - 0x80;
+				p_ptr->graf_lit_offset[0][1] = 0x8F - 0x80;
+				p_ptr->use_graphics = GRAPHICS_PLAIN;
+			}
+			if (p_ptr->use_graphics == 2)
+			{
+				p_ptr->graf_lit_offset[0][0] = 0;
+				p_ptr->graf_lit_offset[0][1] = +2;
+				p_ptr->use_graphics = GRAPHICS_TRANSPARENT;
+			}
+			if (p_ptr->use_graphics == 3)
+			{
+				p_ptr->graf_lit_offset[0][0] = 0;
+				p_ptr->graf_lit_offset[0][1] = -1;
+				p_ptr->use_graphics = GRAPHICS_TRANSPARENT;
+			}
 		}
 	}
 
@@ -1651,6 +1771,8 @@ int recv_clear(connection_type *ct, player_type *p_ptr)
 {
 	/* Clear player's "command buffer" */
 	cq_clear(&p_ptr->cbuf);
+	/* Cancel pathfinder */
+	p_ptr->running_withpathfind = FALSE;
 	return 1;
 }
 
@@ -2121,12 +2243,29 @@ static int recv_custom_command(player_type *p_ptr)
 	return 1;
 }
 
-int send_store(player_type *p_ptr, char pos, byte attr, s16b wgt, s16b number, long price, cptr name)
+int send_store_DEPRECATED(player_type *p_ptr, char pos, byte attr, s16b wgt, s16b number, long price, cptr name)
 {
 	connection_type *ct;
 	if (p_ptr->conn == -1) return -1;
 	ct = Conn[p_ptr->conn];
-	if (cq_printf(&ct->wbuf, "%c%c%c%d%d%ul%s", PKT_STORE, pos, attr, wgt, number, price, name) <= 0)
+	if (cq_printf(&ct->wbuf, "%b" "%c%c%d%d%ul%s", PKT_STORE, pos, attr, wgt, number, price, name) <= 0)
+	{
+		client_withdraw(ct);
+	}
+	return 1;
+}
+
+int send_store(player_type *p_ptr, char pos, byte ga, char gc, byte attr, s16b wgt, s16b number, long price, cptr name)
+{
+	connection_type *ct;
+	/* Hack -- use old version of the function */
+	if (!client_version_atleast(p_ptr->version, 1,5,3))
+	{
+		return send_store_DEPRECATED(p_ptr, pos, attr, wgt, number, price, name);
+	}
+	if (p_ptr->conn == -1) return -1;
+	ct = Conn[p_ptr->conn];
+	if (cq_printf(&ct->wbuf, "%b" "%b%c%c%c%d%d%ul%s", PKT_STORE, pos, ga, gc, attr, wgt, number, price, name) <= 0)
 	{
 		client_withdraw(ct);
 	}

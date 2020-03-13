@@ -12,10 +12,12 @@ int server_port;
 
 object_type *inventory; 	/* The client-side copy of the inventory */
 char **inventory_name;  	/* The client-side copy of the inventory names */
+char **inventory_name_one;	/* Client-side copy of inventory names (singular) */
 byte *inventory_secondary_tester;/* Secondary item tester (if known) */
 
 object_type floor_item;
-char floor_name[MAX_CHARS]; 	/* Client-side copy of floor item */
+char floor_name[MAX_CHARS];     /* Client-side copy of floor item */
+char floor_name_one[MAX_CHARS]; /* Client-side copy of floor item (singular) */
 byte floor_secondary_tester;
 
 indicator_type indicators[MAX_INDICATORS];
@@ -207,6 +209,8 @@ byte icky_levels; /* How many levels of ickyness nested -- DO NOT USE */
 /* Player equipment refrence array */
 char *eq_name;
 s16b *eq_names;
+byte *eq_xpos;
+byte *eq_ypos;
 
 /*
  * The player race arrays
@@ -251,6 +255,7 @@ cptr ANGBAND_DIR_USER;
 cptr ANGBAND_DIR_PREF;
 cptr ANGBAND_DIR_XTRA;
 cptr ANGBAND_DIR_XTRA_SOUND;
+cptr ANGBAND_DIR_XTRA_GRAF;
 
 
 int use_graphics;

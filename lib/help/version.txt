@@ -1,5 +1,351 @@
 === Version Information ===
 
+This file was last updated for MAngband 1.5.3.
+
+Below, you will find the original text of 'version.txt', which was a
+copy of Angband 2.7.9 file, with no changes related to MAngband. Since
+that time, a lot has happend. It would probably make sense to just
+copy-paste the 'version.txt' file from the newest Angband distribution,
+however, as the two codebases diverged, MAngband started to accumulate
+it's own history. Therefore, I made a consiousness decision NOT to merge
+the latest Angband file, but instead to fill in the blanks myself. The
+structure of the document will retain the top-down format, i.e. the
+further down you scroll, the further back in time you get, back to
+original Moria notes.
+
+Please note, that my goal here is not to list each and every contributor
+(please see AUTHORS and CHANGELOG), but to mark down important
+milestones in the game history.
+
+=== The story so far ===
+
+MAngband was created by Keldon Jones, in 1997. At that time, the latest
+Angband version was 2.7.9, which was a lovechild of Ben Harrison, who
+rewrote an insanely large amount of code, unifying and refactoring
+things, bringing several diverging codebases (the EMX port, the Amiga
+port, the Windows port, etc) back into fold. Of particular note was a
+"Z-Term" interface, which created a proper abstraction layer on top of
+different display frontends. From then on, porting Angband to a new
+platform was a matter of writing a main-xxx file, implementing 10-20
+functions, responsible for initializing windows, drawing text on screen,
+plotting graphics and playing sounds. We're still using this idiom in
+2019.
+
+When Keldon Jones set out to make a multi-player version, he had split
+the Angband code into two parts, the client and the server. The server
+would, naturally, process all gameplay-related things, like dungeon
+generation and monster turns, while the client would allow players to
+interact with the world. There is a common misconception, that MAngband
+client is just a glorified dumb terminal, not too different from 'telnet'.
+
+That is not true at all. The client retained all the interface bits of
+the Angband program, like item query and directional prompts, the
+ability to read and write user preferences files, the macro system and
+all that jazz. MAngband client did not ever send raw keystrokes to the
+server, each command and interesting action was assigned to a network
+packet, each with it's own schema. Upon receiving those, the server did
+not transfer those to keystrokes either, but did required,
+command-specific, processing.
+
+One very fortunate bit of Ben Harrison's refactor was the fact, that
+each interface element that required redrawing on screen was assigned
+each own "redraw flag". For example, when player's hit points were
+updated, say, due to a monster attack, a special bit flag "PR_HP" was
+set. At some point, after each dungeon turn, the game would check if
+that flag is set. Then, and only then, would it call the appropriate
+"prt_hp" function to actually plot new values onto the screen.
+
+This allowed Keldon Jones to "hook into" this system. He did not have to
+hack each and every function to inject new network code. Instead, at the
+appropriate time, the server would check, if "PR_HP" was set. If it was,
+it meant that it's time to *re-send* those values to the client! The
+various functions and parts of code that were actually responsible for
+setting those flags remained identical to Angband. On the client-side
+the same flags were set once a network update was received. Then, the
+drawing-to-screen proceeded as usual.
+
+(Preempting ahead, this ingenious solution allowed us to port large bits
+of Angband code from later versions, without changing anything! This
+whole process of placing network stuff in-between Angband stuff is now
+known as "Keldonizing", and MAngband, generally tries to follow this
+principle).
+
+Another fortunate thing was the separation of each game command into
+"cmd_" and "do_cmd_" functions. The "cmd_" functions were responsible
+for getting player input, and checking for errors. The "do_cmd_"
+functions were performing the actual action. For example, pressing 'E'
+would invoke 'cmd_eat' function, which would query the player, "Which
+item?". After picking a strip of beef jerky, the "do_cmd_eat" function
+would handle all necessary things, like restoring her hunger level, and
+removing said strip from her inventory.
+
+As you might've already guessed, the "cmd_" functions went to the client
+and the "do_cmd_" functions went to the server! In-between, Keldon
+injected his network layer stuff, so that a network packet would
+transmit player's intent. It would be appropriate to note here, that a
+"command queue" concept was introduced. Similar to the "keyboard queue"
+on the client, this server-side queue would hold all requested commands,
+and only execute the related "do_cmd_" functions once the player would
+have enough energy.
+
+"Energy" was another concept already present in Angband. As different
+monsters had different "speed" ratings, the turn order was always
+shifting around. A monster, or a player, would only be able to act as
+they had reached enough. A full-turn action would require 100 energy, a
+half-turn action would require 50 energy. Depending on monster/player
+speed, each tick would add a different amount to the counter. Thus, fast
+monsters could reach the desired "100" value faster. Therefore, turning
+such turn-based game into "real-time" was relatively straight-forward:
+you just run ticks on a timer, and add appropriate energy, already
+ballanced well, by speed.
+
+Finally, the "amount of energy needed to perform full-turn action" was
+also hacked upon. Each dungeon level got assigned a pre-defined factor,
+so that the deeper players went, the slower the game would play.
+
+And thus, the transition to real-time was made, without compromising any
+of the Angband concepts. I would also add, that since that time, several
+other online roguelikes were made out of the MAngband codebase, and they
+all rely heavily of this.
+
+Finally, a concept of "ghosts" was introduced. This gave players a
+chance to avoid permadeath, and to continue playing even after death.
+Ghosts could float up from the dungeon and ressurect themselves at the
+temple (shop '4') losing 50% of their experience. Along those lines, PvP
+(player-versus-player) combat was added, making it a true multi-player
+roguelike.
+
+Keldon Jones wrote many other fine things, which would be too numerous
+to list. You might want to examine the CHANGELOG file to see some of his
+patch notes. However, I believe that the most important thing he did,
+was providing us with a template, so that we could turn any roguelike
+game into a multiplayer/real-time experience. We owe it all to him.
+
+== Reign of Alex Dingle ==
+
+After about a year of hacking on MAngband, Keldon Jones went to on to
+create other interesting things. True to Angband tradition, a new
+maintainer had to be chosen. Keep in mind, that beside taking care of
+the codebase, a MAngband maintainer is also responsible for hosting the
+"flagship" server, so that people could actually play the game.
+
+Alex Dingle was responsible for turning this proof-of-concept game into
+a proper MMO. Things like player houses, wilderness, ability to
+ressurect other players by reading a Scroll of Life, proper XP sharing
+between party members, healing prayers for priests and paladins (along
+with an option to target friendly characters and not just
+monsters/hostile players), ensuring that things like "slow monster"
+spells actually affect other players, multitude of interface
+imporvements, DM menu and admin characters, the list goes on and on.
+
+Most of the MAngband "traditions" come from this era (years 1998-2002,
+version 0.5.4D to 0.7.0). The most important techincal achivement was
+the switch to proper TCP/IP, leaving UDP/IP and the various hacks on top
+of it behind. A lot of fine-tuning to the game speed and command
+handling was done to make the gameplay as smooth as possible for a
+real-time game.
+
+And don't forget that casting polymorph onto other players now turned
+them into fruitbats :-)
+
+== Reign of Crimson ==
+
+During the Alex Dingle's reign, lots and lots of patches were added by
+Crimson, who had been an invaluable contributor, and was a natural
+choice to be the next maintainer.
+
+Robert L. Seifer, aka Crimson, maintained a rolling-release policy, so
+that the game was constantly being updated on the live server. Due to
+this fact, the version history is a bit muddied during his era.
+
+There was a huge list of bugs, server crashes and other problems that
+persisted from the very early days of MAngband, dating back to Keldon
+era. Most of those were now addressed, players would no longer encounter
+empty items or crash the server by sending wrong item indexes.
+
+In addition, Crimson maintained an "Ironman" variant, similar to Angband
+ironman challenge. Closer to the end of his reign, this variant was
+folded back into MAngband codebase, making it a server option.
+
+An IRC channel #mangband was also maintained by him and a first ever
+IRC-to-game bridge was deployed. This allowed people on IRC to chat with
+players in the game and vice-versa.
+
+Crimson also added audit code, which tracked all player-to-player
+item/gold transactions, to prevent abuse and "cheeze".
+
+At the very end of his time, an SVN repository was created, to hold the
+code in a proper version-controlled system. As he was looking for the
+next mainatainer, he wanted to make sure the code history would get
+preserved.
+
+== MAngband Project Team ==
+
+Graham King (aka Jug) became the 4th maintainer. During his reign, a
+"MAngband Project Team" was formed, which finally turned MAngband
+development into a true open-source process. This was another milestone,
+that changed the way MAngband was developed forever.
+
+From now on, bugs would be tracked on an issue tracker (trac), changes
+and patches would be accepted from all over the world in a timely
+fashion, and all discussions related to the future of the game would
+happen "in the open", and not over private emails between maintainers
+and contributors.
+
+He has also cleaned up the source code significantly, removed rogue bits
+of code that crept in from PernMangband, removed the dedicated console
+protocol in favor of telnet (thus nuking a specialized "console"
+program), simplified the IRC bridge interface (allowing for a very easy
+way to write new bridges and bots), introduced online highscores and
+brought an unseen-before stability to the server. The "stable" version
+of 1.1.0 became a cornerstone, which allowed us to host server instances
+uninterrupted for years.
+
+For the first time ever, new code from upsteam Angband has began to pour
+back into MAngband. Angband developement has been sproadic, with huge
+downtimes, but during that time a new dev.team (led by takkaria) took
+over, so there were a lot of new and exciting improvements, which
+MAngband absorbed. That included new monsters and spells from Angband
+3.0.6, along with several new game mechanics and re-ballancing.
+
+Most improtantly, the band, that has formed under his command, worked
+long and hard to release 1.1.0, fixing over 100+ critical bugs, in a
+true team effort. A set of guidelines was formed (what "MAngband is and
+isn't", "how to work with issues", "how to format commits") which is
+still serving us.
+
+At around 2013, the development was moved from svn to git, and trac was
+dumped in favour of github issues. All commit history and ticket history
+was preserved. This was also Jug's doing, and has saved us from bitrot
+doom.
+
+== The long haul to 1.5.0 ==
+
+After releasing 1.1.0 the MAngband Project Team decided it's time for a
+major rewrite, that would simplify and improve lots of important aspects
+of the game, to make modding and future work easier. One of the driving
+ideas was to allow variant development that doesn't break protocol
+compatibility ("generalizing" parts of the protocol).
+
+This long haul took about 10 years, culiminating, finally in the release
+of 1.5.0 version. There have been around 2000 commits, and 1000 closed
+issues, so it would be pointless to list it all here. Thankfully, all
+that is documented in our source repository and the closed
+ticket/issues.
+
+Among interesting changes, was the move to automake/autoconf build
+system (instead of custom Makefiles for each platform), addition of
+virtually all Angband features (to a certain date), complete rewrite of
+the lower-level network layers and the introduction of Time Bubbles, which,
+in my mind, add the last missing piece to the whole "online rogulike"
+concept. That's also the version that finally added custom House Building.
+
+This is pretty much where we are now. I would like to conclude this by
+three additional "chapters".
+
+== On XPilot, netcode and GPL ==
+
+When MAngband was concieved, the whole low-level networking code was
+copy-pasted from a classic Unix game, called "XPilot". XPilot was a
+fast-paced arcade game, which pitted players, who controlled
+physics-based space figthers in a deathmatch arena, with a top-down
+perspective.
+
+This brought two important consequences.
+
+Firstly, the game was using the UDP protocol, which is best-suited for
+twitch-based games, where losing a packet or two, is considered fine, as
+long as you receive subsequent updates. Since it was pretty clear that
+this approach is not suitable for online roguelikes, where each and
+every packet is of deadly imprtance and the order of packets *MUST* be
+sequential, a new "guaranteed delivery" protocol was written *on top* of
+UDP, turning it into a crude version of TCP.
+
+About 3 years later, that "piggyback" protocol was replaced by a TCP
+proper. No UDP packets were any longer involved, although the code, at
+places, looked like they were. This work was done by our second
+maintainer, Alex Dingle, and was instrumental to making MAngband what it
+is today. This version is known as 0.7.0 and is still considered a
+classic milestone in MAngband history.
+
+Secondly, XPilot was sporting the GPL license. Angband and therefore,
+MAngband, were under the "Angband/Moria license". The two are completely
+incompatible with each other.
+
+It placed in MAngband into a legally grey area: it couldn't switch to
+GPL without nuking all the Angband code, and it couldn't switch to Moria
+license, without nuking the network code. Thus, no "free" linux
+distribution would ever accept the game into their repositories.
+Thankfully, the XPilot team never tried to enforce the GPL copyright,
+nor did the Angband maintainers tried to enforce the Moria license.
+
+To complicate matters even more, additional code written by MAngband
+maintainers over time, was explicitly non-GPL.
+
+Two interesting developments happened since then. First, the "Angband
+open-source initiative" begain in the early 2000s, and finished in 2009.
+That is an interesting story in itself, best descibred elsewhere, but
+long story short, around 200+ contributors were tracked down and asked
+to re-license their work for GPL. Bits of codes that weren't
+re-licensed, were nuked from the codebase.
+
+This could've freed MAngband from this horrible entanglement, however,
+that would've also meant that we would have to nuke all of the Keldon's
+code. That task was conceived impossible, as MAngband *was* and *is*
+Keldon Jones. In addition, the several maintainers who had added their
+own invaluable contributions were explicitly against GPL.
+
+The second interesting development was at around 2011, when new
+low-level network code was written for MAngband. We have nuked and
+removed all and any traces of XPilot from the codebase, finally freeing
+MAngband from this entanglement! The first release with the new netcode
+was 1.5.0, done under MAngband Project Team.
+
+As of now, Angband is dual-licensed under GPL and Moria licenses, so
+that each variant maintainer could continue with either path. To wit:
+MAngband opts for the Angband/Moria license each time it ports new
+things from Angband.
+
+In conclusion: MAngband is covered by Moria/Angband license. It is not a
+GPL game.
+
+On the technical side of things, the new netcode is no longer a mess of
+"fake-TCP-over-UDP-tunred-into-real-TCP", it was written with TCP in
+mind, simplifying things tenfold.
+
+== On variants ==
+
+Being a variant by itself, MAngband has also spawned several notorious
+variants.
+
+First came PernMAngband, which was developed in conjuction with
+PernAngband, by DarkGod (yes, it was easy enough to add the same change
+to an Angband variant, AND a MAngband variant, due to codebases being
+practically identical). For a while, we shared the same metaserver, as
+the clients were compatible.
+
+The games eventually became known as Tome and TomeNet. TomeNet is
+probably the most popular online roguelike, and has tons of own history
+to document, so I direct you elsewhere.
+
+Around the same time, PWMAngband began development. The one and only
+author, PowerWyrm, has adopted parts of all then-existing forks,
+adding even more stuff on top of them. The game is still in
+development, and, unbelivably, has all the latest codebase changes from
+Angband (unlike MAngband, which is still stuck in 2.7-3.2 era).
+
+MAngband, at it's core, still resembles Angband 2.7.9 (with bits of
+3.0.6-3.2 sprinkled in), PWMAngband, on the other hand, looks like
+Angband 4.1 (which is *vastly* different, due to 20+ years of
+refactoring).
+
+There were others, like the cheeze server, pvp server, Berendol's
+variant, and many other minor variants, but those did not persist to the
+present day.
+
+
+=== Original 'version.txt' follows. ===
+
 This file was last updated for Angband 2.7.9.
 
 Make sure to read the newsgroup "rec.games.roguelike.angband" if possible.

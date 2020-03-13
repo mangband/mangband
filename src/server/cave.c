@@ -851,22 +851,22 @@ void map_info(player_type *p_ptr, int y, int x, byte *ap, char *cp, byte *tap, c
 	if (is_boring(feat) && (visi || lite_glow)) {
 		visi = TRUE;
 		/* Floor with graphical aid */
-		if (p_ptr->use_graphics) 
+		if (p_ptr->use_graphics)
 		{
-				/* Handle "torch-lit" grids */
-				if (c_ptr->info & CAVE_LITE && *w_ptr & CAVE_VIEW && feat == FEAT_FLOOR)
+			/* Handle "torch-lit" grids */
+			if ((c_ptr->info & CAVE_LITE) && (*w_ptr & CAVE_VIEW)
+				 && (feat == FEAT_FLOOR) )
+			{
+				/* Torch lite */
+				if (option_p(p_ptr,VIEW_YELLOW_LITE))
 				{
-					/* Torch lite */
-					if (option_p(p_ptr,VIEW_YELLOW_LITE))
-					{
-						if (p_ptr->use_graphics == 1) { a = 0xCF; c = (char)0x8F; }
-						if (p_ptr->use_graphics == 2) { c += 2; }
-						if (p_ptr->use_graphics == 3) { c -= 1; }
-					}
+					a += p_ptr->graf_lit_offset[0][0];
+					c += p_ptr->graf_lit_offset[0][1];
 				}
+			}
 		}
 		/* Regular floor grid */
-		else 
+		else
 		{
 			get_wilderness_light_colour(&a, feat, p_ptr, c_ptr, w_ptr);
 			

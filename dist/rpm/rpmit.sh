@@ -26,7 +26,10 @@ fi
 
 CONFIGURE_FLAGS=""
 SUBPACKAGE_NAME=""
-if [ "$1" = "sdl" ]; then
+if [ "$1" = "sdl2" ]; then
+    CONFIGURE_FLAGS="--with-sdl2 --without-gcu --without-x11 --without-sdl"
+    SUBPACKAGE_NAME="mangclient-sdl2"
+elif [ "$1" = "sdl" ]; then
     CONFIGURE_FLAGS="--with-sdl --without-gcu --without-x11 --without-sdl2"
     SUBPACKAGE_NAME="mangclient-sdl"
 elif [ "$1" = "x11" ]; then
@@ -39,7 +42,7 @@ else
     CONFIGURE_FLAGS="--without-gcu" # placeholder, rpm macros can't be empty
     SUBPACKAGE_NAME="mangband"
     echo "Building server package."
-    echo "Re-run this script with 'sdl','x11' or 'gcu' to build client."
+    echo "Re-run this script with 'sdl2','sdl','x11' or 'gcu' to build client."
     sleep 1
 fi
 

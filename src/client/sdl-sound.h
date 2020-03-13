@@ -13,4 +13,6 @@ extern void sdl_play_sound_end(bool wait);
 
 #endif /* USE_SDL || USE_SDL2 */
 
+extern void sdl_bell(void);
+
 #endif /* INCLUDED_SDL_SOUND_H */

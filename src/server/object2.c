@@ -4422,6 +4422,8 @@ void floor_item_notify(player_type *p_ptr, s16b o_idx, bool force)
 {
 	object_type *o_ptr;
 	char	o_name[80];
+	char	o_name_one[80];
+	byte ga; char gc;
 	byte    attr;
 	byte    flag, secondary_tester;
 	int i;
@@ -4444,14 +4446,19 @@ void floor_item_notify(player_type *p_ptr, s16b o_idx, bool force)
 		attr = p_ptr->tval_attr[o_ptr->tval % 128];
 		if (!option_p(p_ptr, USE_COLOR)) attr = TERM_WHITE;
 
+		/* Get a/c symbols */
+		gc = object_char_p(p_ptr, o_ptr);
+		ga = object_attr_p(p_ptr, o_ptr);
+
 		/* Describe the object */
 		object_desc(p_ptr, o_name, sizeof(o_name) - 1, o_ptr, TRUE, 3);
+		object_desc_one(p_ptr, o_name_one, sizeof(o_name) - 1, o_ptr, FALSE, 0);
 		flag = object_tester_flag(p_ptr, o_ptr, &secondary_tester);
-		send_floor(p_ptr, attr, o_ptr->number, o_ptr->tval, flag, secondary_tester, o_name);
+		send_floor(p_ptr, ga, gc, attr, o_ptr->number, o_ptr->tval, flag, secondary_tester, o_name, o_name_one);
 	}
 	else
 	{
-		send_floor(p_ptr, 0, 0, 0, 0, 0, "");
+		send_floor(p_ptr, 0, 0, 0, 0, 0, 0, 0, "", "");
 	}
 }
 

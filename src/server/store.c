@@ -1056,6 +1056,8 @@ static void display_entry(player_type *p_ptr, int pos)
 	char		o_name[80];
 	byte		attr;
 	int		wgt;
+	byte a;
+	char c;
 
 	int maxwid = 75;
 
@@ -1077,8 +1079,12 @@ static void display_entry(player_type *p_ptr, int pos)
 	/* Extract the "minimum" price */
 	x = price_item(p_ptr, o_ptr, ot_ptr->min_inflate, FALSE);
 
+	/* Get a/c symbols */
+	a = object_attr_p(p_ptr, o_ptr);
+	c = object_char_p(p_ptr, o_ptr);
+
 	/* Send the info */
-	send_store(p_ptr, pos, attr, wgt, o_ptr->number, x, o_name);
+	send_store(p_ptr, pos, a, c, attr, wgt, o_ptr->number, x, o_name);
 }
 
 /* 
@@ -1093,6 +1099,8 @@ static void display_entry_live(player_type *p_ptr, int pos, object_type *o_ptr)
 	byte		attr;
 	int			wgt;
 	int 		maxwid = 75;
+	byte a;
+	char c;
 
 	/* Must leave room for the "price" */
 	maxwid = 65;
@@ -1119,9 +1127,12 @@ static void display_entry_live(player_type *p_ptr, int pos, object_type *o_ptr)
 		x = price_item(p_ptr, o_ptr, ot_ptr->min_inflate, FALSE);
 	}
 
+	/* Get a/c symbols */
+	a = object_attr_p(p_ptr, o_ptr);
+	c = object_char_p(p_ptr, o_ptr);
 
 	/* Send the info */
-	send_store(p_ptr, pos, attr, wgt, o_ptr->number, x, o_name);
+	send_store(p_ptr, pos, a, c, attr, wgt, o_ptr->number, x, o_name);
 }
 
 /*

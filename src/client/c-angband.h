@@ -31,4 +31,9 @@
  */
 #include "ui.h"
 
+/*
+ * Include "grafmode" interface.
+ */
+#include "grafmode.h"
+
 #endif

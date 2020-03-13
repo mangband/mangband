@@ -952,6 +952,39 @@ char command_from_keystroke(char *buf)
 	return (0);
 }
 
+/* This is like "item_tester_okay", in reverse. Given an item
+ * and a command, we check if this command could be applied
+ * to a given item. */
+bool command_tester_okay(int custom_command_id, int item)
+{
+	object_type *o_ptr;
+	custom_command_type *cc_ptr = &custom_command[custom_command_id];
+
+	if (item < 0) o_ptr = &floor_item;
+	else o_ptr = &inventory[item];
+
+	/* Skip non-item commands */
+	if (!(cc_ptr->flag & COMMAND_NEED_ITEM)) return FALSE;
+
+	/* Generic item commands (like drop or inscribe) */
+	if (!cc_ptr->tval) return TRUE;
+
+	/* Check the fake hook */
+	if (cc_ptr->tval > TV_MAX)
+	{
+		if (!item_tester_hack(o_ptr, cc_ptr->tval - TV_MAX - 1))
+		{
+			return FALSE;
+		}
+	}
+	/* Or direct (mis)match */
+	else if (!(cc_ptr->tval == o_ptr->tval))
+	{
+		return FALSE;
+	}
+	return TRUE;
+}
+
 char command_by_item(int item, bool agressive)
 {
 	byte i;
@@ -961,22 +994,11 @@ char command_by_item(int item, bool agressive)
 	for (i = 0; i < custom_commands; i++)
 	{
 		custom_command_type *cc_ptr = &custom_command[i];
-		if (!(cc_ptr->flag & COMMAND_NEED_ITEM)) continue;
+		if (!command_tester_okay(i, item)) continue;
+
+		/* Skip generic commands */
 		if (!cc_ptr->tval) continue;
 
-		/* Check the fake hook */
-		if (cc_ptr->tval > TV_MAX)
-		{
-			if (!item_tester_hack(o_ptr, cc_ptr->tval - TV_MAX - 1))
-			{
-				continue;
-			}
-		}
-		/* Or direct (mis)match */
-		else if (!(cc_ptr->tval == o_ptr->tval))
-		{
-			continue;
-		}
 		/* Spell command hacks */
 		if (cc_ptr->flag & COMMAND_SPELL_BOOK)
 		{
@@ -1032,11 +1054,11 @@ int item_as_keystroke(int item, char cmd, char *dst, size_t len, byte ctxt_flag)
 
 	if (item < 0 && item > -FLOOR_TOTAL-1)
 	{
-		my_strcpy(buf2, floor_name, 1024);
+		my_strcpy(buf2, floor_name_one, 1024);
 	}
 	else
 	{
-		my_strcpy(buf2, inventory_name[item], 1024);
+		my_strcpy(buf2, inventory_name_one[item], 1024);
 	}
 
 	if (ctxt_flag & CTXT_WITH_CMD)

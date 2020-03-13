@@ -1371,6 +1371,8 @@ void request_command(bool shopping)
 	/* Flush the input */
 	/* flush(); */
 
+	if (z_ask_command_aux) z_ask_command_aux(NULL);
+
 	/* Get a keypress in "command" mode */
 
 	/* Activate "command mode" */
@@ -1496,6 +1498,8 @@ bool c_get_dir(char *dp, cptr prompt, bool allow_target, bool allow_friend)
 	else
 		p = "Direction (non-direction cancels)?";
 	strcat(buf, p);
+
+	if (z_ask_dir_aux) z_ask_dir_aux(buf, allow_target, allow_friend);
 
 	get_com(buf, &command);
 

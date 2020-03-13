@@ -37,7 +37,7 @@ else
 	RECONFIG=""
 	PACKNAME="mangband"
 	echo "Building server package."
-	echo "Re-run this script with 'sdl','x11' or 'gcu' to build client."
+	echo "Re-run this script with 'sdl2','sdl','x11' or 'gcu' to build client."
 	sleep 1
 fi
 

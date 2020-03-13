@@ -134,13 +134,42 @@ void init_stuff(void)
 	/* We're onto something */
 	if (!STRZERO(path))
 	{
+		size_t offset = 0;
+
 		/* Hack -- Add a path separator (only if needed) */
 		if (!suffix(path, PATH_SEP)) my_strcat(path, PATH_SEP, 1024);
 
-		/* Overwrite "user" dir */
+		/* HACK! Do not append "user" to userdir if -d option was used. */
+		if (prefix(path, "-duser=")) offset = 7;
+		else
 		my_strcat(path, "user", 1024);
+
+		/* Overwrite "user" dir */
 		string_free(ANGBAND_DIR_USER);
-		ANGBAND_DIR_USER = string_make(path);
+		ANGBAND_DIR_USER = string_make(path + offset);
+	}
+
+	/* -------------------------- */
+	/* Overwrite ANGBAND_DIR_BONE */
+
+	/* Read/Write path from config file or CLI */
+	my_strcpy(path, conf_get_string("MAngband", "BoneDir", ""), 1024);
+	clia_read_string(path, 1024, "bonedir");
+
+	/* We're onto something */
+	if (!STRZERO(path))
+	{
+		size_t offset = 0;
+
+		/* Hack -- Add a path separator (only if needed) */
+		if (!suffix(path, PATH_SEP)) my_strcat(path, PATH_SEP, 1024);
+
+		/* HACK! Do not append "user" to userdir if -d option was used. */
+		if (prefix(path, "-dbone=")) offset = 7;
+
+		/* Overwrite "bone" dir */
+		string_free(ANGBAND_DIR_BONE);
+		ANGBAND_DIR_USER = string_make(path + offset);
 	}
 
     /* ------------------------------------- */
@@ -637,8 +666,21 @@ void quit_hook(cptr s)
 
 void gather_settings()
 {
+	graphics_mode *gm;
+	int i, j;
+
 	/* Graphics */
-	Client_setup.settings[0] = use_graphics;
+	gm = use_graphics ? get_graphics_mode((byte)use_graphics) : NULL;
+	Client_setup.settings[0] = gm ? (
+		gm->lightmap ? GRAPHICS_LIGHTMAP :
+			(gm->transparent ? GRAPHICS_TRANSPARENT : GRAPHICS_PLAIN)
+	) : 0;
+	for (i = 0; i < 4; i++)
+	{
+		j = 6 + i * 2;
+		Client_setup.settings[j + 0] = gm ? gm->light_offset[i][0] : 0;
+		Client_setup.settings[j + 1] = gm ? gm->light_offset[i][1] : 0;
+	}
 
 	/* Hitpoint warning */
 	Client_setup.settings[3] = p_ptr->hitpoint_warn;

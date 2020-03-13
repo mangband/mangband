@@ -26,16 +26,11 @@
 #undef SINGLE_SURFACE /* Eat more CPU, but less RAM (only signifcant when drawing GUI) */
 #define SHADE_FONTS /* Allow fonts with multiple colors */
 
-
 #include "c-angband.h"
 
 bool need_render = FALSE;	/* very important -- triggers frame redrawing */
 
 bool mouse_mode = FALSE;	/* pass mouse events to Angband !!! */
-
-static cptr GFXBMP[] = { "8x8.png", "8x8.png", "16x16.png", "32x32.png" };
-static cptr GFXMASK[] = { 0, 0, "mask.bmp", "mask32.bmp" };
-static cptr GFXNAME[] = { 0, "old", "new", "david" };
 
 bool quartz_hack = FALSE; /* Enable special mode on OSX */
 
@@ -1397,6 +1392,7 @@ static errr Term_xtra_sdl(int n, int v)
 		/* XXX XXX XXX Make a noise (optional) */
 		/* This action should produce a "beep" noise. */
 		/* This action is optional, but nice. */
+		sdl_bell();
 
 		return (0);
 
@@ -1606,9 +1602,8 @@ static errr Term_tile_sdl(int x, int y, Uint8 a, Uint8 c, Uint8 ta, Uint8 tc){
 	dst = bigface;
 #endif
 
-	if ((use_graphics == GRAPHICS_ADAM_BOLT) ||
-		    (use_graphics == GRAPHICS_DAVID_GERVAIS))
-		{
+	if (use_graphics >= GRAPHICS_TRANSPARENT)
+	{
 			nsr.x = (tc & 0x7F) * gt_ptr->w;
 			nsr.y = (ta & 0x7F) * gt_ptr->h;
 			SDL_BlitSurface(gt_ptr->face, &nsr, dst, &dr);
@@ -1620,7 +1615,7 @@ static errr Term_tile_sdl(int x, int y, Uint8 a, Uint8 c, Uint8 ta, Uint8 tc){
 				SDL_BlitSurface(gt_ptr->face, &sr, dst, &dr);
 				SDL_SetColorKey(gt_ptr->face, SDL_RLEACCEL, 0);
 			}
-		}
+	}
 	else
 		SDL_BlitSurface(gt_ptr->face, &sr, dst, &dr);
 
@@ -2467,10 +2462,11 @@ bool init_one_term(int i, bool force)
 	td->gt = NULL;
 	if (use_graphics)
 	{
-		if (term_load_graf(i, GFXBMP[use_graphics], GFXMASK[use_graphics]))
+		graphics_mode* gm = get_graphics_mode((byte)use_graphics);
+		if (gm && term_load_graf(i, gm->file, gm->mask))
 		{
 			/* Tileset loaded */
-			ANGBAND_GRAF = GFXNAME[use_graphics];
+			ANGBAND_GRAF = gm->pref;
 		}
 	}
 
@@ -2520,6 +2516,9 @@ static void quit_sdl(cptr str)
 {
 	/* Call regular quit hook */
 	quit_hook(str);
+
+	/* Forget grafmodes */
+	close_graphics_modes();
 
 	/* Do SDL-specific stuff */
 #ifdef USE_SOUND
@@ -2664,6 +2663,9 @@ errr init_sdl(void)
 	load_sound_prefs();
 	sdl_init_sound();
 #endif
+
+	/* Load the possible graphics modes */
+	init_graphics_modes("graphics.txt");
 
 	/* Init font loading sublibraries */
 	sdl_font_init();

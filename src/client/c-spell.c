@@ -212,6 +212,9 @@ int get_spell(int *sn, cptr p, cptr prompt, int *bn, bool known, bool bookless)
 	strnfmt(out_val, 78, "(%s %c-%c, *=List, ESC=exit) %s",
 		p, I2A(0), I2A(num - 1), prompt);
 
+	/* Hack -- ask term2 */
+	if (z_ask_spell_aux) z_ask_spell_aux(out_val, -1, book);
+
 	/* Get a spell from the user */
 	while (!flag && get_com_ex(out_val, &choice, &ke))
 	{
@@ -271,6 +274,9 @@ int get_spell(int *sn, cptr p, cptr prompt, int *bn, bool known, bool bookless)
 				/* Re-Build a prompt (accept all spells) */
 				strnfmt(out_val, 78, "(%s %c-%c, *=List, ESC=exit) %s",
 					p, I2A(0), I2A(num - 1), prompt);
+
+				/* Hack -- ask term2 */
+				if (z_ask_spell_aux) z_ask_spell_aux(out_val, -1, book);
 
 				/* Must redraw list */
 				if (redraw)

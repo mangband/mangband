@@ -512,17 +512,21 @@ int recv_store(connection_type *ct)
 	char
 		name[MAX_CHARS];
 	byte
-		pos,attr;
+		pos, attr;
 	s16b
 		wgt, num;
+	byte ga;
+	char gc;
 
-	if (cq_scanf(&serv->rbuf, "%c%c%d%d%ul%s", &pos, &attr, &wgt, &num, &price, name) < 6) return 0;
+	if (cq_scanf(&serv->rbuf, "%c%b%c%c%d%d%ul%s", &pos, &ga, &gc, &attr, &wgt, &num, &price, name) < 8) return 0;
 
 
 	store.stock[pos].sval = attr;
 	store.stock[pos].weight = wgt;
 	store.stock[pos].number = num;
 	store_prices[(int) pos] = price;
+	store.stock[pos].ix = ga; /* Hack -- Store "A" in "ix" */
+	store.stock[pos].iy = gc; /* Hack -- Store "C" in "iy" */
 	my_strcpy(store_names[(int) pos], name, MAX_CHARS);
 
 	/* Make sure that we're in a store */
@@ -827,7 +831,10 @@ int recv_struct_info(connection_type *ct)
 			/* Alloc */
 			C_MAKE(eq_name, fake_name_size, char);
 			C_MAKE(eq_names, max, s16b);
+			C_MAKE(eq_xpos, max, s16b);
+			C_MAKE(eq_ypos, max, s16b);
 			C_MAKE(inventory_name, max, char*);
+			C_MAKE(inventory_name_one, max, char*);
 			C_MAKE(inventory, max, object_type);
 			C_MAKE(inventory_secondary_tester, max, byte);
 			INVEN_TOTAL = max;
@@ -844,11 +851,14 @@ int recv_struct_info(connection_type *ct)
 			/* Fill */
 			for (i = 0; i < max; i++) 
 			{
+				byte xpos, ypos;
+
 				C_MAKE(inventory_name[i], 80, char);
+				C_MAKE(inventory_name_one[i], 80, char);
 
 				off = 0;
 
-				if (cq_scanf(&ct->rbuf, "%s%ul", &name, &off) < 2)
+				if (cq_scanf(&ct->rbuf, "%s%ul%c%c", &name, &off, &xpos, &ypos) < 4)
 				{
 					return 0;
 				}
@@ -859,6 +869,8 @@ int recv_struct_info(connection_type *ct)
 				}
 
 				eq_names[i] = last_off = (s16b)off;
+				eq_xpos[i] = xpos;
+				eq_ypos[i] = ypos;
 			}
 		}
 		break;
@@ -916,10 +928,14 @@ void free_struct_info(void)
 	for (i = 0; i < INVEN_TOTAL; i++)
 	{
 		KILL(inventory_name[i]);
+		KILL(inventory_name_one[i]);
 	}
 	KILL(eq_name);
 	KILL(eq_names);
+	KILL(eq_xpos);
+	KILL(eq_ypos);
 	KILL(inventory_name);
+	KILL(inventory_name_one);
 	KILL(inventory);
 	KILL(inventory_secondary_tester);
 }
@@ -1929,9 +1945,14 @@ int recv_floor(connection_type *ct)
 	byte pos, tval, attr;
 	byte flag, tester;
 	s16b amt;
+	byte ga; char gc;
 	char name[MAX_CHARS];
+	char name_one[MAX_CHARS];
 
-	if (cq_scanf(&ct->rbuf, "%c%c%d%c%b%b%s", &pos, &attr, &amt, &tval, &flag, &tester, name) < 7)
+	if (cq_scanf(&ct->rbuf, "%c%c%c%c" "%d%c%b%b" "%s%s",
+			&pos, &ga, &gc, &attr,
+			&amt, &tval, &flag, &tester,
+			name, name_one) < 8)
 	{
 		return 0;
 	}
@@ -1947,10 +1968,12 @@ int recv_floor(connection_type *ct)
 	floor_item.sval = attr; /* Hack -- Store "attr" in "sval" */
 	floor_item.tval = tval;
 	floor_item.ident = flag; /* Hack -- Store "flag" in "ident" */
-	floor_item.number = amt;
+	floor_item.ix = ga; /* Hack -- Store "A" in "ix" */
+	floor_item.iy = gc; /* Hack -- Store "C" in "iy" */
 	floor_secondary_tester = tester;
 
 	my_strcpy(floor_name, name, MAX_CHARS);
+	my_strcpy(floor_name_one, STRZERO(name_one) ? name : name_one, MAX_CHARS);
 	fix_floor();
 	return 1;
 }
@@ -1960,9 +1983,14 @@ int recv_inven(connection_type *ct)
 	byte pos, attr, tval;
 	byte flag, tester;
 	s16b wgt, amt;
+	byte a; char c; /* Tile/Symbol */
 	char name[MAX_CHARS];
+	char name_one[MAX_CHARS];
 
-	if (cq_scanf(&ct->rbuf, "%c%c%ud%d%c%b%b%s", &pos, &attr, &wgt, &amt, &tval, &flag, &tester, name) < 8)
+	if (cq_scanf(&ct->rbuf, "%c%c%c%c" "%ud%d%c%b%b" "%s%s",
+			&pos, &a, &c, &attr,
+			&wgt, &amt, &tval, &flag, &tester,
+			name, name_one) < 9)
 	{
 		return 0;
 	}
@@ -1973,9 +2001,12 @@ int recv_inven(connection_type *ct)
 	inventory[pos - 'a'].ident = flag; /* Hack -- Store "flag" in "ident" */
 	inventory[pos - 'a'].weight = wgt;
 	inventory[pos - 'a'].number = amt;
+	inventory[pos - 'a'].ix = a; /* Hack -- Store "A" in "ix" */
+	inventory[pos - 'a'].iy = c; /* Hack -- Store "C" in "iy" */
 	inventory_secondary_tester[pos - 'a'] = tester;
 
 	my_strcpy(inventory_name[pos - 'a'], name, MAX_CHARS);
+	my_strcpy(inventory_name_one[pos - 'a'], STRZERO(name_one) ? name : name_one, MAX_CHARS);
 
 	/* Window stuff */
 	p_ptr->window |= (PW_INVEN);
@@ -2006,6 +2037,7 @@ int recv_equip(connection_type *ct)
 	inventory_secondary_tester[pos - 'a' + INVEN_WIELD] = 0;
 
 	my_strcpy(inventory_name[pos - 'a' + INVEN_WIELD], name, MAX_CHARS);
+	my_strcpy(inventory_name_one[pos - 'a' + INVEN_WIELD], name, MAX_CHARS);
 
 	/* Window stuff */
 	p_ptr->window |= (PW_EQUIP);
@@ -2053,6 +2085,7 @@ int recv_objflags(connection_type *ct)
 	s16b
 		y = 0;
 	byte rle = ( use_graphics ? RLE_LARGE : RLE_CLASSIC );
+	int i;
 
 	/* Header (line number) */
 	if (cq_scanf(&ct->rbuf, "%d", &y) < 1)
@@ -2071,6 +2104,17 @@ int recv_objflags(connection_type *ct)
 	if (cq_scanc(&ct->rbuf, rle, p_ptr->hist_flags[y], MAX_OBJFLAGS_COLS) < MAX_OBJFLAGS_COLS)
 	{
 		return 0;
+	}
+
+	/* HACK -- copy equippy to inventory */
+	for (i = INVEN_WIELD; i < INVEN_TOTAL; ++i)
+	{
+		/* Get attr/char for display */
+		byte a; char c;
+		a = p_ptr->hist_flags[i-INVEN_WIELD][0].a;
+		c = p_ptr->hist_flags[i-INVEN_WIELD][0].c;
+		inventory[i].ix = a;
+		inventory[i].iy = c;
 	}
 
 	//TODO: re-evalute those

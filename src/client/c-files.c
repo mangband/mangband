@@ -485,6 +485,7 @@ void free_file_paths(void)
 
 	/* Free extra paths */
 	string_ifree(ANGBAND_DIR_XTRA_SOUND);
+	string_ifree(ANGBAND_DIR_XTRA_GRAF);
 }
 
 void init_file_paths(char *path)
@@ -522,6 +523,7 @@ void init_file_paths(char *path)
         ANGBAND_DIR_USER = string_make("");
         ANGBAND_DIR_XTRA = string_make("");
         ANGBAND_DIR_XTRA_SOUND = string_make("");
+        ANGBAND_DIR_XTRA_GRAF = string_make("");
 
 
 #else /* VM */
@@ -576,6 +578,10 @@ void init_file_paths(char *path)
         /* Build a path name */
         strcpy(tail, "xtra/sound");
         ANGBAND_DIR_XTRA_SOUND = string_make(path);
+
+        /* Build a path name */
+        strcpy(tail, "xtra/graf");
+        ANGBAND_DIR_XTRA_GRAF = string_make(path);
 
 #endif /* VM */
 
@@ -2635,8 +2641,19 @@ int clia_find(const char *key)
 				/* Hack -- Ignore MacOSX `-psn_APPID` handle (see #989) */
 				if (prefix(p_argv[i], "-psn_")) continue;
 
+				/* Starts with an "-", could be a short option. */
+				if (p_argv[i][0] == '-')
+				{
+					if (
+					    (prefix(p_argv[i], "-duser=") && streq(key, "userdir"))
+					 || (prefix(p_argv[i], "-dbone=") && streq(key, "bonedir"))
+					) {
+						/* "Found" */
+						return i;
+					}
+				}
 				/* Could be hostname */
-				if (i == p_argc - 1 || (i == p_argc - 2 && !got_hostname))
+				else if (i == p_argc - 1 || (i == p_argc - 2 && !got_hostname))
 				{
 					if (!got_hostname)
 					{

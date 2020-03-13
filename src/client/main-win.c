@@ -66,14 +66,6 @@
 #ifdef USE_WIN
 
 #define MNU_SUPPORT
-#define GRAPHICS
-
-static cptr GFXBMP[] = { "8x8.PNG", "8x8.PNG", "16x16.PNG", "32x32.PNG" };
-static cptr GFXMASK[] = { 0, 0, "MASK.BMP", "MASK32.BMP" };
-static cptr GFXTITLE[] = { "Off", "Standard (8x8)", "Adam Bolt's (16x16)", "David Gervais' (32x32)" };
-#define GFXD "16x16.BMP"
-
-#define WIN32_MAX_TILESETS 3
 
 /*
  * Extract the "WIN32" flag from the compiler
@@ -448,7 +440,6 @@ static int loaded_graphics = 0;
  * Directory names
  */
 static cptr ANGBAND_DIR_XTRA_FONT;
-static cptr ANGBAND_DIR_XTRA_GRAF;
 #define ANGBAND_DIR_XTRA_HELP ".\\lib\\text"
 
 #ifdef USE_SOUND
@@ -1400,10 +1391,10 @@ static errr term_force_graf(term_data *td, cptr name)
 		}
 
 		/* Load mask, if appropriate */
-		if (GFXMASK[use_graphics])
+		if (!STRZERO(gm->mask))
 		{
 			/* Access the mask file */
-			path_build(buf, sizeof(buf), ANGBAND_DIR_XTRA_GRAF, GFXMASK[use_graphics]);
+			path_build(buf, sizeof(buf), ANGBAND_DIR_XTRA_GRAF, gm->mask);
 
 			/* Load the bitmap or quit */
 			if (!ReadDIB(win_data[0].w, buf, &infMask))
@@ -1527,11 +1518,13 @@ static void term_change_bitmap(term_data *td)
 		if (
 		    term_force_graf(td, tmp))
 		{
+			graphics_mode *gm;
 			/* Force the "standard" font */
 			//(void)term_force_font(td, "8X13.FON");
 
 			/* Force the "standard" bitmap */
-			(void)term_force_graf(td, GFXBMP[use_graphics]);
+			gm = get_graphics_mode((byte)use_graphics);
+			(void)term_force_graf(td, gm ? gm->file : "");
 		}
 	}
 }
@@ -2414,7 +2407,9 @@ static void init_windows(void)
 	if (use_graphics)
 	{
 		/* XXX XXX XXX Force the "standard" bitmap */
-		(void)term_force_graf(&win_data[0], GFXBMP[use_graphics]);
+		graphics_mode *gm = get_graphics_mode((byte)use_graphics);
+
+		(void)term_force_graf(&win_data[0], gm->pict);
 	}
 
 #endif
@@ -2647,12 +2642,13 @@ static void setup_menus(void)
 	for (i = 0; i < 8; i++)
 	{
 		/* Replace "Tileset N" string with actual tileset name */
-		if (i < WIN32_MAX_TILESETS)
+		if (i < get_num_graphics_modes())
 		{
+			graphics_mode *gm = get_graphics_modes((byte)i);
 			MENUITEMINFO menuitem = { sizeof(MENUITEMINFO) };
 			GetMenuItemInfo(hm, IDM_GRAPHICS_TILESET_1 + i, FALSE, &menuitem);
 			menuitem.fMask = MIIM_TYPE | MIIM_DATA;
-			menuitem.dwTypeData = GFXTITLE[i + 1];
+			menuitem.dwTypeData = gm->menuname;
 			SetMenuItemInfo(hm, IDM_GRAPHICS_TILESET_1 + i, FALSE, &menuitem);
 		}
 
@@ -2661,7 +2657,7 @@ static void setup_menus(void)
 		              MF_BYCOMMAND | (next_graphics == 1 + i ? MF_CHECKED : MF_UNCHECKED));
 
 		/* XXX Delete unused menu entries */
-		if (i >= WIN32_MAX_TILESETS && next_graphics < i + 1)
+		if (i >= get_num_graphics_modes() && next_graphics < i + 1)
 		RemoveMenu(hm, IDM_GRAPHICS_TILESET_1 + i, MF_BYCOMMAND);
 	}
 
@@ -3649,6 +3645,9 @@ static void hack_quit(cptr str)
 	FreeDIB(&infGraph);
 	FreeDIB(&infMask);
 #endif
+	/* Forget grafmodes */
+	close_graphics_modes();
+
 
 	term_force_font(&win_data[0], NULL);
 	if (win_data[0].font_want) string_free(win_data[0].font_want);
@@ -3838,17 +3837,11 @@ void static init_stuff_win(void)
 
 #ifdef USE_GRAPHICS
 
-	/* Build the "graf" path */
-	path_build(path, 1024, ANGBAND_DIR_XTRA, "graf");
-
-	/* Allocate the path */
-	ANGBAND_DIR_XTRA_GRAF = string_make(path);
-
 	/* Validate the "graf" directory */
 	validate_dir(ANGBAND_DIR_XTRA_GRAF);
 
 	/* Build the filename */
-	path_build(path, 1024, ANGBAND_DIR_XTRA_GRAF, GFXBMP[use_graphics]);
+	path_build(path, 1024, ANGBAND_DIR_XTRA_GRAF, gm->file);
 
 	/* Hack -- Validate the basic graf */
 	validate_file(path);
@@ -3948,6 +3941,11 @@ int FAR PASCAL WinMain(HINSTANCE hInst, HINSTANCE hPrevInst,
 		color_table[i][0] = win_pal[i];
 	}
 #endif
+
+	/* load the possible graphics modes */
+	if (!init_graphics_modes("graphics.txt")) {
+		plog("Graphics list load failed");
+	}
 
 	/* Prepare the windows */
 	init_windows();

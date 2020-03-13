@@ -2481,10 +2481,7 @@ static errr Term_pict_x11(int ox, int oy, int n, const byte *ap, const char *cp,
 		else
 		{
 			/* Mega Hack^2 - assume the top left corner is "blank" */
-			if (use_graphics == GRAPHICS_DAVID_GERVAIS)
-				blank = XGetPixel(td->tiles, 0, 0);
-			else
-				blank = XGetPixel(td->tiles, 0, td->tile_hgt * 6);
+			blank = XGetPixel(td->tiles, 0, td->tile_hgt * 6);
 
 			for (k = 0; k < td->tile_wid2; k++)
 			{
@@ -2845,8 +2842,9 @@ static errr term_data_init(term_data *td, int i)
 
 const char help_x11[] = "Basic X11, subopts -d<display> -n<windows>"
 #ifdef USE_GRAPHICS
-                        " -s(moothRescale)"
-                        "\n           -b(Bigtile) -o(original) -a(AdamBolt) -g(David Gervais)"
+                        "\n                  "
+                        " -g<tileset> -s(moothRescale) -b(igtile)"
+                        "\n"
 #endif
                         ;
 
@@ -2855,6 +2853,8 @@ static void hook_quit(cptr str)
 {
 	/* Unused */
 	(void)str;
+
+	close_graphics_modes();
 
 	save_prefs();
 }
@@ -2871,7 +2871,7 @@ errr init_x11(int argc, char **argv)
 
 #ifdef USE_GRAPHICS
 
-	cptr bitmap_file = "";
+	graphics_mode *gm = NULL;
 	char filename[1024];
 
 	int pict_wid = 0;
@@ -2880,6 +2880,9 @@ errr init_x11(int argc, char **argv)
 	char *TmpData;
 
 #endif /* USE_GRAPHICS */
+
+	/* load the possible graphics modes */
+	init_graphics_modes("graphics.txt");
 
 	/* Global config */
 	use_graphics = conf_get_int("X11", "Graphics", use_graphics);
@@ -2894,28 +2897,15 @@ errr init_x11(int argc, char **argv)
 		}
 
 #ifdef USE_GRAPHICS
+		if (prefix(argv[i], "-g"))
+		{
+			use_graphics = atoi(argv[i] + 2);
+			continue;
+		}
+
 		if (prefix(argv[i], "-s"))
 		{
 			smoothRescaling = FALSE;
-			continue;
-		}
-
-		if (prefix(argv[i], "-o"))
-		{
-			use_graphics = GRAPHICS_ORIGINAL;
-			continue;
-		}
-
-		if (prefix(argv[i], "-a"))
-		{
-			use_graphics = GRAPHICS_ADAM_BOLT;
-			continue;
-		}
-
-		if (prefix(argv[i], "-g"))
-		{
-			smoothRescaling = FALSE;
-			use_graphics = GRAPHICS_DAVID_GERVAIS;
 			continue;
 		}
 
@@ -3001,62 +2991,28 @@ errr init_x11(int argc, char **argv)
 	
 
 	/* Try graphics */
-	switch (use_graphics)
+	gm = use_graphics ? get_graphics_mode((byte)use_graphics) : NULL;
+	if (gm)
 	{
-	case GRAPHICS_ADAM_BOLT:
-		/* Use tile graphics of Adam Bolt */
-		bitmap_file = "16x16.png";
+		/* Try the tileset file */
+		path_build(filename, sizeof(filename), ANGBAND_DIR_XTRA, format("graf/%s", gm->file));
 
-		/* Try the "16x16.bmp" file */
-		path_build(filename, 1024, ANGBAND_DIR_XTRA, format("graf/%s", bitmap_file));
-
-		/* Use the "16x16.bmp" file if it exists */
+		/* Use the file if it exists */
 		if (file_exists(filename))
 		{
 			/* Use graphics */
-			use_graphics = GRAPHICS_ADAM_BOLT;
-			use_transparency = TRUE;
+			use_transparency = gm->transparent;
 
-			pict_wid = pict_hgt = 16;
+			pict_wid = gm->cell_width;
+			pict_hgt = gm->cell_height;
 
-			ANGBAND_GRAF = "new";
-
-			break;
+			ANGBAND_GRAF = gm->pref;
 		}
-		/* Fall through */
-
-	case GRAPHICS_ORIGINAL:
-		/* Use original tile graphics */
-		bitmap_file = "8x8.png";
-
-		/* Try the "8x8.bmp" file */
-		path_build(filename, sizeof(filename), ANGBAND_DIR_XTRA, format("graf/%s", bitmap_file));
-
-		/* Use the "8x8.bmp" file if it exists */
-		if (file_exists(filename))
+		else
 		{
-			/* Use graphics */
-			use_graphics = GRAPHICS_ORIGINAL;
-
-			pict_wid = pict_hgt = 8;
-
-			ANGBAND_GRAF = "old";
-			break;
+			use_graphics = 0;
+			gm = NULL;
 		}
-		break;
-
-	case GRAPHICS_DAVID_GERVAIS:
-		/* Use tile graphics of David Gervais */
-		bitmap_file = "32x32.png";
-
-		/* Use graphics */
-		use_graphics = GRAPHICS_DAVID_GERVAIS;
-		use_transparency = TRUE;
-
-		pict_wid = pict_hgt = 32;
-
-		ANGBAND_GRAF = "david";
-		break;
 	}
 
 	/* Load graphics */
@@ -3073,10 +3029,10 @@ errr init_x11(int argc, char **argv)
 			td->tiles = NULL;
 		}
 
-		path_build(filename, sizeof(filename), ANGBAND_DIR_XTRA, format("graf/%s", bitmap_file));
+		path_build(filename, sizeof(filename), ANGBAND_DIR_XTRA, format("graf/%s", gm->file));
 
 		/* Load the graphical tiles */
-		if (isuffix(bitmap_file, ".png"))
+		if (isuffix(gm->file, ".png"))
 		{
 			tiles_raw = ReadPNG(dpy, filename);
 		} else

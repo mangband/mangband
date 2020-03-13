@@ -448,6 +448,8 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 	/* Repeat while done */
 	while (!done)
 	{
+		if (z_ask_item_aux) z_ask_item_aux(pmt, command_wrk, inven, equip, allow_floor);
+
 		if (!command_wrk)
 		{
 			/* Extract the legal requests */
@@ -835,7 +837,7 @@ void do_cmd_inscribe_auto(char *name, char *inscription)
 {
 	int item;
 	int cc_ind = -1, i;
-	/* Hack find inscribe command (assume it's called 'k') */
+	/* Hack -- find inscribe command (assume it's called '{') */
 	for (i = 0; i < custom_commands; i++) {
 		custom_command_type *cc_ptr = &custom_command[i];
 		if ((cc_ptr->m_catch == '{')
@@ -848,4 +850,40 @@ void do_cmd_inscribe_auto(char *name, char *inscription)
 	if (cc_ind == -1) return;
 	if (!get_item_by_name(&item, TRUE, TRUE, TRUE, name)) return;
 	send_custom_command(cc_ind, item, 0, 0, inscription);
+}
+
+void do_cmd_uniscribe_by_tag(char cmd, char tag)
+{
+	char old_command_cmd;
+	int item = 0;
+	bool done = FALSE;
+
+	int cc_ind = -1, i;
+	/* Hack -- find uninscribe command (assume it's called '}') */
+	for (i = 0; i < custom_commands; i++) {
+		custom_command_type *cc_ptr = &custom_command[i];
+		if (cc_ptr->m_catch == '{')
+		{
+			cc_ind = i;
+			break;
+		}
+	}
+
+	/* Not found, abort */
+	if (cc_ind < 0) return;
+
+	old_command_cmd = command_cmd;
+	command_cmd = cmd;
+	while (!done)
+	{
+		bool found;
+		found = get_tag(&i, tag);
+		if (found == TRUE)
+		{
+			send_custom_command(cc_ind, item, 0, 0, NULL);
+			done = FALSE;
+		}
+		else done = TRUE;
+	}
+	command_cmd = old_command_cmd;
 }

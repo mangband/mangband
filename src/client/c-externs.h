@@ -51,10 +51,12 @@ extern int server_port;
 
 extern object_type *inventory;
 extern char **inventory_name;
+extern char **inventory_name_one;
 extern byte *inventory_secondary_tester;
 
 extern object_type floor_item;
 extern char floor_name[MAX_CHARS];
+extern char floor_name_one[MAX_CHARS];
 extern byte floor_secondary_tester;
 
 
@@ -187,6 +189,8 @@ extern char *p_name;
 extern player_race *race_info;
 extern player_class *c_info;
 extern s16b *eq_names;
+extern byte *eq_xpos;
+extern byte *eq_ypos;
 
 extern maxima z_info;
 
@@ -273,6 +277,7 @@ extern cptr ANGBAND_DIR_USER;
 extern cptr ANGBAND_DIR_PREF;
 extern cptr ANGBAND_DIR_XTRA;
 extern cptr ANGBAND_DIR_XTRA_SOUND;
+extern cptr ANGBAND_DIR_XTRA_GRAF;
 
 extern int use_graphics;
 extern bool big_tile;
@@ -397,6 +402,7 @@ extern void do_cmd_term_mousepress(u32b termflag, int x, int y, int button);
 extern void cmd_term_mousepress(int i, int x, int y, int button);
 extern void do_cmd_use_item(int item, bool agressive);
 extern void cmd_use_item(void);
+extern bool command_tester_okay(int custom_command_id, int item);
 extern char* macro_find_by_action(cptr buf);
 extern custom_command_type *match_custom_command(char cmd, bool shop);
 extern int command_to_display_name(char cmd, char *dst, size_t len);
@@ -464,6 +470,7 @@ extern bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor);
 extern bool c_check_item(int *item, byte tval);
 extern byte c_secondary_tester(int item);
 extern void do_cmd_inscribe_auto(char *item_name, char *inscription);
+extern void do_cmd_uniscribe_by_tag(char cmd, char tag);
 
 /* c-util.c */
 extern void move_cursor(int row, int col);

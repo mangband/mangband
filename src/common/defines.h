@@ -231,6 +231,13 @@
  */
 #define MAX_SHORT       32767
 
+/*** Ligthing modes ***/
+#define LIGHTING_TORCH 0
+#define LIGHTING_LOS   1
+#define LIGHTING_LITE  2
+#define LIGHTING_DARK  3
+#define LIGHTING_MAX   4
+
 /*
  * RLE encoding modes
  */
@@ -889,7 +896,7 @@
  * Available graphic modes
  */
 #define GRAPHICS_NONE           0
-#define GRAPHICS_ORIGINAL       1
-#define GRAPHICS_ADAM_BOLT      2
-#define GRAPHICS_DAVID_GERVAIS  3
-#define GRAPHICS_PSEUDO         4
+#define GRAPHICS_PLAIN          1
+#define GRAPHICS_TRANSPARENT    2
+#define GRAPHICS_LIGHTMAP       3
+
