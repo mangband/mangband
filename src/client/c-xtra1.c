@@ -3182,6 +3182,7 @@ void redraw_stuff(void)
 void window_stuff(void)
 {
 	int i;
+	u32b window_flags = p_ptr->window; /* Store current flags */
 
 	/* Window stuff */
 	if (!p_ptr->window) return;
@@ -3301,4 +3302,7 @@ void window_stuff(void)
 		p_ptr->window &= ~(PW_ITEMLIST);
 		fix_remote_term(NTERM_WIN_ITEMLIST, PW_ITEMLIST);
 	}
+
+	/* Hack -- trigger Term2 event */
+	Term_window_updated(window_flags);
 }

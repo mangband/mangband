@@ -497,11 +497,19 @@ errr Term_hide_keyboard(void)
 	return 0;
 }
 
+/* Hack -- wrapper around Term2/window_updated_aux (see below) */
+errr Term_window_updated(u32b window_flags)
+{
+	if (window_updated_aux) window_updated_aux(window_flags);
+	return 0;
+}
+
 /**** Redefinable hooks / Term2 ****/
 bool (*cave_char_aux)(int x, int y, byte a, char c, byte ta, char tc) = NULL;
 void (*query_size_aux)(s16b *x, s16b *y, int st) = NULL;
 void (*refresh_char_aux)(int x, int y) = NULL;
 void (*screen_keyboard_aux)(int show, int hint) = NULL;
+void (*window_updated_aux)(u32b flags) = NULL;
 bool (*z_ask_command_aux)(char *prompt) = NULL;
 bool (*z_ask_yn_aux)(char *prompt) = NULL;
 bool (*z_ask_dir_aux)(char *prompt, bool allow_target, bool allow_friend) = NULL;

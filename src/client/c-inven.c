@@ -192,7 +192,7 @@ static int get_tag(int *cp, char tag)
 /* Prompt player for a string, then try to find an item matching it */
 /* Returns "0" if an item was found, "1" if user has abort input, and
  *"-1" if nothing could be found. */
-static errr get_item_by_name(int *k, bool inven, bool equip, bool floor, char *force_str)
+static errr get_item_by_name(int *k, bool inven, bool equip, bool floor_, char *force_str)
 {
 	char buf[256];
 	char *tok;
@@ -254,7 +254,7 @@ static errr get_item_by_name(int *k, bool inven, bool equip, bool floor, char *f
 			}
 		}
 		/* Also try floor */
-		if (floor)
+		if (floor_)
 		{
 			if (floor_item.tval
 			&& item_tester_okay(&floor_item)
@@ -268,6 +268,28 @@ static errr get_item_by_name(int *k, bool inven, bool equip, bool floor, char *f
 	}
 	return -1;
 }
+
+int count_items_by_name(char* name, bool inven, bool equip, bool floor_)
+{
+	byte old_tester;
+	int k;
+	int num = 0;
+
+	/* Hack -- save old tester, reset current */
+	old_tester = item_tester_tval;
+	item_tester_tval = 0;
+
+	if (!get_item_by_name(&k, inven, equip, floor_, name))
+	{
+		num = inventory[k].number;
+	}
+
+	/* Restore old tester */
+	item_tester_tval = old_tester;
+
+	return num;
+}
+
 
 bool c_check_item(int *item, byte tval)
 {
@@ -311,7 +333,7 @@ byte c_secondary_tester(int item)
 	}
 }
 
-bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
+bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor_)
 {
 	char	n1, n2, which = ' ';
 
@@ -373,7 +395,7 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 	if ((e1 != INVEN_WIELD) || (e2 != INVEN_TOTAL - 1)) equip_up = TRUE;
 
 	/* Hack -- restrict floor choice */
-	if (floor_item.tval && floor) allow_floor = item_tester_okay(&floor_item);
+	if (floor_item.tval && floor_) allow_floor = item_tester_okay(&floor_item);
 	
 	if ((i1 > i2) && (e1 > e2) && !allow_floor)
 	{
@@ -627,7 +649,7 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor)
 				/* fallthrough */
 			case '@':
 				/* XXX Lookup item by name */
-				if (!(r = get_item_by_name(&k, inven, equip, floor, (NULL))))
+				if (!(r = get_item_by_name(&k, inven, equip, floor_, (NULL))))
 				{
 					(*cp) = k;
 					item = TRUE;

@@ -145,6 +145,7 @@ void Term2_refresh_char(int x, int y);
 bool Term2_cave_char(int x, int y, byte a, char c, byte ta, char tc);
 void Term2_query_area_size(s16b *x, s16b *y, int st);
 void Term2_screen_keyboard(int show, int hint);
+void Term2_window_updated(u32b flags);
 bool Term2_ask_dir(char *prompt, bool allow_target, bool allow_friend);
 bool Term2_ask_command(char *prompt);
 bool Term2_ask_item(const char *prompt, bool mode, bool inven, bool equip, bool onfloor);
@@ -271,6 +272,8 @@ static bool dragging_icon = FALSE;
 typedef struct SlotData SlotData;
 struct SlotData {
 	char macro_act[1024]; /* Macro to execute */
+	char macro_item[1024]; /* Stand-alone item name (if any) */
+	int item_counter; /* "cached" counter for items */
 	int action;     /* IconAction to execute */
 	int sub_action; /* IconAction argument */
 	int draw;   /* Icon index from UI font */
@@ -416,6 +419,7 @@ errr init_sdl2(void) {
 	query_size_aux = Term2_query_area_size;
 	refresh_char_aux = Term2_refresh_char;
 	screen_keyboard_aux = Term2_screen_keyboard;
+	window_updated_aux = Term2_window_updated;
 	z_ask_command_aux = Term2_ask_command;
 	z_ask_dir_aux = Term2_ask_dir;
 	z_ask_item_aux = Term2_ask_item;
@@ -769,6 +773,14 @@ void Term2_screen_keyboard(int show, int hint)
 		SDL_StopTextInput();
 	}
 #endif
+}
+/* Forward-declare: */static void recountSlotItems(void);
+void Term2_window_updated(u32b flags)
+{
+	if ((flags & PW_INVEN) | (flags & PW_EQUIP))
+	{
+		recountSlotItems();
+	}
 }
 
 bool Term2_ask_command(char *prompt)
@@ -3821,6 +3833,19 @@ static void drawUiIcon(SDL_Rect *dst, int k)
 	SDL_RenderCopy(td->renderer, tx_cmd, &cell_rect, dst);
 }
 
+static void recountSlotItems()
+{
+	size_t i;
+	for (i = 0; i < 10; i++)
+	{
+		SlotData *slot = &quick_slots[i];
+		if (!STRZERO(slot->macro_item))
+		{
+			slot->item_counter = count_items_by_name(slot->macro_item, TRUE, TRUE, TRUE);
+		}
+	}
+}
+
 static void convertIconToSlot(void *slot_p, void *icon_p, int slot_id)
 {
 	SlotData *slot = (SlotData*)slot_p;
@@ -3834,6 +3859,7 @@ static void convertIconToSlot(void *slot_p, void *icon_p, int slot_id)
 	slot->c = 0;
 
 	slot->macro_act[0] = '\0';
+	slot->macro_item[0] = '\0';
 	slot->display[0] = '\0';
 
 	/* Copy quick slot */
@@ -3844,14 +3870,16 @@ static void convertIconToSlot(void *slot_p, void *icon_p, int slot_id)
 		if (orig->action == MICON_LOCAL_EXECUTE_MACRO)
 		{
 			slot->action = orig->action;
-			slot->sub_action = slot_id; /* Important */		
+			slot->sub_action = slot_id; /* Important */
 			my_strcpy(slot->macro_act, orig->macro_act, 1024);
+			my_strcpy(slot->macro_item, orig->macro_item, 1024);
 			my_strcpy(slot->display, orig->display, 1024);
 
 			slot->draw = orig->draw;
 			slot->a = orig->a;
 			slot->c = orig->c;
 			slot->attr = orig->attr;
+			slot->item_counter = orig->item_counter;
 		}
 	}
 	else if (icon->action == MICON_SELECT_SPELL)
@@ -3881,6 +3909,13 @@ static void convertIconToSlot(void *slot_p, void *icon_p, int slot_id)
 		}
 
 		text_to_ascii(slot->macro_act, 1024, buf);
+
+		/* Extract "single name" */
+		buf[0] = '\0';
+		item_as_keystroke(book, cmd, buf, 1024, 0);
+		buf[strlen(buf)-1] = '\0';
+		my_strcpy(slot->macro_item, &buf[1], 1024);
+		slot->item_counter = inventory[book].number;
 
 		my_strcpy(slot->display, spell_info[book][sn] + 5,
 			(icon->pos.w+16+1) / tiny_font.w);
@@ -3916,9 +3951,19 @@ static void convertIconToSlot(void *slot_p, void *icon_p, int slot_id)
 
 		text_to_ascii(slot->macro_act, 1024, buf);
 
+		/* Extract "single name" */
+		buf[0] = '\0';
+		item_as_keystroke(idx, cmd, buf, 1024, 0);
+		buf[strlen(buf)-1] = '\0';
+		my_strcpy(slot->macro_item, &buf[1], 1024);
+		slot->item_counter = inventory[idx].number;
+
 		slot->action = MICON_LOCAL_EXECUTE_MACRO;
 		slot->sub_action = slot_id;
 	}
+
+	/* Always do it after creating new slot */
+	recountSlotItems();
 }
 
 static void handleMIcon(int action, int sub_action)
@@ -4578,13 +4623,16 @@ static void drawIconPanel_Slots(SDL_Rect *size)
 	int i, j;
 	int spacing = 16;
 	SDL_Rect pos = { 0, 0, 32, 32 };
+	int fw = terms[0].font_data->w;
+	int fh = terms[0].font_data->h;
 	char posbuf[2] = { 0 };
+	char numbuf[8] = { 0 };
 	pos.x = size->x;
 	pos.y = size->y;
 	pos.w *= 2;
 	pos.h *= 2;
 	SDL_SetTextureAlphaMod(terms[0].pict_texture, 255);
-	SDL_SetTextureColorMod(terms[0].pict_texture, 255,255,255);
+	SDL_SetTextureColorMod(terms[0].pict_texture, 255, 255, 255);
 	for (i = 0; i < 10; i++)
 	{
 		SDL_Rect pre_pos;
@@ -4599,13 +4647,14 @@ static void drawIconPanel_Slots(SDL_Rect *size)
 			}
 			else
 			{
-				SDL_SetRenderDrawColor(terms[0].renderer, 255, 255, 255, 190);			
-			}	
+				SDL_SetRenderDrawColor(terms[0].renderer, 255, 255, 255, 190);
+			}
 		}
 		else
 		{
 			SDL_SetRenderDrawColor(terms[0].renderer, 255, 255, 255, 64);
 		}
+
 		SDL_RenderDrawRect(terms[0].renderer, &pos);
 
 		iconText(pos.x+1, pos.y+1, TERM_WHITE, posbuf, FALSE);
@@ -4616,8 +4665,16 @@ static void drawIconPanel_Slots(SDL_Rect *size)
 		renderMIcon(size, &pos, MICON_LOCAL_QUICK_SLOT, i, slot->draw, spacing);
 
 		if (!STRZERO(slot->display))
+		{
 			iconText(pre_pos.x + 1, pre_pos.y + pos.h - tiny_font.h - 1,
 				slot->attr, slot->display, TRUE);
+		}
+		else if (!STRZERO(slot->macro_item))
+		{
+			strnfmt(numbuf, 8, "%2d", slot->item_counter);
+			iconText(pre_pos.x + pre_pos.w - fw * 2, pre_pos.y + pos.h - fh,
+				TERM_WHITE, numbuf, FALSE);
+		}
 
 		if (pos.y >= size->y + size->h) break;
 	}
