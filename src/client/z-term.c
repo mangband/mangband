@@ -493,7 +493,7 @@ errr Term_show_keyboard(int hint)
 }
 errr Term_hide_keyboard(void)
 {
-	if (screen_keyboard_aux) screen_keyboard_aux(1, 0);
+	if (screen_keyboard_aux) screen_keyboard_aux(0, 0);
 	return 0;
 }
 

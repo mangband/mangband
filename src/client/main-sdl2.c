@@ -27,7 +27,6 @@ TODO:
 #include "sdl-sound.h"
 
 #ifdef WINDOWS
-#define snprintf _snprintf
 double fmin(double x, double y)
 {
 	return (x < y ? x : y);
@@ -2206,7 +2205,7 @@ static void handleMouseClick(int i, int wx, int wy, int sdlbutton)
 		int button = 0;
 		int cx = (wx - terms[i].ren_rect.x) / terms[i].cell_w;
 		int cy = (wy - terms[i].ren_rect.y) / terms[i].cell_h;
-		if (terms[i].config & TERM_DO_SCALE)
+		if ((terms[i].config & TERM_DO_SCALE) && !screen_icky)
 		{
 			if (wx >= terms[i].ren_rect.x + terms[i].dng_rect.x
 			 && wy >= terms[i].ren_rect.y + terms[i].dng_rect.y
@@ -2584,6 +2583,7 @@ static int hackyShift(int key)
 	else if (key == '.') return '<';
 	else if (key == ',') return '>';
 	else if (key == '/') return '?';
+	return key;
 }
 
 static void handleKeyboardEvent(SDL_Event *ev)
@@ -3634,7 +3634,7 @@ static void renderIconOverlay(TermData *td)
 		drawIconPanel_Slots(&pane2);
 	}
 
-	if (screen_icky) return;
+	if (screen_icky && !shopping) return;
 	if (section_icky_row) return;
 
 	SDL_SetRenderDrawBlendMode(td->renderer, SDL_BLENDMODE_BLEND);
@@ -4205,8 +4205,8 @@ static void renderMIcon(SDL_Rect *panel, SDL_Rect *pos, int action, int sub_acti
 static void drawIconPanel_Commands(SDL_Rect *size, int filter)
 {
 	int i;
-	int spacing = 16;
-	SDL_Rect pos = { 0, 0, 32, 32 };
+	int spacing = MICON_S;
+	SDL_Rect pos = { 0, 0, MICON_W, MICON_H };
 	pos.x = size->x;
 	pos.y = size->y;
 	pos.w *= 2;

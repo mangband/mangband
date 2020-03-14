@@ -902,7 +902,7 @@ custom_command_type *match_custom_command(char cmd, bool shop)
 }
 command_type *match_builtin_command(char cmd)
 {
-	int i, j;
+	size_t i, j;
 	for (j = 0; j < N_ELEMENTS(cmds_all); j++)
 	{
 		for (i = 0; i < cmds_all[j].len; i++)
@@ -1499,7 +1499,7 @@ static u32b do_cmd_term_store(int x, int y, int button)
 	char cmd = 0;
 	int btn, mods = 0;
 
-	if (item < 0 || item >= store.stock_num) return 0;
+	if (item < 0 || item >= 12) return 0;
 
 	btn = mouse_button_mods(button, &mods);
 
