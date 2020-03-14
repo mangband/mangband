@@ -291,6 +291,7 @@ void process_command()
 		}
 	}
 
+#ifndef MOBILE_UI
 	/* Hack -- pick command from a menu */
 	if (command_cmd == '\r')
 	{
@@ -301,6 +302,7 @@ void process_command()
 			return;
 		}
 	}
+#endif
 
 	/* Parse the command */
 	switch (command_cmd)
@@ -520,11 +522,13 @@ void process_command()
 			break;
 		}
 
+#ifndef MOBILE_UI
 		case '%':
 		{
 			interact_macros();
 			break;
 		}
+#endif
 
 		case '!':
 		{
