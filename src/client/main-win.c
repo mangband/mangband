@@ -1317,7 +1317,7 @@ static errr term_force_font(term_data *td, cptr name)
  *
  * This function returns zero only if everything succeeds.
  */
-static errr term_force_graf(term_data *td, cptr name)
+static errr term_force_graf(term_data *td, graphics_mode *gm)
 {
 	int i, is_png = 0;
 
@@ -1325,36 +1325,19 @@ static errr term_force_graf(term_data *td, cptr name)
 
 	cptr s;
 
-	char base[16];
-
-	char base_graf[16];
-
 	char buf[1024];
 
 	/* No name */
-	if (!name) return (1);
+	if (!gm->file) return (1);
 
 	/* Extract the base name (with suffix) */
-	s = extract_file_name(name);
+	s = gm->file;
 
 	/* Extract font width */
-	wid = atoi(s);
+	wid = gm->cell_width;
 
 	/* Default font height */
-	hgt = 0;
-
-	/* Copy, capitalize, remove suffix, extract width */
-	for (i = 0; (i < 16 - 1) && s[i] && (s[i] != '.'); i++)
-	{
-		/* Capitalize */
-		base[i] = FORCEUPPER(s[i]);
-
-		/* Extract "hgt" when found */
-		if (base[i] == 'X') hgt = atoi(s+i+1);
-	}
-
-	/* Terminate */
-	base[i] = '\0';
+	hgt = gm->cell_height;
 
 	/* Require actual sizes */
 	if (!wid || !hgt) return (1);
@@ -1362,12 +1345,8 @@ static errr term_force_graf(term_data *td, cptr name)
 	/* Check if we need PNG loader */
 	if (isuffix(s, ".png")) is_png = TRUE;
 
-	/* Build base_graf */
-	strcpy(base_graf, base);
-	strcat(base_graf, is_png ? ".PNG" : ".BMP");
-
 	/* Access the graf file */
-	path_build(buf, 1024, ANGBAND_DIR_XTRA_GRAF, base_graf);
+	path_build(buf, 1024, ANGBAND_DIR_XTRA_GRAF, gm->file);
 
 	/* Verify file */
 	if (!check_file(buf)) return (1);
@@ -1484,6 +1463,7 @@ static void term_change_font(term_data *td)
 
 #ifdef USE_GRAPHICS
 
+#if 0 /* Manual change disabled */
 /*
  * Allow the user to change the graf (and font) for a window
  *
@@ -1528,6 +1508,7 @@ static void term_change_bitmap(term_data *td)
 		}
 	}
 }
+#endif
 
 #endif
 
@@ -2002,6 +1983,7 @@ static errr Term_pict_win(int x, int y, int n, const byte *ap, const char *cp, c
 	int x1, y1, w1, h1;
 	int x2, y2, w2, h2;
 	int x3, y3;
+	graphics_mode *gm;
 
 	/* Paranoia -- handle weird requests */
 	if (!use_graphics)
@@ -2009,6 +1991,8 @@ static errr Term_pict_win(int x, int y, int n, const byte *ap, const char *cp, c
 		/* First, erase the grid */
 		return (Term_wipe_win(x, y, 1));
 	}
+
+	gm = get_graphics_mode((byte)use_graphics);
 
 	Term_wipe_win(x, y, n);
 
@@ -2048,8 +2032,7 @@ static errr Term_pict_win(int x, int y, int n, const byte *ap, const char *cp, c
 	hdcSrc = CreateCompatibleDC(hdc);
 	hbmSrcOld = SelectObject(hdcSrc, infGraph.hBitmap);
 
-	if ((use_graphics == GRAPHICS_ADAM_BOLT) ||
-	    (use_graphics == GRAPHICS_DAVID_GERVAIS))
+	if (gm->transparent)
 	{
 		hdcMask = CreateCompatibleDC(hdc);
 		SelectObject(hdcMask, infMask.hBitmap);
@@ -2073,8 +2056,7 @@ static errr Term_pict_win(int x, int y, int n, const byte *ap, const char *cp, c
 		x1 = col * w1;
 		y1 = row * h1;
 
-		if ((use_graphics == GRAPHICS_ADAM_BOLT) ||
-			(use_graphics == GRAPHICS_DAVID_GERVAIS))
+		if (gm->transparent)
 		{
 			x3 = (tcp[i] & 0x7F) * w1;
 			y3 = (tap[i] & 0x7F) * h1;
@@ -2141,8 +2123,7 @@ static errr Term_pict_win(int x, int y, int n, const byte *ap, const char *cp, c
 	SelectObject(hdcSrc, hbmSrcOld);
 	DeleteDC(hdcSrc);
 
-	if ((use_graphics == GRAPHICS_ADAM_BOLT) ||
-	    (use_graphics == GRAPHICS_DAVID_GERVAIS))
+	if (gm->transparent)
 	{
 		/* Release */
 		SelectObject(hdcMask, hbmSrcOld);
@@ -2409,7 +2390,7 @@ static void init_windows(void)
 		/* XXX XXX XXX Force the "standard" bitmap */
 		graphics_mode *gm = get_graphics_mode((byte)use_graphics);
 
-		(void)term_force_graf(&win_data[0], gm->pict);
+		(void)term_force_graf(&win_data[0], gm);
 	}
 
 #endif
@@ -2642,9 +2623,9 @@ static void setup_menus(void)
 	for (i = 0; i < 8; i++)
 	{
 		/* Replace "Tileset N" string with actual tileset name */
-		if (i < get_num_graphics_modes())
+		if ((1 + i) <= get_num_graphics_modes())
 		{
-			graphics_mode *gm = get_graphics_modes((byte)i);
+			graphics_mode *gm = get_graphics_mode((byte)(1 + i));
 			MENUITEMINFO menuitem = { sizeof(MENUITEMINFO) };
 			GetMenuItemInfo(hm, IDM_GRAPHICS_TILESET_1 + i, FALSE, &menuitem);
 			menuitem.fMask = MIIM_TYPE | MIIM_DATA;
@@ -2657,7 +2638,7 @@ static void setup_menus(void)
 		              MF_BYCOMMAND | (next_graphics == 1 + i ? MF_CHECKED : MF_UNCHECKED));
 
 		/* XXX Delete unused menu entries */
-		if (i >= get_num_graphics_modes() && next_graphics < i + 1)
+		if ((1 + i) > get_num_graphics_modes())
 		RemoveMenu(hm, IDM_GRAPHICS_TILESET_1 + i, MF_BYCOMMAND);
 	}
 
@@ -3783,6 +3764,10 @@ void static init_stuff_win(void)
 
 	char path[1024];
 
+#ifdef USE_GRAPHICS
+	graphics_mode *gm;
+#endif
+
 	/* XXX XXX XXX */
 	strcpy(path, conf_get_string("Windows32", "LibPath", ".\\lib"));
 
@@ -3840,12 +3825,15 @@ void static init_stuff_win(void)
 	/* Validate the "graf" directory */
 	validate_dir(ANGBAND_DIR_XTRA_GRAF);
 
-	/* Build the filename */
-	path_build(path, 1024, ANGBAND_DIR_XTRA_GRAF, gm->file);
+	/* Pick graphics mode */
+	if ((gm = get_graphics_mode((byte)use_graphics)))
+	{
+		/* Build the filename */
+		path_build(path, 1024, ANGBAND_DIR_XTRA_GRAF, gm->file);
 
-	/* Hack -- Validate the basic graf */
-	validate_file(path);
-
+		/* Hack -- Validate the basic graf */
+		validate_file(path);
+	}
 #endif
 
 
