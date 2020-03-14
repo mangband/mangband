@@ -1371,7 +1371,7 @@ void request_command(bool shopping)
 	/* Flush the input */
 	/* flush(); */
 
-	if (z_ask_command_aux) z_ask_command_aux(NULL);
+	if (z_ask_command_aux) z_ask_command_aux(NULL, shopping);
 
 	/* Get a keypress in "command" mode */
 

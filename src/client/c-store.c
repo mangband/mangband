@@ -574,6 +574,9 @@ void display_store(void)
 			Term_fresh();
 		}
 
+		/* Hack -- shopping command */
+		if (z_ask_command_aux) z_ask_command_aux(NULL, TRUE);
+
 		inkey_nonblock = TRUE;
 		command_cmd_ex = inkey_ex();
 		command_cmd = command_cmd_ex.key;

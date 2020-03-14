@@ -147,7 +147,7 @@ void Term2_query_area_size(s16b *x, s16b *y, int st);
 void Term2_screen_keyboard(int show, int hint);
 void Term2_window_updated(u32b flags);
 bool Term2_ask_dir(char *prompt, bool allow_target, bool allow_friend);
-bool Term2_ask_command(char *prompt);
+bool Term2_ask_command(char *prompt, bool shopping);
 bool Term2_ask_item(const char *prompt, bool mode, bool inven, bool equip, bool onfloor);
 bool Term2_ask_spell(const char *prompt, int realm, int book);
 
@@ -230,6 +230,7 @@ enum IconContext {
 	MICONS_QUICKEST,
 	MICONS_ALTER,
 	MICONS_INVEN,
+	MICONS_STORE,
 	MICONS_EQUIP,
 	MICONS_SPELLS,
 	MICONS_SELECTOR_CLOSE,
@@ -783,9 +784,10 @@ void Term2_window_updated(u32b flags)
 	}
 }
 
-bool Term2_ask_command(char *prompt)
+bool Term2_ask_command(char *prompt, bool shopping)
 {
 	term2_icon_context = MICONS_COMMANDS;
+	if (shopping) term2_icon_context = MICONS_STORE;
 	return FALSE;
 }
 
@@ -3675,6 +3677,11 @@ static void renderIconOverlay(TermData *td)
 		SDL_Rect pane2 = { max_w - (64) * 5, top + 64, (64) * 5, (64) * 5 };
 		drawIconPanel_Spells(&pane2, micon_spell_realm, micon_spell_book);
 	}
+	else if (term2_icon_context == MICONS_STORE)
+	{
+		SDL_Rect pane = { max_w - 64, top + 64, MICON_W * 1, max_h };
+		drawIconPanel_Commands(&pane, MICONS_STORE);
+	}
 	/* User pref */
 	else if (term2_icon_pref == MICONS_INVEN)
 	{
@@ -4029,6 +4036,12 @@ static void handleMIcon(int action, int sub_action)
 			case MICON_LOCAL_COMMAND_HACK:
 			{
 				int key = sub_action;
+				/* Hack -- simplify spacebar press */
+				if (key == ' ')
+				{
+					Term_keypress(key);
+					break;
+				}
 				Term_keypress(29);
 				Term_keypress('\f');
 				Term_keypress(ESCAPE);
@@ -4044,6 +4057,12 @@ static void handleMIcon(int action, int sub_action)
 			{
 				int key = sub_action;
 				custom_command_type *cmd = &custom_command[sub_action];
+				/* Hack -- shop commands are handled differently: */
+				if (cmd->flag & COMMAND_STORE)
+				{
+					Term_keypress(cmd->m_catch);
+					break;
+				}
 				Term_keypress(29);
 				Term_keypress('\f');
 				Term_keypress(ESCAPE);
@@ -4329,6 +4348,14 @@ static void drawIconPanel_Commands(SDL_Rect *size, int filter)
 				}
 			}
 		}
+		if (filter == MICONS_STORE)
+		{
+			//if (!(cmd->flag & COMMAND_ITEM_INVEN)) continue;
+			if (!(cmd->flag & COMMAND_STORE)) continue;
+			if (cmd->m_catch == 's') draw_key = 0xEE;
+			if (cmd->m_catch == 'p') draw_key = 0xE2;
+			if (cmd->m_catch == 'l') draw_key = 'I';
+		}
 		if (filter == MICONS_SPELLS)
 		{
 			if (!(cmd->flag & COMMAND_SPELL_BOOK)
@@ -4356,6 +4383,11 @@ static void drawIconPanel_Commands(SDL_Rect *size, int filter)
 		renderMIcon(size, &pos, MICON_LOCAL_COMMAND_HACK, ':', ':', spacing);
 		renderMIcon(size, &pos, MICON_LOCAL_COMMAND_HACK, KTRL('D'), 0xE4, spacing);
 		renderMIcon(size, &pos, MICON_LOCAL_COMMAND_HACK, KTRL('P'), 0xF0, spacing);
+	}
+	if (filter == MICONS_STORE)
+	{
+		SDL_SetTextureColorMod(tx_cmd, TERM_RGB(TERM_WHITE));
+		renderMIcon(size, &pos, MICON_LOCAL_COMMAND_HACK, ' ', '3', spacing);
 	}
 	
 	/* Undo modulation */
