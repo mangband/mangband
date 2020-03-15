@@ -775,13 +775,17 @@ void Term2_screen_keyboard(int show, int hint)
 	}
 #endif
 }
+#ifdef USE_ICON_OVERLAY
 /* Forward-declare: */static void recountSlotItems(void);
+#endif
 void Term2_window_updated(u32b flags)
 {
+#ifdef USE_ICON_OVERLAY
 	if ((flags & PW_INVEN) | (flags & PW_EQUIP))
 	{
 		recountSlotItems();
 	}
+#endif
 }
 
 bool Term2_ask_command(char *prompt, bool shopping)
@@ -3840,7 +3844,7 @@ static void drawUiIcon(SDL_Rect *dst, int k)
 	SDL_RenderCopy(td->renderer, tx_cmd, &cell_rect, dst);
 }
 
-static void recountSlotItems()
+static void recountSlotItems(void)
 {
 	size_t i;
 	for (i = 0; i < 10; i++)
