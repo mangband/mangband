@@ -272,12 +272,16 @@ static errr get_item_by_name(int *k, bool inven, bool equip, bool floor_, char *
 int count_items_by_name(char* name, bool inven, bool equip, bool floor_)
 {
 	byte old_tester;
+	bool old_spellcasting;
 	int k;
 	int num = 0;
 
 	/* Hack -- save old tester, reset current */
 	old_tester = item_tester_tval;
 	item_tester_tval = 0;
+	/* Same for "spellcasting" flag */
+	old_spellcasting = spellcasting;
+	spellcasting = FALSE;
 
 	if (!get_item_by_name(&k, inven, equip, floor_, name))
 	{
@@ -286,6 +290,8 @@ int count_items_by_name(char* name, bool inven, bool equip, bool floor_)
 
 	/* Restore old tester */
 	item_tester_tval = old_tester;
+	/* Restore spellcasting flag */
+	spellcasting = old_spellcasting;
 
 	return num;
 }
