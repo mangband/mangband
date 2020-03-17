@@ -242,3 +242,5 @@ static void convertIconToSlot(void *slot, void *icon, int slot_id);
 #define MICO_SPELL_UNKNOWN 0xD5
 #define MICO_SPELL_ILLEGIBLE 0xD6
 #define MICO_SPELL_PROJECT 0xD7
+#define MICO_SELL 0xEE
+#define MICO_PURCHASE 0xE2

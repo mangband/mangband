@@ -4356,8 +4356,8 @@ static void drawIconPanel_Commands(SDL_Rect *size, int filter)
 		{
 			//if (!(cmd->flag & COMMAND_ITEM_INVEN)) continue;
 			if (!(cmd->flag & COMMAND_STORE)) continue;
-			if (cmd->m_catch == 's') draw_key = 0xEE;
-			if (cmd->m_catch == 'p') draw_key = 0xE2;
+			if (cmd->m_catch == 's') draw_key = MICO_SELL;
+			if (cmd->m_catch == 'p') draw_key = MICO_PURCHASE;
 			if (cmd->m_catch == 'l') draw_key = 'I';
 		}
 		if (filter == MICONS_SPELLS)
