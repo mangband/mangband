@@ -181,6 +181,14 @@ static bool isHighDPI(void)
 	return (winW == highW && winH == highH) ? FALSE : TRUE;
 #endif
 }
+static void mobileForceOptions(void)
+{
+#ifdef USE_ICON_OVERLAY
+	auto_itemlist = FALSE;
+	auto_showlist = FALSE;
+	auto_accept = FALSE;
+#endif
+}
 static void mobileAutoLayout(void)
 {
 	TermData *td = &terms[0];
@@ -2866,6 +2874,12 @@ static errr xtraTermHook(int n, int v) {
 		SDL_SetRenderDrawBlendMode(td->renderer, SDL_BLENDMODE_BLEND);
 		return 0; // clear?
 	case TERM_XTRA_REACT:
+#ifdef MOBILE_UI
+		if (v == TERM_XTRA_REACT_OPTIONS)
+		{
+			mobileForceOptions();
+		}
+#endif
 		setTermTitle(&terms[TERM_MAIN]);
 		refreshTerm(&terms[TERM_MAIN]);
 		return 0; // react?
