@@ -164,7 +164,6 @@ static errr pictTermHook_ALT(int x, int y, int n, const byte *ap, const char *cp
 static errr loadUiCircle(void);
 static void unloadUiCircle(void);
 static void updateLisenglas(int wx, int wy);
-static void renderZoomOverlay(TermData *td);
 
 /* MIcons Overlay */
 enum IconAction {
@@ -200,7 +199,6 @@ static void unloadTinyFont(void);
 static void renderIconOverlay(TermData *td);
 static void altCoord(int wx, int wy, int *x, int *t);
 static void renderLisenGlas(TermData *td);
-static void drawIconPanel(SDL_Rect *size, int ctx);
 static void drawIconPanel_Commands(SDL_Rect *size, int filter);
 static void drawIconPanel_Direction(SDL_Rect *size, bool allow_target, bool allow_friend);
 static void drawIconPanel_Confirmation(SDL_Rect *size);

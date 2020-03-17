@@ -1418,7 +1418,7 @@ static void rerender()
 		}
 		if (terms[i].need_cutout) {
 			altDungeonCutout();
-			terms[i].need_cutout = 0;
+			terms[i].need_cutout = FALSE;
 		}
 	}
 	for (i = 0; i < TERM_MAX; i++) {
@@ -4110,7 +4110,6 @@ static void handleMIcon(int action, int sub_action)
 			/* Command! */
 			case MICON_RUN_COMMAND:
 			{
-				int key = sub_action;
 				custom_command_type *cmd = &custom_command[sub_action];
 				/* Hack -- shop commands are handled differently: */
 				if (cmd->flag & COMMAND_STORE)
