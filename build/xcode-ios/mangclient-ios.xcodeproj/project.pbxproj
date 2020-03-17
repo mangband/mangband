@@ -56,6 +56,7 @@
 		2E29DE752303FA6C00415961 /* Default.png in Resources */ = {isa = PBXBuildFile; fileRef = 2E29DE722303FA6C00415961 /* Default.png */; };
 		2E29DE772303FA6C00415961 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 2E29DE742303FA6C00415961 /* Default-568h@2x.png */; };
 		2E41F9FF23D4A71E00A9FD1A /* grafmode.c in Sources */ = {isa = PBXBuildFile; fileRef = 2E41F9F023D4A71E00A9FD1A /* grafmode.c */; };
+		2E975A672420A810009B2190 /* CoreBluetooth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2E975A592420A810009B2190 /* CoreBluetooth.framework */; };
 		2E9B33422405A116003E24BD /* sha1.c in Sources */ = {isa = PBXBuildFile; fileRef = 2E9B33402405A116003E24BD /* sha1.c */; };
 		2E9B33432405A116003E24BD /* base64encode.c in Sources */ = {isa = PBXBuildFile; fileRef = 2E9B33412405A116003E24BD /* base64encode.c */; };
 		2EA8D715230D55D700EBF4A1 /* libSDL2_ttf.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2EA8D710230D557800EBF4A1 /* libSDL2_ttf.a */; };
@@ -212,6 +213,7 @@
 		2E41F9F023D4A71E00A9FD1A /* grafmode.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = grafmode.c; path = ../../src/client/grafmode.c; sourceTree = "<group>"; };
 		2E41F9FE23D4A71E00A9FD1A /* grafmode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = grafmode.h; path = ../../src/client/grafmode.h; sourceTree = "<group>"; };
 		2E50683F23040445009E8074 /* h-config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "h-config.h"; path = "../../src/h-config.h"; sourceTree = "<group>"; };
+		2E975A592420A810009B2190 /* CoreBluetooth.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreBluetooth.framework; path = System/Library/Frameworks/CoreBluetooth.framework; sourceTree = SDKROOT; };
 		2E9B33312405A116003E24BD /* sha1.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sha1.h; path = ../../src/common/sha1.h; sourceTree = "<group>"; };
 		2E9B333F2405A116003E24BD /* base64encode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = base64encode.h; path = ../../src/common/base64encode.h; sourceTree = "<group>"; };
 		2E9B33402405A116003E24BD /* sha1.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = sha1.c; path = ../../src/common/sha1.c; sourceTree = "<group>"; };
@@ -235,6 +237,7 @@
 			files = (
 				2E29DE36230181A600415961 /* libSDL2.a in Frameworks */,
 				2EA8D715230D55D700EBF4A1 /* libSDL2_ttf.a in Frameworks */,
+				2E975A672420A810009B2190 /* CoreBluetooth.framework in Frameworks */,
 				2E22CDF2230152A600CDE5A4 /* Metal.framework in Frameworks */,
 				2EE023F123009C0B00BA0836 /* AVFoundation.framework in Frameworks */,
 				FAE0E9651BAF967F0098DFA4 /* GameController.framework in Frameworks */,
@@ -337,6 +340,7 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				2E975A592420A810009B2190 /* CoreBluetooth.framework */,
 				2E22CDE8230152A600CDE5A4 /* Metal.framework */,
 				2EE023DD23009C0B00BA0836 /* AVFoundation.framework */,
 				FAE0E9641BAF967F0098DFA4 /* GameController.framework */,

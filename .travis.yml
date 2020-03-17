@@ -78,7 +78,7 @@ matrix:
       compiler: ""
       env: BUILDING_FOR_IOS="YES" SDL="2s" # "2s" instead of "2" to skip homebrew
       before_script:
-        - export SDL_VERSION="2.0.10"
+        - export SDL_VERSION="2.0.12"
         - export SDL_TTF_VERSION="2.0.15"
         - cd ..
         - curl -O https://libsdl.org/release/SDL2-${SDL_VERSION}.tar.gz
