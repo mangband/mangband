@@ -1687,6 +1687,9 @@ bool get_check(cptr prompt)
 	/* Get an acceptable answer */
 	while (TRUE)
 	{
+		/* Hack -- ask term2 */
+		if (z_ask_confirm_aux) z_ask_confirm_aux(buf);
+
 		i = inkey();
 		if (i == ESCAPE) break;
 		if (strchr("YyNn", i)) break;

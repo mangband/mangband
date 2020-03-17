@@ -150,6 +150,7 @@ bool Term2_ask_dir(char *prompt, bool allow_target, bool allow_friend);
 bool Term2_ask_command(char *prompt, bool shopping);
 bool Term2_ask_item(const char *prompt, bool mode, bool inven, bool equip, bool onfloor);
 bool Term2_ask_spell(const char *prompt, int realm, int book);
+bool Term2_ask_confirm(const char *prompt);
 
 
 /* Helpers */
@@ -225,6 +226,7 @@ enum IconContext {
 	MICONS_ITEM,
 	MICONS_SPELL,
 	MICONS_COMMANDS,
+	MICONS_CONFIRMATION,
 
 	MICONS_SYSTEM,
 	MICONS_QUICKEST,
@@ -425,6 +427,7 @@ errr init_sdl2(void) {
 	z_ask_dir_aux = Term2_ask_dir;
 	z_ask_item_aux = Term2_ask_item;
 	z_ask_spell_aux = Term2_ask_spell;
+	z_ask_confirm_aux = Term2_ask_confirm;
 
 	return 0;
 }
@@ -818,6 +821,12 @@ bool Term2_ask_spell(const char *prompt, int realm, int book)
 	micon_spell_book = book;
 	return FALSE;
 }
+bool Term2_ask_confirm(const char *prompt)
+{
+	term2_icon_context = MICONS_CONFIRMATION;
+	return FALSE;
+}
+
 
 void net_stream_clamp(int addr, int *x, int *y) {
 	int i;
@@ -3666,6 +3675,11 @@ static void renderIconOverlay(TermData *td)
 		SDL_Rect pane = { max_w - icon_ws * 3, max_h - icon_hs * 3, icon_ws * 3, icon_hs * 3 };
 		drawIconPanel_Direction(&pane, micon_allow_target, micon_allow_friend);
 	}
+	else if (term2_icon_context == MICONS_CONFIRMATION)
+	{
+		SDL_Rect pane = { max_w / 2 - icon_ws * 2, max_h / 2 - icon_hs / 2, icon_ws * 3 * 2, icon_hs};
+		drawIconPanel_Confirmation(&pane);
+	}
 	else if (term2_icon_context == MICONS_ITEM)
 	{
 		SDL_Rect pane2 = { max_w - (64) * 4 - 1, top + icon_hs, (64) * 4 + 1, (64) * 5 };
@@ -4126,6 +4140,13 @@ static void handleMIcon(int action, int sub_action)
 				Term_keypress(key);
 			}
 			break;
+			/* Confirmation */
+			case MICON_SINGLE_KEY:
+			{
+				int key = sub_action;
+				Term_keypress(key);
+			}
+			break;
 			/* Item selection */
 			case MICON_SELECT_INVEN:
 			{
@@ -4413,6 +4434,25 @@ static void drawIconPanel_Direction(SDL_Rect *size, bool allow_target, bool allo
 		int j = dirs[i];
 		int draw = '0' + j;
 		renderMIcon(size, &pos, MICON_PICK_DIRECTION, j, draw, spacing);
+		if (pos.y >= size->y + size->h) break;
+	}
+}
+
+static void drawIconPanel_Confirmation(SDL_Rect *size)
+{
+	int i;
+	int spacing = MICON_W * 2;
+	int keys[2] = { 'y', 'n' };
+	int syms[2] = { MICO_YES, MICO_NO };
+	SDL_Rect pos = { 0, 0, MICON_W * 2, MICON_H * 2 };
+	pos.x = size->x;
+	pos.y = size->y;
+	pos.w *= 2;
+	pos.h *= 2;
+	spacing *= 2;
+	for (i = 0; i < 2; i++)
+	{
+		renderMIcon(size, &pos, MICON_SINGLE_KEY, keys[i], syms[i], spacing);
 		if (pos.y >= size->y + size->h) break;
 	}
 }

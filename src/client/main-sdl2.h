@@ -203,6 +203,7 @@ static void renderLisenGlas(TermData *td);
 static void drawIconPanel(SDL_Rect *size, int ctx);
 static void drawIconPanel_Commands(SDL_Rect *size, int filter);
 static void drawIconPanel_Direction(SDL_Rect *size, bool allow_target, bool allow_friend);
+static void drawIconPanel_Confirmation(SDL_Rect *size);
 static void drawIconPanel_Selector(SDL_Rect *size, int filter);
 static void drawIconPanel_Inventory(SDL_Rect *size, bool allow_inven, bool allow_equip, bool allow_floor);
 static void drawIconPanel_Equipment(SDL_Rect *size, bool allow_inven, bool allow_equip, bool allow_floor);
