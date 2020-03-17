@@ -1501,6 +1501,11 @@ void cmd_mouseclick()
 		}
 	} /* XXX XXX XXX */
 
+	/* If the mouse is outside the dungeon, do nothing. */
+	if (ke.mousex - DUNGEON_OFFSET_X < 0
+	 || ke.mousey - DUNGEON_OFFSET_Y < 0)
+		return;
+
 	send_mouse(0
 	  | (btn == 1 ? MCURSOR_LMB : 0)
 	  | (btn == 2 ? MCURSOR_MMB : 0)
