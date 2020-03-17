@@ -4096,12 +4096,6 @@ static void handleMIcon(int action, int sub_action)
 			case MICON_LOCAL_COMMAND_HACK:
 			{
 				int key = sub_action;
-				/* Hack -- simplify spacebar press */
-				if (key == ' ')
-				{
-					Term_keypress(key);
-					break;
-				}
 				Term_keypress(29);
 				Term_keypress('\f');
 				Term_keypress(ESCAPE);
@@ -4454,7 +4448,7 @@ static void drawIconPanel_Commands(SDL_Rect *size, int filter)
 	if (filter == MICONS_STORE)
 	{
 		SDL_SetTextureColorMod(tx_cmd, TERM_RGB(TERM_WHITE));
-		renderMIcon(size, &pos, MICON_LOCAL_COMMAND_HACK, ' ', '3', spacing);
+		renderMIcon(size, &pos, MICON_SINGLE_KEY, ' ', '3', spacing);
 	}
 	
 	/* Undo modulation */
