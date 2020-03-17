@@ -410,12 +410,12 @@ errr init_sdl2(void) {
 
 #ifdef USE_ICON_OVERLAY
 	loadCmdFont("ui-cmd.ttf");
-#ifdef USE_SDL2_TTF
+#  ifdef USE_SDL2_TTF
 	loadTinyFont("5X8.FON");
-#else
+#  else
 	loadTinyFont("misc6x13.hex");
+#  endif
 #endif
-	#endif
 
 #ifdef USE_LISENGLAS
 	loadUiCircle();
@@ -445,6 +445,15 @@ void quit_sdl2(cptr s)
 {
 	/* save all values */
 	saveConfig();
+
+	/* Unload various things */
+#ifdef USE_ICON_OVERLAY
+	unloadCmdFont();
+	unloadTinyFont();
+#endif
+#ifdef USE_LISENSGLAS
+	unloadUiCircle();
+#endif
 
 	/* Call regular quit hook */
 	quit_hook(s);
