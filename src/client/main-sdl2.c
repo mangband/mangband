@@ -3511,8 +3511,13 @@ static void updateLisenglas(int wx, int wy)
 	/* Finger inside */
 	if (wy >= lisen_y && wy <= lisen_y + LISEN_H*2 + 32)
 	{
-		/* Downwards */
-		lisen_y = wy + LISEN_H - 32;
+#ifndef MOBILE_UI
+		/* Downwards (this looks most logical) */
+		lisen_x -= wy + LISEN_H - 32;
+#else
+		/* Leftwards (on mobile, we should never draw UNDER the finger) */
+		lisen_x -= lh;
+#endif
 	}
 
 	/* Clamp left/right */
