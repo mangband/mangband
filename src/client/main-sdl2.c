@@ -2572,7 +2572,11 @@ static void handleMouseEvent(SDL_Event *ev)
 				dragging_icon = FALSE;
 				return;
 			}
-			//icon_hover = matchIcon(wx, wy);
+#ifdef MOBILE_UI
+			/* On mobile, it's possible to press without hovering first,
+			 * so we shall re-evalute the button we're over */
+			icon_hover = matchIcon(wx, wy);
+#endif
 			if (icon_hover >= 0)
 			{
 				handleMIcon(icons[icon_hover].action, icons[icon_hover].sub_action);
