@@ -145,6 +145,43 @@ void do_cmd_help_birth(void)
 }
 
 /*
+ * Menu helpers
+ * TODO: port V menus
+ */
+static errr menu_sex_entry(char *buf, size_t max, menu_type *menu, int oid)
+{
+	if (oid == 0) my_strcpy(buf, "Male", max);
+	if (oid == 1) my_strcpy(buf, "Female", max);
+	return 0;
+}
+static errr menu_race_entry(char *buf, size_t max, menu_type *menu, int oid)
+{
+	player_race *rp_ptr;
+	rp_ptr = &race_info[oid];
+	my_strcpy(buf, p_name + rp_ptr->name, max);
+	return 0;
+}
+static errr menu_class_entry(char *buf, size_t max, menu_type *menu, int oid)
+{
+	player_class *cp_ptr;
+	cp_ptr = &c_info[oid];
+	my_strcpy(buf, c_name + cp_ptr->name, max);
+	return 0;
+}
+static errr menu_stat_entry(char *buf, size_t max, menu_type *menu, int oid)
+{
+	int i;
+	my_strcpy(buf, stat_names[oid], max);
+	buf[3] = '\0';
+	for (i = 0; i < A_MAX; i++)
+	{
+		if (stat_order[i] == oid) buf[0] = '\0';
+	}
+	return 0;
+}
+
+
+/*
  * Choose the character's sex				-JWT-
  */
 static void choose_sex(void)
@@ -153,6 +190,17 @@ static void choose_sex(void)
 
 	put_str("m) Male", 21, 2);
 	put_str("f) Female", 21, 17);
+
+	if (z_ask_menu_aux)
+	{
+		static menu_type menu;
+		WIPE(&menu, menu);
+		menu.cmd_keys = "\x8B\x8C\n\r";
+		menu.count = 2;
+		menu.menu_data = NULL;
+		menu.selections = "mf";
+		z_ask_menu_aux(&menu, &menu_sex_entry, 21, 2);
+	}
 
 	while (1)
 	{
@@ -200,6 +248,17 @@ static void choose_race(void)
 	char                c;
 
 	char		out_val[160];
+
+	if (z_ask_menu_aux)
+	{
+		static menu_type menu;
+		WIPE(&menu, menu);
+		menu.cmd_keys = "\x8B\x8C\n\r";
+		menu.count = z_info.p_max;
+		menu.menu_data = NULL;
+		menu.selections = "abcdefghijklmnopqrstuvwxyz";
+		z_ask_menu_aux(&menu, &menu_race_entry, 21, 2);
+	}
 
 	k = 0;
 	l = 2;
@@ -262,6 +321,16 @@ static void choose_class(void)
 
 	char	 out_val[160];
 
+	if (z_ask_menu_aux)
+	{
+		static menu_type menu;
+		WIPE(&menu, menu);
+		menu.cmd_keys = "\x8B\x8C\n\r";
+		menu.count = z_info.c_max;
+		menu.menu_data = NULL;
+		menu.selections = "abcdefghijklmnopqrstuvwxyz";
+		z_ask_menu_aux(&menu, &menu_class_entry, 21, 2);
+	}
 
 	/* Prepare to list */
 	k = 0;
@@ -336,12 +405,24 @@ if (A_MAX == 0)
     stat_names[5] = string_make("CHR");
 }
 
+	if (z_ask_menu_aux)
+	{
+		static menu_type menu;
+		WIPE(&menu, menu);
+		menu.cmd_keys = "\x8B\x8C\n\r";
+		menu.count = A_MAX;
+		menu.menu_data = NULL;
+		menu.selections = "abcdefghijklmnopqrstuvwxyz";
+		z_ask_menu_aux(&menu, &menu_stat_entry, 21, 0);
+	}
+
 	/* All stats are initially available */
 	for (i = 0; i < A_MAX; i++)
 	{
 		strncpy(stats[i], stat_names[i], 3);
 		stats[i][3] = '\0';
 		avail[i] = 1;
+		stat_order[i] = 0xFF;
 	}
 
 	/* Find the ordering of all 6 stats */
@@ -389,6 +470,9 @@ if (A_MAX == 0)
 			}
 		}
 	}
+
+	if (z_ask_menu_aux) z_ask_menu_aux(NULL, NULL, 0, 0);
+
 
 	clear_from(20);
 }

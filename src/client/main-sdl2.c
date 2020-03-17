@@ -151,7 +151,7 @@ bool Term2_ask_command(char *prompt, bool shopping);
 bool Term2_ask_item(const char *prompt, bool mode, bool inven, bool equip, bool onfloor);
 bool Term2_ask_spell(const char *prompt, int realm, int book);
 bool Term2_ask_confirm(const char *prompt);
-
+bool Term2_ask_menu(menu_type *menu, menu_get_entry func, int row, int col);
 
 /* Helpers */
 
@@ -235,6 +235,7 @@ enum IconContext {
 	MICONS_SPELL,
 	MICONS_COMMANDS,
 	MICONS_CONFIRMATION,
+	MICONS_PASSED_MENU,
 
 	MICONS_SYSTEM,
 	MICONS_QUICKEST,
@@ -264,6 +265,10 @@ static bool micon_allow_equip = FALSE;
 static bool micon_allow_floor = FALSE;
 static int micon_spell_realm = -1;
 static int micon_spell_book = -1;
+static menu_type* micon_passed_menu = NULL;
+static menu_get_entry micon_passed_menu_resolver = NULL;
+static int micon_passed_menu_row = 0;
+static int micon_passed_menu_col = 0;
 
 typedef struct IconData IconData;
 struct IconData {
@@ -436,6 +441,7 @@ errr init_sdl2(void) {
 	z_ask_item_aux = Term2_ask_item;
 	z_ask_spell_aux = Term2_ask_spell;
 	z_ask_confirm_aux = Term2_ask_confirm;
+	z_ask_menu_aux = Term2_ask_menu;
 
 	return 0;
 }
@@ -844,6 +850,16 @@ bool Term2_ask_confirm(const char *prompt)
 	return FALSE;
 }
 
+bool Term2_ask_menu(menu_type *menu, menu_get_entry func, int row, int col)
+{
+	term2_icon_context = MICONS_PASSED_MENU;
+	micon_passed_menu = menu;
+	micon_passed_menu_resolver = func;
+	micon_passed_menu_row = row;
+	micon_passed_menu_col = col;
+	if (menu == NULL) term2_icon_context = -1;
+	return (FALSE);
+}
 
 void net_stream_clamp(int addr, int *x, int *y) {
 	int i;
@@ -3694,6 +3710,14 @@ static void renderIconOverlay(TermData *td)
 		renderMIcon(&pos, &pos, MICON_TOGGLE_OVERLAY, 0, MICO_FINGER_CLICK, 10);
 	}
 
+	/* Angband menu (show even on icky screens) */
+	if (term2_icon_context == MICONS_PASSED_MENU)
+	{
+		SDL_Rect pane = { td->cell_w * micon_passed_menu_col,
+			 td->cell_h * micon_passed_menu_row, 13 * 6 * td->cell_w, 256 };
+		drawIconPanel_PassedMenu(&pane);
+	}
+
 	if (state != PLAYER_PLAYING) return;
 
 	/* Quick-slots */
@@ -4791,6 +4815,38 @@ static void drawIconPanel_Slots(SDL_Rect *size)
 		if (pos.y >= size->y + size->h) break;
 	}
 }
+
+static void drawIconPanel_PassedMenu(SDL_Rect *size)
+{
+	int i, j;
+	int spacing = MICON_S;
+	SDL_Rect pos = { 0, 0, MICON_W, MICON_H };
+	int fw = terms[0].font_data->w;
+	int fh = terms[0].font_data->h;
+	pos.x = size->x;
+	pos.y = size->y;
+	pos.w *= 2;
+	pos.h = 2 * fh;
+
+	SDL_SetRenderDrawColor(terms[0].renderer, 0, 0, 0, 255);
+	SDL_RenderFillRect(terms[0].renderer, size);
+
+	for (i = 0; i < micon_passed_menu->count; i++)
+	{
+		char tmp[8];
+		char buf[80];
+		char sel = micon_passed_menu->selections[i];
+		micon_passed_menu_resolver(buf, 80, micon_passed_menu, i);
+		strnfmt(tmp, 4, "%c) ", sel);
+		if (STRZERO(buf)) tmp[0] = '\0';
+		iconText(pos.x, pos.y + pos.h / 2 - fh / 2, TERM_WHITE, tmp, FALSE);
+		iconText(pos.x + fw * 3, pos.y + pos.h / 2 - fh / 2, TERM_WHITE, buf, FALSE);
+		pos.w = 13 * fw;
+		renderMIcon(size, &pos, MICON_SINGLE_KEY, sel, -1, spacing);
+		if (pos.y >= size->y + size->h) break;
+	}
+}
+
 #endif /* USE_ICON_OVERLAY */
 
 

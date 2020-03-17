@@ -382,6 +382,9 @@ void add_menu_iter(const menu_iter *skin, menu_iter_id id);
 
 void window_make(int origin_x, int origin_y, int end_x, int end_y);
 
+/* HACK -- z-term hook(s): */
+typedef errr (*menu_get_entry)(char *buf, size_t max, menu_type *menu, int oid);
+extern bool (*z_ask_menu_aux)(menu_type *menu, menu_get_entry func, int row, int col);
 
 #endif /* UI_H */
 

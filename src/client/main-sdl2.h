@@ -207,6 +207,7 @@ static void drawIconPanel_Inventory(SDL_Rect *size, bool allow_inven, bool allow
 static void drawIconPanel_Equipment(SDL_Rect *size, bool allow_inven, bool allow_equip, bool allow_floor);
 static void drawIconPanel_Spells(SDL_Rect *size, int spell_realm, int spell_book);
 static void drawIconPanel_Slots(SDL_Rect *size);
+static void drawIconPanel_PassedMenu(SDL_Rect *size);
 static errr iconPict(SDL_Rect *pos, byte a, char c, bool remember);
 static void drawUiIcon(SDL_Rect *pos, int k);
 static int matchIcon(int wx, int wy);

@@ -16,6 +16,9 @@
 
 #include <assert.h>
 
+/* HACK -- Z-Term hook(s): */
+bool (*z_ask_menu_aux)(menu_type *menu, menu_get_entry func, int row, int col) = NULL;
+
 /*
  * Implementation of Extremely Basic Event Model.
  * Limits:
