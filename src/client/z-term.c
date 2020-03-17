@@ -1186,6 +1186,7 @@ errr Term_fresh(void)
 	term_win *old = Term->old;
 	term_win *scr = Term->scr;
 
+	bool updated_cursor_or_glyph = FALSE;
 
 	/* Do nothing unless "mapped" */
 	if (!Term->mapped_flag) return (1);
@@ -1282,6 +1283,7 @@ errr Term_fresh(void)
 			byte ota = old_taa[tx];
 			char otc = old_tcc[tx];
 
+			updated_cursor_or_glyph = TRUE;
 /* Hack -- some terminals don't have double-buffering, so constantly
  * erasing and drawing the cursor back will give an undesired,
  * flickering effect.
@@ -1290,7 +1292,9 @@ errr Term_fresh(void)
  * a crude ifdef, for WIN client only. */
 /* NOTE: Alternatively, this might be a good change for ALL
  * the terminals, but it would require a considerable amount of testing. */
-#ifdef USE_WIN
+/* NOTE: Seems to be a good change for SDL2, as this actually stops the
+ * constant spamming of cursor redrawing. */
+#if defined(USE_WIN) || defined(USE_SDL2)
 			if (oa == scr->a[ty][tx] /* The tile itself didn't change */
 			&&  oc == scr->c[ty][tx]
 			&&  ota == scr->ta[ty][tx]
@@ -1300,6 +1304,7 @@ errr Term_fresh(void)
 			&&  old->cv == scr->bcv)  /* The cursor visibility didn't change */
 			{
 				/* Do nothing */
+				updated_cursor_or_glyph = FALSE;
 			} else
 #endif
 			/* Hack -- use "Term_pict()" always */
@@ -1392,6 +1397,7 @@ errr Term_fresh(void)
 				/* This row is all done */
 				Term->x1[y] = w;
 				Term->x2[y] = 0;
+				updated_cursor_or_glyph = TRUE;
 
 				/* Hack -- Flush that row (if allowed) */
 				if (!Term->never_frosh) Term_xtra(TERM_XTRA_FROSH, y);
@@ -1403,6 +1409,12 @@ errr Term_fresh(void)
 		Term->y2 = 0;
 	}
 
+	/* HACK -- Nothing changed. */
+	/* NOTE: this behavior is largely untested, so for now
+	 * I'm marking it as SDL2-only. */
+#if defined(USE_SDL2)
+	if (!updated_cursor_or_glyph) return (1);
+#endif
 
 	/* Cursor update -- Show new Cursor */
 	if (Term->soft_cursor)
