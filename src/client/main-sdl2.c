@@ -2997,7 +2997,7 @@ static errr wipeTermHook(int x, int y, int n)
 			alt_cursor_x = -1;
 			alt_cursor_y = -1;
 		}
-		td->need_cutout = TRUE;
+		if (looksLikeCave(x, y)) td->need_cutout = TRUE;
 	}
 	return 0;
 }
@@ -3088,7 +3088,8 @@ static errr textTermHook_ALT(int x, int y, int n, byte attr, cptr s)
 
 static errr textTermHook(int x, int y, int n, byte attr, cptr s)
 {
-	int i, alt_dungeon = 0;
+	int i;
+	bool probably_cave = FALSE;
 	TermData *td = (TermData*)(Term->data);
 	struct FontData *fd = td->font_data;
 	SDL_SetTextureColorMod(td->font_texture, TERM_RGB(attr));
@@ -3101,11 +3102,12 @@ static errr textTermHook(int x, int y, int n, byte attr, cptr s)
 	{
 		wipeTermCell_UI(x + i, y, 0);
 		textTermCell_Char(x + i, y, attr, s[i]);
+		if (!probably_cave) probably_cave = looksLikeCave(x + i, y);
 	}
 
 	if (td->config & TERM_DO_SCALE)
 	{
-		td->need_cutout = TRUE;
+		if (probably_cave) td->need_cutout = TRUE;
 	}
 
 	return 0;
@@ -3235,6 +3237,7 @@ static errr pictTermHook_ALT(int x, int y, int n, const byte *ap, const char *cp
 static errr pictTermHook(int x, int y, int n, const byte *ap, const char *cp, const byte *tap, const char *tcp)
 {
 	int i;
+	bool probably_cave = FALSE;
 	Uint8 a,  c;
 	Uint8 ta, tc;
 
@@ -3255,11 +3258,13 @@ static errr pictTermHook(int x, int y, int n, const byte *ap, const char *cp, co
 
 		wipeTermCell_UI(x + i, y, 0);
 		pictTermCell_Tile(x + i, y, a, c, ta, tc);
+
+		if (!probably_cave) probably_cave = looksLikeCave(x + i, y);
 	}
 
 	if (td->config & TERM_DO_SCALE)
 	{
-		td->need_cutout = TRUE;
+		if (probably_cave) td->need_cutout = TRUE;
 	}
 
 	return 0;
