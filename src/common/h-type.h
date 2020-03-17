@@ -251,15 +251,15 @@ typedef cptr *cptr_ptr;
 
 /*** Pointers to Functions with simple return types and any args ***/
 
-typedef void	(*func_void)();
-typedef errr	(*func_errr)();
-typedef char	(*func_char)();
-typedef byte	(*func_byte)();
-typedef bool	(*func_bool)();
-typedef sint	(*func_sint)();
-typedef uint	(*func_uint)();
-typedef vptr	(*func_vptr)();
-typedef cptr	(*func_cptr)();
+typedef void	(*func_void)(void);
+typedef errr	(*func_errr)(void);
+typedef char	(*func_char)(void);
+typedef byte	(*func_byte)(void);
+typedef bool	(*func_bool)(void);
+typedef sint	(*func_sint)(void);
+typedef uint	(*func_uint)(void);
+typedef vptr	(*func_vptr)(void);
+typedef cptr	(*func_cptr)(void);
 
 
 

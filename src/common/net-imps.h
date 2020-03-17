@@ -47,7 +47,7 @@ extern eptr handle_callers(eptr root);
 extern eptr handle_timers(eptr root, long microsec);
 extern micro static_timer(int id);
 
-extern void network_reset();
+extern void network_reset(void);
 extern void network_pause(long timeout);
 extern void denaglefd(int fd);
 extern  int islocalfd(int fd);
