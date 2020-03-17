@@ -3678,7 +3678,7 @@ static void renderIconOverlay(TermData *td)
 	}
 	else if (term2_icon_context == MICONS_SPELL)
 	{
-		SDL_Rect pane2 = { max_w - (64) * 5, top + 64, (64) * 5, (64) * 5 };
+		SDL_Rect pane2 = { max_w - (64+1) * 5, top + 64, (64+1) * 5, (64) * 5 };
 		drawIconPanel_Spells(&pane2, micon_spell_realm, micon_spell_book);
 	}
 	else if (term2_icon_context == MICONS_STORE)
