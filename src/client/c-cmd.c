@@ -637,6 +637,9 @@ void cmd_locate(void)
 		/* Get a direction */
 		while (!dir)
 		{
+			/* Hack -- inform Term2 */
+			if (z_ask_dir_aux) z_ask_dir_aux("Locate", FALSE, FALSE);
+
 			/* Get a command (or Cancel) */
 			ch = inkey();
 

@@ -4380,6 +4380,7 @@ static void drawIconPanel_Commands(SDL_Rect *size, int filter)
 		renderMIcon(size, &pos, MICON_LOCAL_COMMAND_HACK, 'M', 'M', spacing);
 		renderMIcon(size, &pos, MICON_LOCAL_COMMAND_HACK, '*', '*', spacing);
 		renderMIcon(size, &pos, MICON_LOCAL_COMMAND_HACK, '(', '(', spacing);
+		renderMIcon(size, &pos, MICON_LOCAL_COMMAND_HACK, 'L', 'L', spacing);
 	}
 	if (filter == MICONS_SYSTEM)
 	{
