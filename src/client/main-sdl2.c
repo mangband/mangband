@@ -2451,6 +2451,11 @@ static void handleMouseEvent(SDL_Event *ev)
 	int i;
 	int wx, wy;
 
+	int icon_drag_threshold = MICON_W / 2;
+#ifdef MOBILE_UI
+	/* Easier for fat fingers */
+	icon_drag_threshold *= 2;
+#endif
 	if (menu_mode)
 	{
 		bool handled = handleMouseEvent_Menu(ev);
@@ -2483,8 +2488,8 @@ static void handleMouseEvent(SDL_Event *ev)
 		{
 			if (!dragging_icon)
 			{
-				if ((ABS(icon_pressed_x - wx) > 16)
-				|| (ABS(icon_pressed_y - wy) > 16))
+				if ((ABS(icon_pressed_x - wx) > icon_drag_threshold)
+				|| (ABS(icon_pressed_y - wy) > icon_drag_threshold))
 				{
 					dragging_icon = TRUE;
 					drag_icon = icons[icon_pressed];
