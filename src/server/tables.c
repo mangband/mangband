@@ -373,7 +373,7 @@ int study_cmd_id = -1; /* Set during init, to replace with: */
 custom_command_type priest_study_cmd =
 	{ /* Study spell */
 		'G', PKT_UNDEFINED, SCHEME_ITEM_SMALL, 1, (cccb)do_cmd_study,
-		(COMMAND_TEST_SPELL | COMMAND_ITEM_INVEN),
+		(COMMAND_TEST_SPELL | COMMAND_ITEM_INVEN | COMMAND_SPELL_BOOK),
 		TV_PRAYER_BOOK, "You cannot gain prayers!\nGain from which book? ", "Study prayer"
 	};
 
