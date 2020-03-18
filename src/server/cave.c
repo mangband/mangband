@@ -1779,7 +1779,7 @@ static byte priority_table[][2] =
 /*
  * Hack -- a priority function (see below)
  */
-static byte priority(byte a, char c)
+static byte priority(player_type* p_ptr, byte a, char c)
 {
 	int i, p0, p1;
 
@@ -1798,10 +1798,14 @@ static byte priority(byte a, char c)
 		p0 = priority_table[i][0];
 
 		/* Access the feature */
-		f_ptr = &f_info[p0];
+		//f_ptr = &f_info[p0];
 
 		/* Check character and attribute, accept matches */
-		if ((f_ptr->d_char == c) && (f_ptr->d_attr == a)) return (p1);
+		//if ((f_ptr->d_char == c) && (f_ptr->d_attr == a)) return (p1);
+		//HACK -- Use player mappings when matching a feature.
+		if ((p_ptr->f_char[p0] == c) && (p_ptr->f_attr[p0] == a)) return (p1);
+		/* TODO: replace this whole function
+		 * with terrain priority loader from V3X */
 	}
 
 	/* Default */
@@ -1897,7 +1901,7 @@ void display_map(player_type *p_ptr, bool quiet)
 			map_info(p_ptr, y, x, &ta, &tc, &ta, &tc, FALSE);
 
 			/* Extract the priority of that attr/char */
-			tp = priority(ta, tc);
+			tp = priority(p_ptr, ta, tc);
 
 			/* Save "best" */
 			if (mp[row][col] < tp)
