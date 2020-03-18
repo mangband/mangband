@@ -3647,7 +3647,7 @@ void browse_macros(void)
 	int i;
 	int total;
 	int hgt = Term->hgt - 4;
-	int j = 0;	
+	int j = 0;
 	int o = 0;
 	int sel = -1;
 	char tmp_buf[120];
@@ -3667,15 +3667,15 @@ void browse_macros(void)
 		/* Dump them */
 		for (i = 0, total = 0; i < macro__num; i++)
 		{
-			int k = total; 
+			int k = total;
 
 			/* Skip command macro */
 			/* if (macro__cmd[i]) continue; */
-		
+
 			/* Extract the action */
 			ascii_to_text(act, sizeof(act), macro__act[i]);
 
-			/* Most likely a system action */			
+			/* Most likely a system action */
 			if (strlen(act) == 1) continue;
 
 			/* Extract the trigger */
@@ -3690,12 +3690,12 @@ void browse_macros(void)
 			/* Too early */
 			if (k < o) continue;
 
-			/* Too late */			
+			/* Too late */
 			if (k - o >= hgt-2) continue;
 
 			/* Selected */
 			a = TERM_WHITE;
-			if (j == k) 
+			if (j == k)
 			{
 				a = TERM_L_BLUE;
 				sel = i;
@@ -3712,7 +3712,6 @@ void browse_macros(void)
 
 			/* Dump the conext */
 			Term_putstr(78, 2+k-o, -1, (j==k)?TERM_L_BLUE:TERM_L_WHITE, macro__cmd[i] ? " c" : " *");
-
 		}
 
 		/* Get a key */
@@ -3733,7 +3732,7 @@ void browse_macros(void)
 		else if (i == 'D') /* Delete */
 		{
 			/* Keep atleast 1 */
-			if (total == 1) continue;		
+			if (total == 1) continue;
 
 			/* Get a macro trigger */
 			my_strcpy(buf, macro__pat[sel], sizeof(buf));
@@ -3752,7 +3751,7 @@ void browse_macros(void)
 			/* Get current action */
 			my_strcpy(act, macro__act[sel], sizeof(act));
 
-			/* Prompt */	
+			/* Prompt */
 			clear_from(hgt);
 			Term_putstr(0, hgt+1, -1, TERM_WHITE, "Trigger: ");
 
@@ -3769,12 +3768,12 @@ void browse_macros(void)
 
 		else if (i == 'A') /* Change action */
 		{
-			/* Prompt */	
+			/* Prompt */
 			clear_from(hgt);
 			Term_putstr(0, hgt+1, -1, TERM_WHITE, "Action: ");
 
 			/* Copy 'current action' */
-			ascii_to_text(act, sizeof(act), macro__act[sel]);			
+			ascii_to_text(act, sizeof(act), macro__act[sel]);
 
 			/* Get an encoded action */
 			if (!askfor_aux(act, 80, 0)) continue;
@@ -3826,7 +3825,7 @@ void browse_macros(void)
 			if (j > total-1) j = total-1;
 			o = j - hgt/2;
 		}
-		else if (i == '1') /* End */ 
+		else if (i == '1') /* End */
 		{
 			j = total - 1;
 			o = j - hgt/2;
@@ -4058,7 +4057,7 @@ void interact_macros(void)
 				(CTXT_FULL | CTXT_PREFER_SHORT)
 				:
 				(CTXT_WITH_CMD | CTXT_WITH_DIR | CTXT_PREFER_NAME)
-);
+			);
 
 			/* Prompt */
 			Term_putstr(0, 15, -1, TERM_WHITE, "Command: Enter a new action");
