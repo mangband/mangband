@@ -3721,8 +3721,11 @@ static void renderIconOverlay(TermData *td)
 	/* Angband menu (show even on icky screens) */
 	if (term2_icon_context == MICONS_PASSED_MENU)
 	{
-		SDL_Rect pane = { td->cell_w * micon_passed_menu_col,
-			 td->cell_h * micon_passed_menu_row, 13 * 6 * td->cell_w, 256 };
+		SDL_Rect pane = {
+			td->cell_w * micon_passed_menu_col,
+			td->cell_h * micon_passed_menu_row, max_w, max_h };
+		pane.w -= pane.x;
+		pane.h -= pane.y;
 		drawIconPanel_PassedMenu(&pane);
 	}
 
@@ -3866,17 +3869,29 @@ static void unloadTinyFont(void)
 static errr iconText(int x, int y, byte attr, cptr s, bool tiny)
 {
 	int i;
+	int mult = 1;
 	TermData *td = &terms[0];
 	const char *c = s;
 	struct FontData *fd = td->font_data;
 	SDL_Texture *tx = td->font_texture;
 
 	/* Use tiny font instead */
-	if (tiny)
+	if (tiny > 0)
 	{
 		fd = &tiny_font;
 		tx = tx_tiny;
 	}
+
+#ifdef MOBILE_UI
+	/* Hack -- change size */
+	if (tiny == -2)
+	{
+		if (SDL_IsTablet() || isHighDPI())
+		{
+			mult = 2;
+		}
+	}
+#endif
 
 	/* Set color */
 	SDL_SetTextureColorMod(tx, TERM_RGB(attr));
@@ -3884,13 +3899,13 @@ static errr iconText(int x, int y, byte attr, cptr s, bool tiny)
 	/* Dump each character */
 	while (*c)
 	{
-		SDL_Rect cell_rect = { x, y, fd->w, fd->h	};
+		SDL_Rect cell_rect = { x, y, fd->w*mult, fd->h*mult };
 		int si = *c;
 		int row = si / 16;
 		int col = si - (row * 16);
 		SDL_Rect char_rect = { col*fd->w, row*fd->h, fd->w, fd->h };
 		SDL_RenderCopy(td->renderer, tx, &char_rect, &cell_rect);
-		x += fd->w;
+		x += fd->w*mult;
 		c++;
 	}
 	return 0;
@@ -4831,10 +4846,17 @@ static void drawIconPanel_PassedMenu(SDL_Rect *size)
 	SDL_Rect pos = { 0, 0, MICON_W, MICON_H };
 	int fw = terms[0].font_data->w;
 	int fh = terms[0].font_data->h;
+#ifdef MOBILE_UI
+	if (isHighDPI())
+	{
+		fw *= 2;
+		fh *= 2;
+	}
+#endif
 	pos.x = size->x;
 	pos.y = size->y;
-	pos.w *= 2;
-	pos.h = 2 * fh;
+	pos.w = 0;
+	pos.h = fh + fh / 2;
 
 	SDL_SetRenderDrawColor(terms[0].renderer, 0, 0, 0, 255);
 	SDL_RenderFillRect(terms[0].renderer, size);
@@ -4847,8 +4869,8 @@ static void drawIconPanel_PassedMenu(SDL_Rect *size)
 		micon_passed_menu_resolver(buf, 80, micon_passed_menu, i);
 		strnfmt(tmp, 4, "%c) ", sel);
 		if (STRZERO(buf)) tmp[0] = '\0';
-		iconText(pos.x, pos.y + pos.h / 2 - fh / 2, TERM_WHITE, tmp, FALSE);
-		iconText(pos.x + fw * 3, pos.y + pos.h / 2 - fh / 2, TERM_WHITE, buf, FALSE);
+		iconText(pos.x, pos.y + pos.h / 2 - fh / 2, TERM_WHITE, tmp, -2);
+		iconText(pos.x + fw * 3, pos.y + pos.h / 2 - fh / 2, TERM_WHITE, buf, -2);
 		pos.w = 13 * fw;
 		renderMIcon(size, &pos, MICON_SINGLE_KEY, sel, -1, spacing);
 		if (pos.y >= size->y + size->h) break;

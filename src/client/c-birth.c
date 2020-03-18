@@ -413,7 +413,7 @@ if (A_MAX == 0)
 		menu.count = A_MAX;
 		menu.menu_data = NULL;
 		menu.selections = "abcdefghijklmnopqrstuvwxyz";
-		z_ask_menu_aux(&menu, &menu_stat_entry, 21, 0);
+		z_ask_menu_aux(&menu, &menu_stat_entry, 21, 1);
 	}
 
 	/* All stats are initially available */
@@ -438,7 +438,7 @@ if (A_MAX == 0)
 			if (avail[k])
 			{
 				sprintf(out_val, "%c) %s", I2A(k), stats[k]);
-				put_str(out_val, 21, k * 9);
+				put_str(out_val, 21, k * 9 + 1);
 			}
 		}
 
