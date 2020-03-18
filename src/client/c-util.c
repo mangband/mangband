@@ -3141,6 +3141,10 @@ static bool get_macro_trigger(char *buf)
 	/* Flush */
 	flush();
 
+	/* Refresh screen? */
+	Term_fresh();
+	Term_xtra(TERM_XTRA_BORED, 0);
+
 	/* Do not process macros */
 	inkey_base = TRUE;
 
@@ -3439,6 +3443,202 @@ void browse_keymaps(void)
 	Term_hide_ui_cursor();
 }
 
+/* HACK -- horrible function for "drawing", replace this
+ * with Angband menus or at least use their decorations... */
+void _clear_rect(int x, int y, int w, int h)
+{
+	int i, j;
+	/* Draw blackness */
+	for (j = 0; j < h; j++) for (i = 0; i < w; i++)
+		Term_putstr(x + i, y + j, -1, TERM_WHITE, " ");
+}
+void _draw_rect(int x, int y, int w, int h)
+{
+	int i, j;
+	_clear_rect(x, y, w, h);
+	/* Draw edges */
+	Term_putstr(x + 0 + 1, y + 1, -1, TERM_WHITE, "+");
+	Term_putstr(x + w - 2, y + 1, -1, TERM_WHITE, "+");
+	Term_putstr(x + 0 + 1, y + h - 2, -1, TERM_WHITE, "+");
+	Term_putstr(x + w - 2, y + h - 2, -1, TERM_WHITE, "+");
+	/* Draw borders */
+	for (i = 2; i < w - 2; i++) {
+		Term_putstr(x + i, y + 0 + 1, -1, TERM_WHITE, "-");
+		Term_putstr(x + i, y + h - 2, -1, TERM_WHITE, "-");
+	}
+	for (j = 2; j < h - 2; j++) {
+		Term_putstr(x + 0 + 1, y + j, -1, TERM_WHITE, "|");
+		Term_putstr(x + w - 2, y + j, -1, TERM_WHITE, "|");
+	}
+}
+
+bool new_macro_window(void)
+{
+	char action[1024];
+	char action_ascii[1024];
+	char trigger_ascii[1024];
+	char trigger[1024];
+	byte old_school_macros = FALSE;
+	bool redraw = FALSE;
+	int wx = 4;
+	int wy = 4;
+	int wid = Term->wid - 8;
+	int hgt = Term->hgt - 8;
+	bool proceed = TRUE;
+	bool cmd_flag = FALSE;
+
+	_draw_rect(wx, wy, wid, hgt);
+
+	wx += 3;
+	wy += 1;
+	wid -= 2;
+	hgt -= 2;
+
+	/* Describe */
+	Term_putstr(wx, wy+1, -1, TERM_WHITE, "i) Macro Item");
+	Term_putstr(wx, wy+2, -1, TERM_WHITE, "m) Macro Spell");
+	Term_putstr(wx, wy+3, -1, TERM_WHITE, "c) Custom Macro");
+	Term_putstr(wx, wy+4, -1, TERM_WHITE, "ESC) Abort");
+
+	/* Process requests until done */
+	while (1)
+	{
+		char ch = inkey();
+		if (ch == ESCAPE)
+		{
+			proceed = FALSE;
+			break;
+		}
+
+		else if (ch == 'i')
+		{
+			int item, n;
+			char cmd;
+			if (!c_get_item(&item, "Macro which item?", TRUE, TRUE, TRUE))
+			{
+				continue;
+			}
+			cmd = command_by_item(item, 0);
+			if (!cmd)
+			{
+				bell();
+				continue;
+			}
+
+			item_as_keystroke(item, cmd, action, MAX_COLS,
+				old_school_macros ?
+				(CTXT_WITH_CMD | CTXT_WITH_DIR | CTXT_PREFER_SHORT)
+				:
+				(CTXT_WITH_CMD | CTXT_PREFER_NAME)
+			);
+			break;
+		}
+		else if (ch == 'm' || ch == 'p')
+		{
+			int spell, book = 0, n;
+			char cmd;
+			n = get_spell(&spell, "/=Next book,", "Macro which spell?", &book, FALSE, FALSE);
+			screen_icky = TRUE;
+			/* No spell selected */
+			if (!n)
+			{
+				continue;
+			}
+
+			cmd = command_by_item(book, 1);
+			if (!cmd)
+			{
+				bell();
+				continue;
+			}
+
+			spell_as_keystroke(spell, book, cmd, action, sizeof(action),
+				old_school_macros ?
+				(CTXT_FULL | CTXT_PREFER_SHORT)
+				:
+				(CTXT_WITH_CMD | CTXT_WITH_DIR | CTXT_PREFER_NAME)
+			);
+			break;
+
+		}
+		else if (ch == 'c' || ch == '3')
+		{
+			Term_putstr(wx, wy+5, -1, TERM_WHITE, "Action: ");
+
+			/* Get an encoded action */
+			action[0] = '\0';
+			if (askfor_aux(action, 40, 0)
+			    && !STRZERO(action)) break;
+		}
+		else bell();
+	}
+
+	if (proceed)
+	{
+			/* Extract an action */
+			text_to_ascii(action_ascii, sizeof(action_ascii), action);
+
+			Term_putstr(wx, wy+5, -1, TERM_WHITE, "Action: ");
+			Term_putstr(wx+8, wy+5, -1, TERM_SLATE, action);
+
+			/* Hack -- if it's a one-key macro, make it a command macro */
+			if ((action[1] == '\0') && (
+				isalpha(action[0]) || ispunct(action[0])
+				|| isdigit(action[0])
+			)) cmd_flag = TRUE;
+
+			/* Prompt & Show cursor */
+			Term_putstr(wx, wy+7, -1, TERM_WHITE, "Press Trigger Button: ");
+			Term_show_ui_cursor();
+
+			/* Get a macro trigger */
+			if (get_macro_trigger(trigger_ascii))
+			{
+				/* Save key for later */
+				ascii_to_text(trigger, sizeof(trigger), trigger_ascii);
+			}
+			else
+			{
+				proceed = FALSE;
+			}
+	}
+	Term_hide_ui_cursor();
+	Term_putstr(wx+12, wy+5, -1, TERM_RED, trigger);
+
+	_clear_rect(wx-1, wy+1, wid-2, hgt-2);
+	Term_putstr(wx, wy+3, -1, TERM_L_WHITE, "Create ");
+	Term_addstr(-1, TERM_WHITE, cmd_flag ? "command" : "normal");
+	Term_addstr(-1, TERM_L_WHITE, " macro, which executes");
+	Term_putstr(wx, wy+5, -1, TERM_WHITE, "Action: ");
+	Term_putstr(wx+8, wy+5, -1, TERM_SLATE, action);
+	Term_putstr(wx, wy+6, -1, TERM_WHITE, "when");
+	Term_putstr(wx, wy+7, -1, TERM_WHITE, "Trigger: ");
+	Term_addstr(-1, TERM_L_WHITE, trigger);
+	Term_putstr(wx, wy+9, -1, TERM_L_WHITE, "is pressed?");
+	Term_putstr(wx, wy+11, -1, TERM_WHITE, "RET) Confirm");
+	Term_putstr(wx, wy+12, -1, TERM_WHITE, "ESC) Abort");
+	Term_fresh();
+
+	/* Process requests until done */
+	while (proceed)
+	{
+		char ch = inkey();
+		if (ch == ESCAPE)
+		{
+			proceed = FALSE;
+			break;
+		}
+		else if (ch == '\r') break;
+		else bell();
+	}
+	if (proceed)
+	{
+			/* Link the macro */
+			macro_add(trigger_ascii, action_ascii, cmd_flag);
+	}
+	return proceed;
+}
+
 /* Display macros as a list and allow user to navigate through it 
  * Logic in this function is somewhat broken.
  */
@@ -3462,7 +3662,7 @@ void browse_macros(void)
 		Term_clear();
 
 		/* Describe */
-		Term_putstr(0, 0, -1, TERM_WHITE, "Browse Macros     (D delete, A/T to set, C switch context, ESC to accept)");
+		Term_putstr(0, 0, -1, TERM_WHITE, "Browse Macros     (N new, D delete, A/T to set, C switch context, ESC to accept)");
 
 		/* Dump them */
 		for (i = 0, total = 0; i < macro__num; i++)
@@ -3520,6 +3720,15 @@ void browse_macros(void)
 
 		/* Leave */
 		if (i == ESCAPE) break;
+
+		else if (i == 'N') /* New */
+		{
+			bool added = new_macro_window();
+			if (added) {
+				j = total - 1;
+				o = j - hgt/2;
+			}
+		}
 
 		else if (i == 'D') /* Delete */
 		{
@@ -3694,6 +3903,7 @@ void interact_macros(void)
 		Term_putstr(5,  8, -1, TERM_WHITE, "(5) Create a normal macro");
 		Term_putstr(5,  9, -1, TERM_WHITE, "(6) Remove a macro");
 		Term_putstr(5, 10, -1, TERM_WHITE, "(7) Browse macros");
+		Term_putstr(5, 11, -1, TERM_WHITE, "(N) New macro wizard");
 
 		} else {
 
@@ -3704,7 +3914,7 @@ void interact_macros(void)
 		Term_putstr(5,  8, -1, TERM_WHITE, "(%) Create a command macro");
 		Term_putstr(5,  9, -1, TERM_WHITE, "(^) Create keymap");
 		Term_putstr(5, 10, -1, TERM_WHITE, "(=) Browse keymaps");
-
+		Term_putstr(5, 11, -1, TERM_WHITE, "(N) New macro wizard");
 
 		}
 #if 1
@@ -3743,6 +3953,16 @@ void interact_macros(void)
 
 		/* Browse */
 		else if (i == '7') browse_macros();
+
+		/* New macro window */
+		else if (i == 'N')
+		{
+			bool added;
+			Term_hide_ui_cursor();
+			added = new_macro_window();
+			if (added)
+			c_msg_print("Created a new macro.");
+		}
 
 		/* Load a pref file */
 		else if (i == '1')
