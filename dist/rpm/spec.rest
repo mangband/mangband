@@ -16,16 +16,16 @@ Buildroot:      %{_tmppath}/%{name}-buildroot
 
 %package -n mangclient-sdl2
 Summary:      SDL2 client
-Requires: SDL2
-BuildRequires:  SDL2-devel
+Requires: SDL2, SDL2_ttf
+BuildRequires:  SDL2-devel SDL2_ttf-devel
 Conflicts: mangclient-sdl, mangclient-x11, mangclient-gcu
 %description -n mangclient-sdl2
 SDL2 version of client.
 
 %package -n mangclient-sdl
 Summary:      SDL client
-Requires: SDL
-BuildRequires:  SDL-devel
+Requires: SDL, SDL_ttf
+BuildRequires:  SDL-devel, SDL_ttf-devel
 Conflicts: mangclient-sdl2, mangclient-x11, mangclient-gcu
 %description -n mangclient-sdl
 SDL version of client.
@@ -99,6 +99,15 @@ gtk-update-icon-cache -f %{_datadir}/icons/hicolor &>/dev/null || : \
 xdg-icon-resource forceupdate --theme hicolor 2> /dev/null || : \
 update-desktop-database &> /dev/null || :
 
+%post -n mangclient-sdl2
+%refresh_mangclient_icons
+%postun -n mangclient-sdl2
+if [ $1 -eq 0 ] ; then
+    %refresh_mangclient_icons
+fi
+%posttrans -n mangclient-sdl2
+%refresh_mangclient_icons
+
 %post -n mangclient-sdl
 %refresh_mangclient_icons
 %postun -n mangclient-sdl
@@ -126,6 +135,16 @@ fi
 %attr(755,root,games)
 %{bin_path}/mangband
 %config(noreplace) /etc/mangband.cfg
+
+%files -n mangclient-sdl2
+%defattr(-,root,games)
+/usr/share/games/mangband/pref/*
+/usr/share/games/mangband/user/*
+/usr/share/games/mangband/xtra/*
+/usr/share/icons/hicolor/*/apps/mangclient.png
+%attr(755,root,games)
+%{bin_path}/mangclient
+/usr/share/applications/mangclient.desktop
 
 %files -n mangclient-sdl
 %defattr(-,root,games)

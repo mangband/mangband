@@ -23,19 +23,24 @@ PACKNAME="mangclient"
 if [ "$1" = "sdl2" ]; then
 	PORT="-sdl2"
 	RECONFIG="--without-x11 --without-sdl"
+	MANG_PACKAGE_DEPENDS="libsdl2, libsdl2-ttf-2.0"
 elif [ "$1" = "sdl" ]; then
 	PORT="-sdl"
 	RECONFIG="--without-x11 --without-sdl2"
+	MANG_PACKAGE_DEPENDS="libsdl1.2, libsdl-ttf2.0"
 elif [ "$1" = "x11" ]; then
 	PORT="-x11"
 	RECONFIG="--without-sdl --without-sdl2"
+	MANG_PACKAGE_DEPENDS="libX11"
 elif [ "$1" = "gcu" ]; then
 	PORT="-gcu"
 	RECONFIG="--without-x11 --without-sdl --without-sdl2"
+	MANG_PACKAGE_DEPENDS="libncurses"
 else
 	PORT=""
 	RECONFIG=""
 	PACKNAME="mangband"
+	MANG_PACKAGE_DEPENDS=""
 	echo "Building server package."
 	echo "Re-run this script with 'sdl2','sdl','x11' or 'gcu' to build client."
 	sleep 1
@@ -80,7 +85,8 @@ rm README.Debian
 rm README.source
 
 cp -f ../../../../README .
-cp -f ../../control.${PACKNAME} control
+export MANG_PACKAGE_DEPENDS
+envsubst < ../../control.${PACKNAME} > control
 cp -f ../../rules .
 chmod +x rules
 echo "README" > ${PACKNAME}-docs.docs

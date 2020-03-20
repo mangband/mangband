@@ -92,6 +92,7 @@ if [ $1 = "DEB" ]; then
 	apt-get install -yqq make gcc autoconf automake dh-make >/dev/null
 	apt-get install -yqq dpkg-dev # needed on Ubuntu14 >/dev/null
 	apt-get install -yqq libncurses5-dev libsdl1.2-dev libsdl2-dev >/dev/null
+	apt-get install -yqq libsdl-ttf2.0-dev libsdl2-ttf-dev >/dev/null
 	apt-get install -yqq libX11-dev >/dev/null || \
 		apt-get install -y libx11-dev >/dev/null
 # make dist
@@ -118,6 +119,7 @@ if [ $1 = "RPM" ]; then
 	printf "\n *** Doing rpm builds *** \n\n"
 	yum install -yq wget which make gcc automake autoconf rpmdevtools
 	yum install -yq ncurses-devel libX11-devel SDL-devel SDL2-devel
+	yum install -yq SDL_ttf-devel SDL2_ttf-devel
 # make dist
 #	ls
 #	./autogen.sh -n
