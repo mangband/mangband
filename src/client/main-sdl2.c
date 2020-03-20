@@ -146,8 +146,8 @@ bool Term2_cave_char(int x, int y, byte a, char c, byte ta, char tc);
 void Term2_query_area_size(s16b *x, s16b *y, int st);
 void Term2_screen_keyboard(int show, int hint);
 void Term2_window_updated(u32b flags);
-bool Term2_ask_dir(char *prompt, bool allow_target, bool allow_friend);
-bool Term2_ask_command(char *prompt, bool shopping);
+bool Term2_ask_dir(const char *prompt, bool allow_target, bool allow_friend);
+bool Term2_ask_command(const char *prompt, bool shopping);
 bool Term2_ask_item(const char *prompt, bool mode, bool inven, bool equip, bool onfloor);
 bool Term2_ask_spell(const char *prompt, int realm, int book);
 bool Term2_ask_confirm(const char *prompt);
@@ -814,14 +814,14 @@ void Term2_window_updated(u32b flags)
 #endif
 }
 
-bool Term2_ask_command(char *prompt, bool shopping)
+bool Term2_ask_command(const char *prompt, bool shopping)
 {
 	term2_icon_context = MICONS_COMMANDS;
 	if (shopping) term2_icon_context = MICONS_STORE;
 	return FALSE;
 }
 
-bool Term2_ask_dir(char *prompt, bool allow_target, bool allow_friend)
+bool Term2_ask_dir(const char *prompt, bool allow_target, bool allow_friend)
 {
 	term2_icon_context = MICONS_DIRECTION;
 	micon_allow_target = allow_target;
