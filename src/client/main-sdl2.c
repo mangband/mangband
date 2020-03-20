@@ -2724,6 +2724,7 @@ static void handleKeyboardEvent(SDL_Event *ev)
 		if (key >= SDLK_LCTRL && key <= SDLK_RGUI)
 		{
 			Noticemodkeypress(key, 1);
+			return;
 		}
 
 		/* ASCII */
@@ -2731,9 +2732,6 @@ static void handleKeyboardEvent(SDL_Event *ev)
 		{
 			/* Space is already handled by text input, ignore */
 			if (!ignore_keyboard_layout && key == ' ' && mod == 0) return;
-
-			/* Ignore modifier keypresses */
-			if (key >= SDLK_LCTRL && key <= SDLK_RGUI) return;
 
 			/* Printable charater */
 			if (isgraph(key))
@@ -2796,19 +2794,19 @@ static void handleKeyboardEvent(SDL_Event *ev)
 			strnfmt(buf, 32, "%c%s%s%s%s_%lX%c", 31,
 				    ev->key.keysym.mod & KMOD_CTRL  ? "N" : "",
 				    ev->key.keysym.mod & KMOD_SHIFT ? "S" : "",
-				    "",
-				    ev->key.keysym.mod & KMOD_ALT   ? "M" : "",
+				    ev->key.keysym.mod & KMOD_ALT   ? "O" : "",
+				    ev->key.keysym.mod & KMOD_GUI   ? "M" : "",
 				    (unsigned long) key, 13);
-#ifdef DEBUG
-			printf("Macro: ^_%s%s%s%s_%lX\\r%s\n",
+#if 1 //def DEBUG
+			printf("Macro: ^_%s%s%s%s_%lX\\r\n",
 				    ev->key.keysym.mod & KMOD_CTRL  ? "N" : "",
 				    ev->key.keysym.mod & KMOD_SHIFT ? "S" : "",
-				    "",
-				    ev->key.keysym.mod & KMOD_ALT   ? "M" : "",
+				    ev->key.keysym.mod & KMOD_ALT   ? "O" : "",
+				    ev->key.keysym.mod & KMOD_GUI   ? "M" : "",
 				    (unsigned long) key);
 #endif
 			Term_multikeypress(buf);
-			sent = TRUE;	
+			sent = TRUE;
 		}
 		if (!sent)
 		{
