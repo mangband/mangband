@@ -1309,7 +1309,7 @@ static void renderWindow(TermData *mtd)
 
 		SDL_RenderCopy(terms[0].renderer, terms[0].alt_framebuffer, &src, &dst);
 		/* Render cursor */
-		if (mtd->pict_data)
+		if (mtd->pict_data && alt_cursor_y >= 0)
 		{
 			SDL_Rect cell_rect;
 			cell_rect.w = mtd->pict_data->w * terms[0].zoom /100;
@@ -1371,8 +1371,13 @@ static int looksLikeCave(int x, int y)
 	{
 		if (state < PLAYER_PLAYING) return 0;
 		if (screen_icky) return 0;
-		if (section_icky_row) return 0;
-		if (section_icky_col) return 0;
+		if (section_icky_row > 0 && y < section_icky_row)
+		{
+			if (section_icky_col > 0 && x < section_icky_col)
+				return 0;
+			if (section_icky_col < 0 && x >= td->cols + section_icky_col)
+				return 0;
+		}
 		return 1;
 	}
 	return 0;
@@ -1397,13 +1402,15 @@ static void altDungeonCutout(void)
 		byte *old_taa = Term->old->ta[y];
 		char *old_tcc = Term->old->tc[y];
 
-		if (section_icky_row > 0 && y < section_icky_row)
-			continue;
-
 		for (x = sx; x < td->cols; x++)
 		{
-			if (section_icky_col > 0 && x > section_icky_col)
-				continue;
+			if (section_icky_row > 0 && y < section_icky_row)
+			{
+				if (section_icky_col > 0 && x < section_icky_col)
+					continue;
+				if (section_icky_col < 0 && x >= td->cols + section_icky_col)
+					continue;
+			}
 
 			wipeTermCell_UI(x, y, 1);
 
@@ -2944,8 +2951,11 @@ static errr cursTermHook(int x, int y)
 	/* Alt.Dungeon cursor */
 	if (td->config & TERM_DO_SCALE)
 	{
-		alt_cursor_x = x - DUNGEON_OFFSET_X;
-		alt_cursor_y = y - DUNGEON_OFFSET_Y;
+		if (looksLikeCave(x, y))
+		{
+			alt_cursor_x = x - DUNGEON_OFFSET_X;
+			alt_cursor_y = y - DUNGEON_OFFSET_Y;
+		}
 	}
 
 	return 0;
