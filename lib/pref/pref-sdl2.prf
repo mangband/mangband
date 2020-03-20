@@ -111,55 +111,55 @@ A:9
 P:^__4B\r
 
 # arrow keys, running
-A:.4
+A:\\.4
 P:^_S_50\r
 
-A:.6
+A:\\.6
 P:^_S_4F\r
 
-A:.8
+A:\\.8
 P:^_S_52\r
 
-A:.2
+A:\\.2
 P:^_S_51\r
 
 # end, page_down, home, page_up, running
-A:.1
+A:\\.1
 P:^_S_4D\r
 
-A:.3
+A:\\.3
 P:^_S_4E\r
 
-A:.7
+A:\\.7
 P:^_S_4A\r
 
-A:.9
+A:\\.9
 P:^_S_4B\r
 
 # arrow keys, digging
-A:+4
+A:\\+4
 P:^_N_50\r
 
-A:+6
+A:\\+6
 P:^_N_4F\r
 
-A:+8
+A:\\+8
 P:^_N_52\r
 
-A:+2
+A:\\+2
 P:^_N_51\r
 
 # end, page_down, home, page_up, digging
-A:+1
+A:\\+1
 P:^_N_4D\r
 
-A:+3
+A:\\+3
 P:^_N_4E\r
 
-A:+7
+A:\\+7
 P:^_N_4A\r
 
-A:+9
+A:\\+9
 P:^_N_4B\r
 
 ##
@@ -342,3 +342,31 @@ P:^_N_F60\r
 A:\e\e\e\e\\+9
 P:^_N_F61\r
 
+# macOS-specific: digging via Command+Arrows
+# (end, pagedown, home, pageup)
+
+A:\\+1
+P:^_M_117\r
+
+A:\\+3
+P:^_M_119\r
+
+A:\\+7
+P:^_M_116\r
+
+A:\\+9
+P:^_M_118\r
+
+# (left, right, up, down)
+
+A:\\+4
+P:^_M_114\r
+
+A:\\+6
+P:^_M_113\r
+
+A:\\+8
+P:^_M_111\r
+
+A:\\+2
+P:^_M_112\r
