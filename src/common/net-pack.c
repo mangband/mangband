@@ -47,14 +47,14 @@
  * PT |= (* VAL ++ & 0xFF) << 8, \
  * PT |= (* VAL ++ & 0xFF)
 #define UNPACK_PTR_64(PT, VAL)     \
- * PT  = (* VAL ++ & 0xFFUL) << 56,\
- * PT |= (* VAL ++ & 0xFFUL) << 48,\
- * PT |= (* VAL ++ & 0xFFUL) << 40,\
- * PT |= (* VAL ++ & 0xFFUL) << 32,\
- * PT |= (* VAL ++ & 0xFFUL) << 24,\
- * PT |= (* VAL ++ & 0xFFUL) << 16,\
- * PT |= (* VAL ++ & 0xFFUL) << 8, \
- * PT |= (* VAL ++ & 0xFFUL)
+ * PT  = (u64b)(* VAL ++ & 0xFFUL) << 56,\
+ * PT |= (u64b)(* VAL ++ & 0xFFUL) << 48,\
+ * PT |= (u64b)(* VAL ++ & 0xFFUL) << 40,\
+ * PT |= (u64b)(* VAL ++ & 0xFFUL) << 32,\
+ * PT |= (u64b)(* VAL ++ & 0xFFUL) << 24,\
+ * PT |= (u64b)(* VAL ++ & 0xFFUL) << 16,\
+ * PT |= (u64b)(* VAL ++ & 0xFFUL) << 8, \
+ * PT |= (u64b)(* VAL ++ & 0xFFUL)
 
 #define SOFTER_ERRORS //undefine this for better debug
 
