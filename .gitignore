@@ -63,6 +63,10 @@ src/stamp-h1
 *.tar.gz
 *.tar.xz
 
+# OSX redist files
+*.dmg
+dist/dmg
+
 # Common redist files
 lib/bone/*.txt
 lib/user/*.txt
@@ -81,3 +85,6 @@ dist/rpm/*/
 *.orig
 *.rej
 *~ # backup files of my editor -flm
+
+# OS garbage
+.DS_Store
