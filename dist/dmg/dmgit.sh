@@ -1,5 +1,7 @@
 #!/bin/sh
 
+BONUS_FILE=$1
+
 THISDIR=$(dirname $0)
 
 BASEDIR=${THISDIR}/../../
@@ -44,6 +46,7 @@ rm -rf "$STAGE_DIR"
 mkdir -p "$STAGE_DIR"
 cp ${THISDIR}/README-client.htm "$STAGE_DIR"/README.html
 cp -r ${BASEDIR}/mangclient.app "$STAGE_DIR"/MAngbandClient$V_CLIENT.app
+[ "$BONUS_FILE" ] && cp -r ${BONUS_FILE} "$STAGE_DIR"/.
 ln -s /Applications "$STAGE_DIR"/.
 
 hdiutil create -fs HFS+ -srcfolder "$STAGE_DIR" \
