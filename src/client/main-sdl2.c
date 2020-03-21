@@ -2797,7 +2797,7 @@ static void handleKeyboardEvent(SDL_Event *ev)
 				    ev->key.keysym.mod & KMOD_ALT   ? "O" : "",
 				    ev->key.keysym.mod & KMOD_GUI   ? "M" : "",
 				    (unsigned long) key, 13);
-#if 1 //def DEBUG
+#ifdef DEBUG
 			printf("Macro: ^_%s%s%s%s_%lX\\r\n",
 				    ev->key.keysym.mod & KMOD_CTRL  ? "N" : "",
 				    ev->key.keysym.mod & KMOD_SHIFT ? "S" : "",
