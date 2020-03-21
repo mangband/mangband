@@ -77,6 +77,7 @@ if ! running_in_docker ; then
     build_it "fedora:26" "RPM" "fedora26-amd64" "*.rpm" $1
     build_it "fedora:27" "RPM" "fedora27-amd64" "*.rpm" $1
     build_it "fedora:28" "RPM" "fedora28-amd64" "*.rpm" $1
+    build_it "fedora:29" "RPM" "fedora29-amd64" "*.rpm" $1
     build_it "fedora:30" "RPM" "fedora30-amd64" "*.rpm" $1
 
     ################# ******************** #################
