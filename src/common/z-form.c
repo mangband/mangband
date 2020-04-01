@@ -353,7 +353,16 @@ size_t vstrnfmt(char *buf, size_t max, cptr fmt, va_list vp)
 					aux[q++] = *s++;
 
 					/* Note the "long" flag */
-					do_long = TRUE;
+					if (do_long)
+					{
+						/* Already long, become "extra-long" */
+						do_long = FALSE;
+						do_long_long = TRUE;
+					}
+					else
+					{
+						do_long = TRUE;
+					}
 				}
 
 				/* Mega-Hack -- handle "extra-long" request */
