@@ -4,7 +4,7 @@
 # "build_it" invocations, which determine the actual build targets.
 # The only argument to this script is optional "--flat", to force
 # everything into a single directory. (Useful for github releases)
-# Note: this can hours!
+# Note: this can take hours!
 
 ## NON-DOCKER PATH
 running_in_docker() {
@@ -52,6 +52,13 @@ if ! running_in_docker ; then
     cd ../../dist/docker
 
     ################# ******************** #################
+
+    build_it "centos:6" "APPIMAGE:amd64" "appimage-amd64" "*.AppImage" $1
+# centos6 is broken by default, https://bugzilla.redhat.com/show_bug.cgi?id=1213602
+# disable overlayfs or use the touch hack to enable it
+#    build_it "i386/centos:6" "APPIMAGE:i386" "appimage-i386" "*.AppImage" $1
+# to give you something, that works out of the box, here's centos7
+    build_it "i386/centos:7" "APPIMAGE:i386" "appimage-i386" "*.AppImage" $1
 
     build_it "debian:stretch" "DEB" "debian9-amd64" "*.deb" $1
     build_it "i386/debian:stretch" "DEB" "debian9-i386" "*.deb" $1
@@ -141,4 +148,24 @@ if [ $1 = "RPM" ]; then
 	cd -
 	cp dist/rpm/*.rpm dist/docker/builds/.
 	#cp dist/rpm/SRPMS/**/.rpm dist/docker/builds/.
+fi
+
+if [ "$1" = "APPIMAGE:i386" ] || [ "$1" = "APPIMAGE:amd64" ]; then
+	if [ "$1" = "APPIMAGE:i386" ]; then
+		ARCH="i386"
+	else
+		ARCH="x86_64"
+	fi
+	printf "\n *** Doing appimage builds *** \n\n"
+	#https://bugzilla.redhat.com/show_bug.cgi?id=1213602
+	#touch /var/lib/rpm/*
+	yum install -yq wget which make gcc automake autoconf file
+	yum install -yq ncurses-devel X11-devel SDL-devel SDL2-devel
+	yum install -yq SDL_ttf-devel SDL2_ttf-devel || true
+	rm -f *.AppImage
+	wget https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-${ARCH}.AppImage
+	chmod +x ./*.AppImage
+	export LINUX_DEPLOY="$(pwd)/linuxdeploy-${ARCH}.AppImage --appimage-extract-and-run"
+	dist/appimage/appit.sh --without-x11 --with-gcu --with-sdl
+	cp MAng*.AppImage dist/docker/builds/.
 fi
