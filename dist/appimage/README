@@ -1,0 +1,18 @@
+This script will build & bundle a valid AppImage[1], given
+
+- you have linuxdeploy tool
+- LINUX_DEPLOY envvar is set to it's path, e.g.:
+
+LINUX_DEPLOY="./linuxdeploy-x86_64.AppImage" ./appit.sh
+
+----------------------------------------------------------------------
+
+HOWEVER! AppImages should be built on oldest possible linux distro,
+e.g. CentOS 6, so if you build this on latest Ubuntu, it won't be
+of any use to anyone!
+
+Thus, while this script shall work on your machine, and that is
+useful for debugging it, please DON'T re-destribute the resulting
+appimage!
+
+ [1]: https://appimage.org
