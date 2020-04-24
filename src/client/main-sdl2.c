@@ -4136,6 +4136,20 @@ static void handleMIcon(int action, int sub_action)
 			/* Root selector */
 			case MICON_TOGGLE_ROOT:
 			{
+				/* Hack -- waiting for an item && action is toggle */
+				if ((
+				    (term2_icon_context == MICONS_EQUIP)
+				    && (sub_action == MICONS_INVEN)
+				    ) || (
+				    (term2_icon_context == MICONS_ITEM)
+				    && (sub_action == MICONS_EQUIP)
+				))
+				{
+					/* Toggle inven/equip */
+					Term_keypress('/');
+					break;
+				}
+
 				term2_icon_pref = sub_action;
 				if (sub_action == MICONS_QUICKEST) micon_command_filter = MICONS_QUICKEST;
 				if (sub_action == MICONS_ALTER) micon_command_filter = MICONS_ALTER;
@@ -4581,6 +4595,7 @@ static void drawIconPanel_Inventory(SDL_Rect *size, bool inven, bool equip, bool
 	int i;
 	int spacing = 0;
 	SDL_Rect pos = { 0, 0, 32, 32 };
+	SDL_Rect pre_pos;
 	int fw = terms[0].font_data->w;
 	int fh = terms[0].font_data->h;
 	char numbuf[8] = { 0 };
@@ -4630,6 +4645,18 @@ static void drawIconPanel_Inventory(SDL_Rect *size, bool inven, bool equip, bool
 		/* And an actual icon */
 		renderMIcon(size, &pos, MICON_SELECT_INVEN, i, -2, spacing);
 		if (pos.y >= size->y + size->h) break;
+	}
+
+	if ((INVEN_WIELD-1) % 4 != 0)
+	{
+		pos.y += pos.h;
+	}
+
+	/* Add Inven/Equip toggle */
+	if (equip || term2_icon_context != MICONS_ITEM)
+	{
+		pos.x = size->x;
+		renderMIcon(size, &pos, MICON_TOGGLE_ROOT, MICONS_EQUIP, 'e', spacing);
 	}
 }
 
@@ -4704,6 +4731,11 @@ static void drawIconPanel_Equipment(SDL_Rect *size, bool inven, bool equip, bool
 	/* And a giant "fake" icon to prevent click-through */
 	xsize = *size;
 	renderMIcon(&xsize, &xsize, -1, -1, -1, 0);
+
+	/* Add Inven/Equip toggle */
+	pos.x = size->x;
+	pos.y += pos.w;
+	renderMIcon(size, &pos, MICON_TOGGLE_ROOT, MICONS_INVEN, 'i', spacing);
 }
 
 static void drawIconPanel_Spells(SDL_Rect *size, int spell_realm, int spell_book)
