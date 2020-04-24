@@ -3759,7 +3759,7 @@ static void renderIconOverlay(TermData *td)
 	}
 	else if (term2_icon_context == MICONS_ITEM)
 	{
-		SDL_Rect pane2 = { max_w - (64) * 4 - 1, top + icon_hs, (64) * 4 + 1, (64) * 5 };
+		SDL_Rect pane2 = { max_w - (64) * 4 - 1, top + icon_hs, (64) * 4 + 1, (64) * 7 };
 		drawIconPanel_Inventory(&pane2, micon_allow_inven, micon_allow_equip, micon_allow_floor);
 	}
 	else if (term2_icon_context == MICONS_EQUIP)
@@ -3780,7 +3780,7 @@ static void renderIconOverlay(TermData *td)
 	/* User pref */
 	else if (term2_icon_pref == MICONS_INVEN)
 	{
-		SDL_Rect pane2 = { max_w - (64) * 4 - 1, top + icon_hs, (64) * 4 + 1, (64) * 5 };
+		SDL_Rect pane2 = { max_w - (64) * 4 - 1, top + icon_hs, (64) * 4 + 1, (64) * 7 };
 		drawIconPanel_Inventory(&pane2, 0, 0, 0);
 
 		micon_command_filter = MICONS_INVEN;
@@ -4584,10 +4584,12 @@ static void drawIconPanel_Inventory(SDL_Rect *size, bool inven, bool equip, bool
 	pos.w *= 2;
 	pos.h *= 2;
 
+	/*
 	SDL_SetRenderDrawColor(terms[0].renderer, 0, 0, 0, 255);
 	SDL_RenderDrawRect(terms[0].renderer, size);
+	*/
 
-	for (i = 0; i < INVEN_WIELD; i++)
+	for (i = 0; i < INVEN_WIELD - 1; i++)
 	{
 		/* Highlight selected item */
 		if (term2_item_pref == i)
