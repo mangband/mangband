@@ -4231,6 +4231,10 @@ static void handleMIcon(int action, int sub_action)
 					{
 						Term_keypress('a' + term2_item_pref);
 					}
+					if (term2_item_pref <= -11)
+					{
+						Term_keypress('-');
+					}
 				}
 				Term_keypress(30);
 			}
@@ -4278,6 +4282,22 @@ static void handleMIcon(int action, int sub_action)
 				else
 				{
 					term2_item_pref = ind;
+				}
+			}
+			break;
+			/* Floor selection */
+			case MICON_SELECT_FLOOR:
+			{
+				int key = '-';
+				/* Waiting for an item */
+				if (term2_icon_context == MICONS_ITEM)
+				{
+					Term_keypress(key);
+				}
+				else
+				{
+					term2_icon_pref = MICONS_INVEN;
+					term2_item_pref = -11;
 				}
 			}
 			break;
@@ -4445,7 +4465,7 @@ static void drawIconPanel_Commands(SDL_Rect *size, int filter)
 		{
 			if (!(cmd->flag & COMMAND_ITEM_INVEN)) continue;
 			if (cmd->flag & COMMAND_STORE) continue;
-			if (term2_item_pref < 0)
+			if (term2_item_pref < 0 && floor_item.tval == 0)
 			{
 				if (cmd->tval) continue;
 			}
@@ -4454,7 +4474,8 @@ static void drawIconPanel_Commands(SDL_Rect *size, int filter)
 				if (!command_tester_okay(i, term2_item_pref)) continue;
 				if (cmd->tval != 0)
 				{
-					attr = inventory[term2_item_pref].sval;
+					if (term2_item_pref < 0) attr = floor_item.sval;
+					else attr = inventory[term2_item_pref].sval;
 				}
 			}
 		}
@@ -4657,6 +4678,39 @@ static void drawIconPanel_Inventory(SDL_Rect *size, bool inven, bool equip, bool
 	{
 		pos.x = size->x;
 		renderMIcon(size, &pos, MICON_TOGGLE_ROOT, MICONS_EQUIP, 'e', spacing);
+	}
+
+	/* Add Floor toggle */
+	if (onfloor || term2_icon_context != MICONS_ITEM)
+	{
+		pos.x = size->x + size->w - pos.w;
+		if (term2_item_pref == -11)
+		{
+			SDL_Rect box = { size->x + size->w - 60 * fw, 32 + 16,
+				60 * fw, fh * 2 };
+			SDL_SetRenderDrawColor(terms[0].renderer, 0, 0, 0, 200);
+			SDL_RenderFillRect(terms[0].renderer, &box);
+			iconText(box.x+fw, box.y+fh/3, floor_item.sval, floor_name, FALSE);
+			SDL_SetRenderDrawColor(terms[0].renderer, 255, 255, 255, 210);
+
+			SDL_SetRenderDrawColor(terms[0].renderer, 255, 255, 255, 210);
+		}
+		else
+		{
+			SDL_SetRenderDrawColor(terms[0].renderer, 64, 32, 0, 200);
+		}
+		SDL_RenderFillRect(terms[0].renderer, &pos);
+		pre_pos = pos;
+		renderMIcon(size, &pos, MICON_SELECT_FLOOR, -11, MICO_FLOOR_ITEM, spacing);
+		if (floor_item.tval)
+		{
+			iconPict(&pre_pos, floor_item.ix, floor_item.iy, TRUE);
+		}
+		if (floor_item.number > 1)
+		{
+			sprintf(numbuf, "%2d", floor_item.number);
+			iconText(pre_pos.x + pre_pos.w - fw*2, pre_pos.y + pre_pos.h-fh, floor_item.sval, numbuf, FALSE);
+		}
 	}
 }
 
@@ -4862,7 +4916,18 @@ static void drawIconPanel_Slots(SDL_Rect *size)
 
 		pre_pos = pos;
 		renderMIcon(size, &pos, MICON_LOCAL_QUICK_SLOT, i, slot->draw, spacing);
-
+		if (slot->draw == MICO_FLOOR_ITEM || slot->draw == 'g')
+		{
+			if (floor_item.tval)
+			{
+				iconPict(&pre_pos, floor_item.ix, floor_item.iy, TRUE);
+			}
+			if (floor_item.number > 1)
+			{
+				sprintf(numbuf, "%2d", floor_item.number);
+				iconText(pre_pos.x + pre_pos.w - fw*2, pre_pos.y + pre_pos.h-fh, floor_item.sval, numbuf, FALSE);
+			}
+		}
 		if (!STRZERO(slot->display))
 		{
 			iconText(pre_pos.x + 1, pre_pos.y + pos.h - tiny_font.h - 1,

@@ -1967,6 +1967,7 @@ int recv_floor(connection_type *ct)
 	/* Remember for later */
 	floor_item.sval = attr; /* Hack -- Store "attr" in "sval" */
 	floor_item.tval = tval;
+	floor_item.number = amt;
 	floor_item.ident = flag; /* Hack -- Store "flag" in "ident" */
 	floor_item.ix = ga; /* Hack -- Store "A" in "ix" */
 	floor_item.iy = gc; /* Hack -- Store "C" in "iy" */
