@@ -3981,19 +3981,22 @@ static void convertIconToSlot(void *slot_p, void *icon_p, int slot_id)
 	{
 		SlotData *orig = &quick_slots[icon->sub_action];
 
+		slot->action = orig->action;
+		slot->sub_action = orig->sub_action;
+		my_strcpy(slot->macro_act, orig->macro_act, 1024);
+		my_strcpy(slot->macro_item, orig->macro_item, 1024);
+		my_strcpy(slot->display, orig->display, 1024);
+
+		slot->draw = orig->draw;
+		slot->a = orig->a;
+		slot->c = orig->c;
+		slot->attr = orig->attr;
+		slot->item_counter = orig->item_counter;
+
 		if (orig->action == MICON_LOCAL_EXECUTE_MACRO)
 		{
 			slot->action = orig->action;
 			slot->sub_action = slot_id; /* Important */
-			my_strcpy(slot->macro_act, orig->macro_act, 1024);
-			my_strcpy(slot->macro_item, orig->macro_item, 1024);
-			my_strcpy(slot->display, orig->display, 1024);
-
-			slot->draw = orig->draw;
-			slot->a = orig->a;
-			slot->c = orig->c;
-			slot->attr = orig->attr;
-			slot->item_counter = orig->item_counter;
 		}
 	}
 	else if (icon->action == MICON_SELECT_SPELL)
@@ -4170,7 +4173,8 @@ static void handleMIcon(int action, int sub_action)
 				Term_keypress(ESCAPE);
 				Term_keypress('\\');
 				Term_keypress(cmd->m_catch);
-				if (micon_command_filter == MICONS_SPELLS)
+				if ((micon_command_filter == MICONS_SPELLS)
+				   && (cmd->flag & COMMAND_NEED_SPELL))
 				{
 					if (term2_spell_pref > -1)
 					{
@@ -4180,7 +4184,8 @@ static void handleMIcon(int action, int sub_action)
 						Term_keypress('a' + sn);
 					}
 				}
-				if (micon_command_filter == MICONS_EQUIP)
+				if ((micon_command_filter == MICONS_EQUIP)
+				   && (cmd->flag & COMMAND_ITEM_EQUIP))
 				{
 					if (term2_item_pref > -1)
 					{
@@ -4205,7 +4210,8 @@ static void handleMIcon(int action, int sub_action)
 					else {
 					}
 				}
-				if (micon_command_filter == MICONS_INVEN)
+				if ((micon_command_filter == MICONS_INVEN)
+				   && (cmd->flag & COMMAND_ITEM_INVEN))
 				{
 					if (term2_item_pref > -1)
 					{
