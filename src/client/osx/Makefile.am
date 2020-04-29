@@ -36,6 +36,15 @@ mangclient.app: mangclient
 		echo "dylib: $$dylib -> $$NAME" ; \
 		cp $$dylib mangclient.app/Contents/MacOS/ ; \
 		install_name_tool -change $$dylib @executable_path/$$NAME mangclient.app/Contents/MacOS/mangclient ; \
+		SUB_DYLIBS=`otool -L $$dylib | grep -e freetype -e SDL | grep -v ':' | awk -F' ' '{ print $$1 }'` ; \
+		for subdylib in $${SUB_DYLIBS} ; do \
+			SUBNAME=`basename $$subdylib` ; \
+			if [ $$NAME != $$SUBNAME ] ; then \
+				echo "sub_dylib: $$subdylib -> $$SUBNAME" ; \
+				cp $$subdylib mangclient.app/Contents/MacOS/ ; \
+				install_name_tool -change $$subdylib @executable_path/$$SUBNAME mangclient.app/Contents/MacOS/$$NAME; \
+			fi ; \
+		done ; \
 	done
 	@cp src/client/osx/launch_mangclient.sh mangclient.app/Contents/MacOS
 	@cp src/client/osx/mangclient.icns mangclient.app/Contents/Resources
