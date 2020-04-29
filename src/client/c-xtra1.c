@@ -931,7 +931,7 @@ void show_inven(void)
 
 	/* Hack -- ensure we never try to truncate out of array bounds */
 	truncate = lim;
-	if (truncate < 0) truncate = 0;
+	if (lim < 0) truncate = 0;
 	if (truncate > sizeof(o_name) - 1) truncate = sizeof(o_name) - 1;
 
 	/* Find the "final" slot */
@@ -1063,7 +1063,7 @@ void show_equip(void)
 
 	/* Hack -- ensure we never try to truncate out of array bounds */
 	truncate = lim;
-	if (truncate < 0) truncate = 0;
+	if (lim < 0) truncate = 0;
 	if (truncate > sizeof(o_name) - 1) truncate = sizeof(o_name) - 1;
 
 	/* Scan the equipment list */
