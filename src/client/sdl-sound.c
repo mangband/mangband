@@ -25,10 +25,19 @@ static void wav_play(void *userdata, Uint8 *stream, int len)
 	sound_wave * wav = now_playing;
 
 	/* Paranoia */
-	Uint32 tocopy = ((wav->length - wav->pos > len)? len: wav->length - wav->pos);
+	Uint32 tocopy = ((wav->length - wav->pos > len) ? len: wav->length - wav->pos);
+
+	/* Samples to copy for silence */
+	Uint32 topad = len - tocopy;
 
 	/* Copy data to audio buffer */
 	memcpy(stream, wav->buffer + wav->pos, tocopy);
+
+	/* Copy silence to audio buffer */
+	/* TODO: for >=16bit unsigned formats, "0" is wrong, but I don't want
+	 * to do interleaved memset here :( Ideally, we should have a static
+	 * buffer pre-filled with silence and copy from there... */
+	memset(stream + tocopy, 0, topad);
 
 	/* Advance */
 	wav->pos += tocopy;
@@ -71,7 +80,7 @@ void sdl_init_sound()
 	/* Open the audio device */
 	if (SDL_OpenAudio(&wav_desired, &wav_obtained) != 0)
 	{
-		plog_fmt("Could no`t open audio: %s", SDL_GetError());
+		plog_fmt("Could not open audio: %s", SDL_GetError());
 		use_sound = FALSE;
 		return;
 	}
