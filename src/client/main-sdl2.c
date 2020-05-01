@@ -3872,7 +3872,7 @@ static void unloadTinyFont(void)
 	tx_tiny = NULL;
 }
 
-static errr iconText(int x, int y, byte attr, cptr s, bool tiny)
+static errr iconText(int x, int y, byte attr, cptr s, int tiny)
 {
 	int i;
 	int mult = 1;
