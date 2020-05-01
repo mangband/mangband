@@ -3686,8 +3686,14 @@ static void renderIconOverlay(TermData *td)
 	/* Display Dragged Icon */
 	if (dragging_icon)
 	{
-		iconPict(&drag_icon.pos, drag_icon.a, drag_icon.c, FALSE);
-		drawUiIcon(&drag_icon.pos, drag_icon.draw);
+		SDL_Rect pos = drag_icon.pos;
+#ifdef MOBILE_UI
+		/* On mobile user's finger is convering the icon, move it */
+		pos.x -= MICON_W;
+		pos.y -= MICON_H;
+#endif
+		iconPict(&pos, drag_icon.a, drag_icon.c, FALSE);
+		drawUiIcon(&pos, drag_icon.draw);
 	}
 
 
