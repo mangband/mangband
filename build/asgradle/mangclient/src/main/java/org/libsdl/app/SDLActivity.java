@@ -1017,13 +1017,28 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
         }
         activity.getWindowManager().getDefaultDisplay().getMetrics(metrics);
 
-        double dWidthInches = metrics.widthPixels / (double)metrics.xdpi;
-        double dHeightInches = metrics.heightPixels / (double)metrics.ydpi;
+        boolean do_adjustDpi = false;
+        String adjustDpi = SDLActivity.nativeGetHint("SDL_ANDROID_ADJUST_DPI");
+        if ((adjustDpi != null) && adjustDpi.equals("1")) {
+            do_adjustDpi = true;
+        }
+
+        double dpiX = metrics.xdpi;
+        double dpiY = metrics.ydpi;
+        // Hack -- if densityDpi is ~30% lower than xdpi/ydpi, let's use
+        // densityDpi for calculating the inches below.
+        if (do_adjustDpi && Math.max(metrics.xdpi, metrics.ydpi) / (double)metrics.densityDpi >= 1.3) {
+            dpiX = metrics.densityDpi;
+            dpiY = metrics.densityDpi;
+        }
+
+        double dWidthInches = metrics.widthPixels / dpiX;
+        double dHeightInches = metrics.heightPixels / dpiY;
 
         double dDiagonal = Math.sqrt((dWidthInches * dWidthInches) + (dHeightInches * dHeightInches));
 
         // If our diagonal size is seven inches or greater, we consider ourselves a tablet.
-        return (dDiagonal >= 7.0);
+        return (dDiagonal >= 6.9);
     }
 
     /**

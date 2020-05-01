@@ -47,6 +47,9 @@
         <meta-data android:name="SDL_ENV.SDL_ACCELEROMETER_AS_JOYSTICK" android:value="0"/>
          -->
 
+        <!-- Custom SDL hint: -->
+        <meta-data android:name="SDL_ENV.SDL_ANDROID_ADJUST_DPI" android:value="1"/>
+
         <activity android:name="MAngClient"
             android:label="@string/app_name"
             android:alwaysRetainTaskState="true"
