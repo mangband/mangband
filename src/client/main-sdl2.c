@@ -3452,6 +3452,7 @@ static errr handleMenu(int i, int x, int y) {
 	{
 		menu_open = menu_hover;
 		menu_open_term = menu_term;
+		terms[menu_term].need_render = TRUE;
 	}
 	return 0;
 }
