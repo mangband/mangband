@@ -3334,6 +3334,9 @@ static errr handleMenu(int i, int x, int y) {
 		
 		/* Move it around */
 		termConstrain(i);
+
+		/* Also, redraw main window */
+		terms[0].need_render = TRUE;
 	}
 
 	if (menu_hover == MENU_ACT_CLOSE) {
