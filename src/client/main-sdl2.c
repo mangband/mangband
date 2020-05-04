@@ -903,7 +903,7 @@ void refreshTermAlt(TermData *td) {
 		td->alt_fb_h = 0;
 		if (td->need_redraw) {
 			// (re)subscribe
-			net_term_update(TRUE);
+			net_term_update(FALSE);
 		}
 		return;
 	}
@@ -942,7 +942,7 @@ void refreshTermAlt(TermData *td) {
 	SDL_RenderClear(td->renderer);
 
 	// (re)subscribe
-	net_term_update(TRUE);
+	net_term_update(FALSE);
 
 	td->need_redraw = TRUE;
 }
