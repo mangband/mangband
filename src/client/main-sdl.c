@@ -327,8 +327,19 @@ cptr conf_find_font(term_data *td) {
 	buf[0] = fontname[0] = '\0';
 	
 	if (!conf_section_exists("SDL-Fonts")) {
-		conf_set_string("SDL-Fonts", "0", "misc6x13.hex");
-		conf_set_string("SDL-Fonts", "1", "nethack10x19-10.hex");
+		char fonts[24][1024];
+		int n, k;
+		/* Read fonts from dir */
+		n = sdl_font_read_dir(NULL, fonts, 24);
+		for (k = 0; k < n; k++) {
+			sprintf(buf, "%d", k);
+			conf_set_string("SDL-Fonts", buf, fonts[k]);
+		}
+		if (n == 0) {
+			/* Final fallback */
+			conf_set_string("SDL-Fonts", "0", "misc6x13.hex");
+			conf_set_string("SDL-Fonts", "1", "nethack10x19-10.hex");
+		}
 	}
 
 	do

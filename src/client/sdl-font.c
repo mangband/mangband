@@ -928,39 +928,34 @@ errr sdl_font_quit()
 	return 0;
 }
 
-SDL_Surface* sdl_font_load(cptr filename, SDL_Rect* info, int fontsize, int smoothing) 
+enum fonttype {
+	FONT_UNKNOWN,
+	FONT_BMP,
+	FONT_HEX,
+	FONT_BDF,
+	FONT_TTF,
+	FONT_OTF,
+	FONT_FON,
+	FONT_FNT,
+	FONT_PCF,
+	FONT__MAX,
+};
+static const char* typenames[] = {
+	"UNKNOWN",
+	".bmp",
+	".hex",
+	".bdf",
+	".ttf",
+	".otf",
+	".fon",
+	".fnt",
+	".pcf",
+};
+
+enum fonttype match_fonttype(cptr filename)
 {
-	SDL_Rect glyph_info;
-	SDL_Surface *surface;
-
+	int fonttype;
 	char *ext;
-	enum {
-		FONT_BMP,
-		FONT_HEX,
-		FONT_BDF,
-		FONT_TTF,
-		FONT_OTF,
-		FONT_FON,
-		FONT_FNT,
-		FONT_PCF,
-	} fonttype;
-	int fontdefault;
-	char* typenames[] = {
-		".bmp",
-		".hex",
-		".bdf",
-		".ttf",
-		".otf",
-		".fon",
-		".fnt",
-		".pcf",
-	};
-
-#if defined(USE_SDL2_TTF) || defined(USE_SDL_TTF)
-	fontdefault = FONT_TTF;
-#else
-	fontdefault = FONT_BMP;
-#endif
 
 	/* Extract file extension */
 	ext = strrchr(filename, '.');
@@ -968,42 +963,78 @@ SDL_Surface* sdl_font_load(cptr filename, SDL_Rect* info, int fontsize, int smoo
 	/* Failed to get extension? */
 	if (ext == NULL)
 	{
-		fonttype = fontdefault;
+		fonttype = FONT_UNKNOWN;
 	}
-	else if (!my_stricmp(ext, typenames[FONT_HEX]))
+	else
 	{
-		fonttype = FONT_HEX;
+		/* Compare each string from "typenames" */
+		int i;
+		fonttype = FONT_UNKNOWN;
+		for (i = 0; i < FONT__MAX; i++)
+		{
+			if (!my_stricmp(ext, typenames[i]))
+			{
+				fonttype = i;
+				break;
+			}
+		}
 	}
-	else if (!my_stricmp(ext, typenames[FONT_BDF]))
+	return fonttype;
+}
+
+int sdl_font_read_dir(cptr path, char files[][1024], size_t size)
+{
+	char buf[1024];
+	int n = 0;
+	ang_dir *d;
+	if (path == NULL)
 	{
-		fonttype = FONT_BDF;
+		path = ANGBAND_DIR_XTRA_FONT;
 	}
-	else if (!my_stricmp(ext, typenames[FONT_TTF]))
+	d = my_dopen(path);
+	if (d == NULL)
 	{
+		return 0;
+	}
+	while (my_dread(d, buf, sizeof(buf)))
+	{
+		int fonttype = match_fonttype(buf);
+		/* Hack -- Skip ui-cmd font */
+		if (!my_stricmp(buf, "ui-cmd.ttf")) continue;
+		#if !(defined(USE_SDL2_TTF) || defined(USE_SDL_TTF))
+			/* Skip unsupported fonts */
+			if ((fonttype == FONT_BMP)
+				|| (fonttype == FONT_HEX)
+				|| (fonttype == FONT_BDF))
+					continue;
+		#endif
+		if (fonttype != FONT_UNKNOWN)
+		{
+			my_strcpy(files[n], buf, 1024);
+			n++;
+		}
+	}
+	my_dclose(d);
+	return n;
+}
+
+SDL_Surface* sdl_font_load(cptr filename, SDL_Rect* info, int fontsize, int smoothing)
+{
+	SDL_Rect glyph_info;
+	SDL_Surface *surface;
+
+	int fonttype;
+
+	fonttype = match_fonttype(filename);
+
+	if (fonttype == FONT_UNKNOWN)
+	{
+		/* Pick a default */
+#if defined(USE_SDL2_TTF) || defined(USE_SDL_TTF)
 		fonttype = FONT_TTF;
-	}
-	else if (!my_stricmp(ext, typenames[FONT_OTF]))
-	{
-		fonttype = FONT_OTF;
-	}
-	else if (!my_stricmp(ext, typenames[FONT_FON]))
-	{
-		fonttype = FONT_FON;
-	}
-	else if (!my_stricmp(ext, typenames[FONT_FNT]))
-	{
-		fonttype = FONT_FNT;
-	}
-	else if (!my_stricmp(ext, typenames[FONT_PCF]))
-	{
-		fonttype = FONT_PCF;
-	}
-	else if (!my_stricmp(ext, typenames[FONT_BMP]))
-	{
+#else
 		fonttype = FONT_BMP;
-	}
-	else {
-		fonttype = fontdefault;
+#endif
 	}
 
 	switch (fonttype)

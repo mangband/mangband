@@ -117,8 +117,8 @@ static char default_font_small[128];
 static int default_font_small_size = 10;
 
 
-#define MAX_QUICK_FONTS 16
-static char quick_font_names[MAX_QUICK_FONTS][128] = {
+#define MAX_QUICK_FONTS 24
+char quick_font_names[MAX_QUICK_FONTS][1024] = {
 	"nethack10x19-10.hex",
 	"misc6x13.hex",
 	""
@@ -5014,6 +5014,12 @@ static errr loadConfig()
 		} else {
 			break;
 		}
+	}
+
+	/* Read font directory */
+	if (f == 0)
+	{
+		sdl_font_read_dir(NULL, quick_font_names, MAX_QUICK_FONTS);
 	}
 
 	/* Assume quickfont-0 is our default font. (for now) */

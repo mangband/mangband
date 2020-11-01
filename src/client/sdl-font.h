@@ -15,6 +15,7 @@ extern SDL_Surface* sdl_font_load(cptr filename, SDL_Rect* info, int fontsize, i
 extern SDL_Surface* sdl_graf_load(cptr filename, SDL_Rect* info, cptr maskname);
 
 /* ================== ================= */
+extern int sdl_font_read_dir(cptr path, char files[][1024], size_t size);
 extern SDL_Surface* SDL_CreateCircleSurface32(int w, int h, int r, SDL_Color *c);
 
 #endif
