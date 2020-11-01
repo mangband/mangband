@@ -2418,10 +2418,10 @@ void conf_init(void* param)
 	config = NULL;
 
 	/* Try to get path to config file from command-line "--config" option */
-	if (clia_read_string(buf, 1024, "config"))
+	if (clia_read_string(config_name, 1024, "config"))
 	{
 		/* Attempt to open file */
-		config = file_open(buf, MODE_READ, -1);
+		config = file_open(config_name, MODE_READ, -1);
 	}
 
 	/*

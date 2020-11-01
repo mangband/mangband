@@ -23,8 +23,10 @@ LIBDIR="${DIR}/../Resources/lib/"
 USERDIR="${HOME}/Library/Application Support/MAngband${SHORTVERSION}/"
 mkdir -p "${USERDIR}/user"
 mkdir -p "${USERDIR}/bone"
+touch "${USERDIR}/mangclient.ini"
 cp -n "${LIBDIR}/user/"* "${USERDIR}/user"
 "${DIR}/mangclient" \
  --libdir "${LIBDIR}" \
  --userdir "${USERDIR}" \
+ --config "${USERDIR}/mangclient.ini" \
  $1 $2 $3 $4 $5 $6 $7 $8 $9
