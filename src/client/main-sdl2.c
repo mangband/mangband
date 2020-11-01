@@ -1100,7 +1100,7 @@ static errr loadFont(TermData *td, cptr filename, int fontsize, int smoothing) {
 			return 0;
 		}
 	}
-	plog_fmt("loadFont(): %s", font_error, NULL);
+	// plog_fmt("loadFont(): %s", font_error, NULL);
 	return 1;
 }
 

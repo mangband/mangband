@@ -160,11 +160,10 @@ SDL_Surface *bmpToFont(SDL_Rect *fd, cptr filename) {
 	path_build(buf, 1024, ANGBAND_DIR_XTRA_FONT, filename);
 	font = SDL_LoadBMP(buf);
 	if (!font) {
-		plog_fmt("bmpToFont: %s", SDL_GetError());
 		return NULL;
 	}
 	if (font->format->BitsPerPixel != 8) {
-		plog_fmt("bmpToFont: was expecting bitmap with a palette");
+		SDL_SetError("bmpToFont: was expecting bitmap with a palette");
 		return NULL;
 	}
 	// Poorly get our font metrics and maximum cell size in pixels
@@ -223,7 +222,6 @@ SDL_Surface* ttfToFont(SDL_Rect *fd, cptr filename, int fontsize, int smoothing)
   path_build(buf, 1024, ANGBAND_DIR_XTRA_FONT, filename);
   font = TTF_OpenFont(buf, fontsize);
   if (!font) {
-    plog_fmt("ttfToFont: %s", TTF_GetError());
     return NULL;
   }
   // Poorly get our font metrics and maximum cell size in pixels
@@ -242,8 +240,8 @@ SDL_Surface* ttfToFont(SDL_Rect *fd, cptr filename, int fontsize, int smoothing)
   }
   // For .fon files, try the NxN-in-filename approach
   if (isuffix(filename, ".fon")) {
-    int _width = 0;
-    int _height = 0;
+    Uint32 _width = 0;
+    Uint32 _height = 0;
     if (!strtoii(filename, &_width, &_height)) {
       width = _width;
       height = _height;
@@ -256,7 +254,6 @@ SDL_Surface* ttfToFont(SDL_Rect *fd, cptr filename, int fontsize, int smoothing)
   // Create our glyph surface that will store 256 characters in a 16x16 matrix
   surface = SDL_CreateRGBSurface(0, width*16, height*16, 32, RGBAMASK);
   if (surface == NULL) {
-    plog_fmt("ttfToFont: %s", SDL_GetError());
     TTF_CloseFont(font);
     return NULL;
   }
@@ -1064,7 +1061,7 @@ SDL_Surface* sdl_font_load(cptr filename, SDL_Rect* info, int fontsize, int smoo
 			surface = ttfToFont(info, filename, fontsize, smoothing);
 #else
 			surface = NULL;
-			plog_fmt("compiled without ttf support, can't load %s\n", filename);
+			SDL_SetError("compiled without ttf support");
 #endif
 		break;
 		default:
@@ -1075,7 +1072,7 @@ SDL_Surface* sdl_font_load(cptr filename, SDL_Rect* info, int fontsize, int smoo
 	
 	if (surface == NULL)
 	{
-		plog_fmt("%s: %s: failed to load %s", ANGBAND_SYS, typenames[fonttype], filename);
+		plog_fmt("%s: %s: failed to load %s - %s", ANGBAND_SYS, typenames[fonttype], filename, SDL_GetError());
 	}
 
 	return surface;
