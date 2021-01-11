@@ -219,6 +219,13 @@ static void mobileAutoLayout(void)
 	refreshTerm(td);
 }
 
+/* Options: */
+static bool sdl_game_mouse = TRUE;
+static bool sdl_combine_arrowkeys = FALSE;
+static int  sdl_combiner_delay = 50;
+static bool ignore_keyboard_layout = FALSE;
+static bool collapse_numpad_keys = FALSE;
+
   ////////////////////////////
  /* ==== Icon Overlay ==== */
 ////////////////////////////
@@ -1543,6 +1550,11 @@ enum {
 	MENU_ACT_SOUND_OFF,
 	MENU_ACT_SOUND_ON,
 
+	MENU_ACT_TOGGLE_GAMEMOUSE,
+	MENU_ACT_TOGGLE_ARROWCOMBINER,
+	MENU_ACT_TOGGLE_IGNORELAYOUT,
+	MENU_ACT_TOGGLE_COLLAPSENUMPAD,
+
 	MENU_ACT_MAX,
 };
 
@@ -1637,6 +1649,18 @@ static errr renderGui(TermData *td)
 	if (td->id == TERM_MAIN)
 	{
 		renderTButton(td, cx, 0, "[@]", MENU_SUB_ROOT);
+		if (menu_open == MENU_SUB_ROOT && menu_open_term == td->id) {
+			char buf[128];
+			int sx = cx - 1;
+			int sy = y + 1;
+			strnfmt(buf, 32, " [%c] In-Game Mouse      ", (sdl_game_mouse ? 'X' : '.'));
+			renderTButton(td, sx, sy + 0, buf, MENU_ACT_TOGGLE_GAMEMOUSE);
+			strnfmt(buf, 32, " [%c] Combine Arrow Keys ", (sdl_combine_arrowkeys ? 'X' : '.'));
+			renderTButton(td, sx, sy + 1, buf, MENU_ACT_TOGGLE_ARROWCOMBINER);
+			td->menu_rect.h += 2 * grid_h;
+			sub_w = 24;
+			sub_x = sx;
+		}
 		cx += 3 + 1;
 	} else cx += 1;
 
@@ -2267,6 +2291,9 @@ static void altCoord(int wx, int wy, int *x, int *y)
 
 static void handleMouseClick(int i, int wx, int wy, int sdlbutton)
 {
+	/* Hack -- user doesn't want to control the game with mouse */
+	if (!sdl_game_mouse) return;
+
 	if (i == TERM_MAIN)
 	{
 		int button = 0;
@@ -2628,9 +2655,6 @@ static void handleMouseEvent(SDL_Event *ev)
 	}
 }
 
-/* Options: */
-static bool ignore_keyboard_layout = FALSE;
-static bool collapse_numpad_keys = FALSE;
 /* Notification: */
 static bool warn_wrong_layout = FALSE;
 
@@ -2662,6 +2686,167 @@ static int hackyShift(int key)
 	return key;
 }
 
+/* ==== Arrow Key Combiner ==== */
+static SDL_Event prev_arrow = {0};
+static Uint32 prev_arrow_timestamp = 0;
+static int has_prev_arrow = FALSE;
+static int combiner_recurse = 1;
+
+static int isArrowKey(int key)
+{
+	return (key == SDLK_UP  || key == SDLK_DOWN
+		|| key == SDLK_LEFT || key == SDLK_RIGHT);
+}
+static int isArrowCombinable(int key1, int key2)
+{
+	switch (key1)
+	{
+		case SDLK_UP:
+		case SDLK_DOWN:
+			return (key2 == SDLK_LEFT || key2 == SDLK_RIGHT);
+		case SDLK_LEFT:
+		case SDLK_RIGHT:
+			return (key2 == SDLK_UP || key2 == SDLK_DOWN);
+		default:
+			break;
+	}
+	return 0;
+}
+static SDL_Keycode CombinedMovement(SDL_Keycode a, SDL_Keycode b)
+{
+	const SDL_Keycode keys9x9[4][4] = {
+		{ SDLK_HOME, SDLK_UP, SDLK_PAGEUP },
+		{ SDLK_LEFT, 0, SDLK_RIGHT },
+		{ SDLK_END, SDLK_DOWN, SDLK_PAGEDOWN },
+	};
+	int _dx = 0, _dy = 0;
+	if (a == SDLK_UP || b == SDLK_UP) _dy = -1;
+	else if (a == SDLK_DOWN || b == SDLK_DOWN) _dy = 1;
+	if (a == SDLK_LEFT || b == SDLK_LEFT) _dx = -1;
+	else if (a == SDLK_RIGHT || b == SDLK_RIGHT) _dx = 1;
+	if (_dx && _dy)
+	{
+		return keys9x9[_dy + 1][_dx + 1];
+	}
+	return 0;
+}
+static void handleKeyboardEvent(SDL_Event *ev);
+static void StoreDelayedArrow(SDL_Event *ev)
+{
+	prev_arrow = *ev;
+	prev_arrow_timestamp = SDL_GetTicks();
+	has_prev_arrow = TRUE;
+}
+static void DropDelayedArrow()
+{
+	has_prev_arrow = FALSE;
+}
+static int isDelayedArrowRecent()
+{
+	if (has_prev_arrow) 
+	{
+		Uint32 diff = SDL_GetTicks() - prev_arrow_timestamp;
+		if (diff < sdl_combiner_delay) return TRUE;
+	}
+	return FALSE;
+}
+static void PlayDelayedArrow()
+{
+	if (has_prev_arrow)
+	{
+		combiner_recurse = 0;
+		handleKeyboardEvent(&prev_arrow);
+		combiner_recurse = 1;
+	}
+}
+static void TimeoutDelayedArrow()
+{
+	if (has_prev_arrow && !isDelayedArrowRecent())
+	{
+		PlayDelayedArrow();
+		DropDelayedArrow();
+	}
+}
+/* Main function responsible for combining arrow keys.
+ * It's a bit verbose, and has a measurable amount of code duplication,
+ * but it's easier to debug specific cases, by following specific branches this way.
+ */
+static int NoticeArrowKey(int key, SDL_Event *ev, int push)
+{
+	/* Disabled completely */
+	if (!sdl_combine_arrowkeys) return ev->key.keysym.sym;
+	/* Disabled temporarily */
+	if (!combiner_recurse) return ev->key.keysym.sym;
+
+	/* If we already have a delayed arrow key, then... */
+	if (has_prev_arrow)
+	{
+		/* If new key is not an arrow, release */
+		if (!isArrowKey(key))
+		{
+			PlayDelayedArrow();
+			DropDelayedArrow();
+		}
+		else
+		{
+			/* If new key IS an arrow, let's examine the situation */
+			int prev_key = prev_arrow.key.keysym.sym;
+			/* If it's the same key */
+			if (prev_key == key)
+			{
+				/* Which has been released */
+				if (push == 0)
+				{
+					/* Play it, once */
+					PlayDelayedArrow();
+					DropDelayedArrow();
+					return 0;
+				}
+				/* Which has been pressed again */
+				else
+				{
+					/* Do nothing */
+				}
+			}
+			/* If it's a different key */
+			else
+			{
+				if (push == 0)
+				{
+					/* Do nothing */
+				}
+				else
+				{
+					/* Can we actually combine the two? */
+					if (isArrowCombinable(prev_key, key) && isDelayedArrowRecent())
+					{
+						/* Let's combine! */
+						ev->key.keysym.sym = CombinedMovement(prev_key, key);
+						DropDelayedArrow();
+					}
+					/* We can't, flush the old one */
+					else
+					{
+						PlayDelayedArrow();
+						DropDelayedArrow();
+						/* But keep the new one for later */
+						StoreDelayedArrow(ev);
+						return 0;
+					}
+				}
+			}
+		}
+	}
+	/* If we don't have a delayed arrow key, let's take this one */
+	else if (isArrowKey(key) && push)
+	{
+		StoreDelayedArrow(ev);
+		return 0;
+	}
+
+	return ev->key.keysym.sym;
+}
+
 static void handleKeyboardEvent(SDL_Event *ev)
 {
 	/* Handle text input */
@@ -2670,7 +2855,7 @@ static void handleKeyboardEvent(SDL_Event *ev)
 		/* This is a utf-8 string */
 		char *c = ev->text.text;
 		/* Hack -- if we ignore_keyboard_layout, don't use textinput */	
-		if (ignore_keyboard_layout) c = NULL;
+		if (ignore_keyboard_layout) *c = 0;
 		while (*c)
 		{
 			int key = *c;
@@ -2703,12 +2888,14 @@ static void handleKeyboardEvent(SDL_Event *ev)
 	if (ev->type == SDL_KEYUP && ev->key.state == SDL_RELEASED)
 	{
 		int key = ev->key.keysym.sym;
-		/* Track modifier keypresses , for mouse sake */
+		/* Track modifier keypresses, for mouse sake */
 		if (key >= SDLK_LCTRL && key <= SDLK_RGUI)
 		{
 			Noticemodkeypress(key, 0);
 			return;
 		}
+		/* Hack -- combine arrow keys */
+		NoticeArrowKey(key, ev, 0);
 	}
 
 	/* Key pressed */
@@ -2726,6 +2913,9 @@ static void handleKeyboardEvent(SDL_Event *ev)
 			Noticemodkeypress(key, 1);
 			return;
 		}
+
+		/* Hack -- combine arrow keys */
+		if ((key = NoticeArrowKey(key, ev, 1)) == 0) return;
 
 		/* ASCII */
 		if (key <= 127)
@@ -2893,8 +3083,9 @@ static errr xtraTermHook(int n, int v) {
 		}
 
 	} while (SDL_PollEvent(NULL));
+		/* Hack -- flush delayed arrow */
+		TimeoutDelayedArrow();
 	return 0; // okay, I guess?
-
 	case TERM_XTRA_FLUSH:
 		while (SDL_PollEvent(&event));
 		return 0; // force a redraw?
@@ -3353,6 +3544,19 @@ static errr handleMenu(int i, int x, int y) {
 		if (use_sound) sdl_play_sound_end(TRUE);
 #endif
 		use_sound = FALSE;
+	}
+
+	if (menu_hover == MENU_ACT_TOGGLE_GAMEMOUSE) {
+		sdl_game_mouse = !sdl_game_mouse;
+	}
+	if (menu_hover == MENU_ACT_TOGGLE_ARROWCOMBINER) {
+		sdl_combine_arrowkeys = !sdl_combine_arrowkeys;
+	}
+	if (menu_hover == MENU_ACT_TOGGLE_COLLAPSENUMPAD) {
+		collapse_numpad_keys = !collapse_numpad_keys;
+	}
+	if (menu_hover == MENU_ACT_TOGGLE_IGNORELAYOUT) {
+		ignore_keyboard_layout = !ignore_keyboard_layout;
 	}
 
 	if (menu_hover >= MENU_QUICK_FONT0 && menu_hover <= MENU_QUICK_FONT_LAST) {
@@ -5047,6 +5251,10 @@ static errr loadConfig()
 
 	use_sound = (bool)conf_get_int("SDL2", "Sound", 1);
 
+	sdl_combine_arrowkeys = (bool)conf_get_int("SDL2", "CombineArrows", 1);
+	sdl_combiner_delay = conf_get_int("SDL2", "CombineArrowsDelay", 50);
+	sdl_game_mouse = (bool)conf_get_int("SDL2", "GameMouse", 1);
+
 	for (window_id = 0; window_id < TERM_MAX; window_id++)
 	{
 		graphics_mode* gm = get_graphics_mode((byte)use_graphics);
@@ -5198,6 +5406,10 @@ static errr saveConfig()
 
 	conf_set_int("SDL2", "Graphics", use_graphics);
 	conf_set_int("SDL2", "Sound", use_sound);
+
+	conf_set_int("SDL2", "CombineArrows", sdl_combine_arrowkeys);
+	conf_set_int("SDL2", "CombineArrowsDelay", sdl_combiner_delay);
+	conf_set_int("SDL2", "GameMouse", sdl_game_mouse);
 
 	for (window_id = 0; window_id < TERM_MAX; window_id++)
 	{
