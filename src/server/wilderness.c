@@ -503,7 +503,7 @@ void do_cmd_plant_seed(player_type *p_ptr, int item)
 	object_type	*o_ptr;
 
 	int feat = 0;
-	int crop = 0;
+	int crop = -1;
 
 	int Depth = p_ptr->dun_depth;
 	int y = p_ptr->py;
@@ -546,7 +546,7 @@ void do_cmd_plant_seed(player_type *p_ptr, int item)
 		case SV_FOOD_EAR_OF_CORN:     crop = WILD_CROP_CORN; break;
 		default: break;
 	}
-	if (!crop) return;
+	if (crop < 0) return;
 
 	/* Inform */
 	msg_print(p_ptr, "You have planted some seeds.");
