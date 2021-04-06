@@ -254,10 +254,11 @@ s16b target_row;*/
 /* Collection of connections/players */
 element_group* players = NULL;
 
-/* User info */
+/* User info in z-file.c
 int player_uid = 0;
 int player_euid = 0;
 int player_egid = 0;
+*/
 
 /* The array of players */
 player_type **Players;

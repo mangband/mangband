@@ -154,7 +154,7 @@
  * OPTION: Use the "curs_set()" call in "main-gcu.c".
  * Hack -- This option will not work on most BSD machines
  */
-#if defined(SYS_V) || defined(linux)
+#if defined(SYS_V) || defined(linux) || defined(__FreeBSD__)
 # define USE_CURS_SET
 #endif
 
