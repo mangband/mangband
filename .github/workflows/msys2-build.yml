@@ -100,6 +100,8 @@ jobs:
       - uses: eskatos/gradle-command-action@v1
         with:
           arguments: build connectedCheck assembleDebug assembleRelease
+          build-root-directory: build/asgradle
+          wrapper-directory: build/asgradle
           wrapper-cache-enabled: true
           dependencies-cache-enabled: true
           configuration-cache-enabled: true
