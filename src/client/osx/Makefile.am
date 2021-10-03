@@ -31,7 +31,7 @@ mangclient.app: mangclient
 	@mkdir mangclient.app/Contents/Resources/lib/xtra/Sound
 	@cp mangclient mangclient.app/Contents/MacOS
 	@$(eval DYLIBS=$(shell otool -L mangclient | grep SDL | awk -F' ' '{ print $$1 }'))
-	for dylib in ${DYLIBS} ; do \
+	@for dylib in ${DYLIBS} ; do \
 		NAME=`basename $$dylib` ; \
 		echo "dylib: $$dylib -> $$NAME" ; \
 		cp $$dylib mangclient.app/Contents/MacOS/ ; \
@@ -48,8 +48,8 @@ mangclient.app: mangclient
 				install_name_tool -change $$subdylib @executable_path/$$SUBNAME mangclient.app/Contents/MacOS/$$NAME; \
 			fi ; \
 		done ; \
-		chmod -w mangclient.app/Contents/MacOS/*.dylib ; \
 	done
+	@chmod -w mangclient.app/Contents/MacOS/*.dylib ; \
 	@cp src/client/osx/launch_mangclient.sh mangclient.app/Contents/MacOS
 	@cp src/client/osx/mangclient.icns mangclient.app/Contents/Resources
 	@cp src/client/osx/Info.plist mangclient.app/Contents
