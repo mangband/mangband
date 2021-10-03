@@ -129,7 +129,7 @@ jobs:
           name: mangband-server-setup.exe
       - uses: actions/download-artifact@v2
         with:
-          name: mangband-server-setup.exe
+          name: mangband-client-setup.exe
       - name: Release
         uses: softprops/action-gh-release@v1
         # if: startsWith(github.ref, 'refs/tags/')
