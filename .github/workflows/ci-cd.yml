@@ -22,18 +22,18 @@ jobs:
         shell: bash
         run: |
           ./autogen.sh -n
-          ./configure --with-sdl --without-sdl2 --without-gcu
+          ./configure --with-sdl --without-sdl2 --without-gcu --without-crb
           make clean
-          make mangclient
-          cp mangclient mangclient-sdl
+          make mangclient.app
+          cp mangclient.app mangclient-sdl.app
       - name: "Build SDL2 client"
         shell: bash
         run: |
           ./autogen.sh -n
-          ./configure --with-sdl --without-sdl2 --without-gcu
+          ./configure --without-sdl --with-sdl2 --without-gcu --without-crb
           make clean
-          make mangclient
-          cp mangclient mangclient-sdl2
+          make mangclient.app
+          cp mangclient.app mangclient-sdl2.app
   win64:
     runs-on: windows-2016
     outputs:
@@ -295,7 +295,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: appimage
     steps:
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v1
         with:
           name: MAngbandClient-i386.AppImage
       - uses: actions/download-artifact@v2
