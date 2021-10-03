@@ -168,7 +168,8 @@ jobs:
     container:
       image: docker://centos:6
     steps:
-     - run: |
-         dist/appimage/appit.sh
-         export VERSION=1.5.3
-         cp "MAngbandClient-${VERSION}.AppImage" "MAngbandClient-${VERSION}-x86_64.AppImage"
+      - uses: actions/checkout@v2
+      - run: |
+          dist/appimage/appit.sh
+          export VERSION=1.5.3
+          cp "MAngbandClient-${VERSION}.AppImage" "MAngbandClient-${VERSION}-x86_64.AppImage"
