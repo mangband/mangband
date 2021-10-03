@@ -25,7 +25,7 @@ jobs:
           ./configure --with-sdl --without-sdl2 --without-gcu --without-crb
           make clean
           make mangclient.app
-          cp mangclient.app mangclient-sdl.app
+          cp -r mangclient.app mangclient-sdl.app
       - name: "Build SDL2 client"
         shell: bash
         run: |
@@ -33,7 +33,7 @@ jobs:
           ./configure --without-sdl --with-sdl2 --without-gcu --without-crb
           make clean
           make mangclient.app
-          cp mangclient.app mangclient-sdl2.app
+          cp -r mangclient.app mangclient-sdl2.app
   win64:
     runs-on: windows-2016
     outputs:
