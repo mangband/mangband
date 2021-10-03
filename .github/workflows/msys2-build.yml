@@ -53,7 +53,7 @@ jobs:
       # Release
       - name: Release
         uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
+        # if: startsWith(github.ref, 'refs/tags/')
         with:
           name: develop-win64
           files: |
