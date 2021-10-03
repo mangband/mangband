@@ -75,11 +75,11 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: mangband-client-setup.exe
-          path: mangband-client-setup-v1.5.3.exe
+          path: dist/exe/mangband-client-setup-v1.5.3.exe
       - uses: actions/upload-artifact@v2
         with:
           name: mangband-server-setup.exe
-          path: mangband-server-setup-v1.5.3.exe
+          path: dist/exe/mangband-server-setup-v1.5.3.exe
   upload_win64:
     runs-on: ubuntu-latest
     needs: win64 
@@ -218,11 +218,15 @@ jobs:
 #           dist/appimage/appit.sh --without-x11 --with-gcu --with-sdl
 #           cp "MAngbandClient-${VERSION}.AppImage" "MAngbandClient-${VERSION}-${ARCH}.AppImage"
 
-
-  appimage_amd64:
+  appimage:
+    strategy:
+      matrix:
+        include:
+          - { image: "debian:9", arch: "x86_64" }
+          - { image: "i386/debian:9", arch: "i686" }
     runs-on: ubuntu-latest
     container:
-      image: docker://debian:9
+      image: docker://${{matrix.image}}
     steps:
       - uses: actions/checkout@v1
       - run: |
@@ -236,7 +240,7 @@ jobs:
           ./configure --with-gcu --with-sdl --without-x11
           make
           rm -f *.AppImage
-          export ARCH=x86_64
+          export ARCH=${{matrix.arch}}
           export VERSION=1.5.3
           wget https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-${ARCH}.AppImage
           chmod +x ./*.AppImage
