@@ -45,20 +45,24 @@ jobs:
         with:
           nuget-version: '5.x'
       - run: nuget install Tools.InnoSetup -Version 6.2.0
-      - uses: suisei-cn/actions-download-file@v1
-        with:
-          url: "https://libsdl.org/release/SDL-devel-1.2.15-VC.zip"
-      - shell: cmd
-        run: '7z x "SDL-devel-1.2.15-VC.zip" -oC:\ > NUL:'
-      - uses: suisei-cn/actions-download-file@v1
-        with:
-          url: "https://libsdl.org/release/SDL_ttf-devel-2.0.11-VC.zip"
-      - uses: suisei-cn/actions-download-file@v1
-        with:
-          url: "https://libsdl.org/release/SDL2-devel-2.0.9-VC.zip"
-      - uses: suisei-cn/actions-download-file@v1
-        with:
-          url: "https://www.libsdl.org/projects/SDL_ttf/release/SDL2_ttf-devel-2.0.15-VC.zip"
+      - shell: msys2 {0}
+        run: |
+          cp /mingw64/bin/SDL*.dll .
+          ls -l
+#       - uses: suisei-cn/actions-download-file@v1
+#         with:
+#           url: "https://libsdl.org/release/SDL-devel-1.2.15-VC.zip"
+#       - shell: cmd
+#         run: '7z x "SDL-devel-1.2.15-VC.zip" -oC:\ > NUL:'
+#       - uses: suisei-cn/actions-download-file@v1
+#         with:
+#           url: "https://libsdl.org/release/SDL_ttf-devel-2.0.11-VC.zip"
+#       - uses: suisei-cn/actions-download-file@v1
+#         with:
+#           url: "https://libsdl.org/release/SDL2-devel-2.0.9-VC.zip"
+#       - uses: suisei-cn/actions-download-file@v1
+#         with:
+#           url: "https://www.libsdl.org/projects/SDL_ttf/release/SDL2_ttf-devel-2.0.15-VC.zip"
       - shell: cmd
         run: |
           ISCC.exe "dist\exe\installer-client-win.iss" "/Q"
@@ -177,25 +181,25 @@ jobs:
 #           name: mangclient-x86_64-appimage
 #           path: MAngbandClient-1.5.3-x86_64.AppImage
      
-  appimage_amd64:
-    runs-on: ubuntu-latest
-    container:
-      image: docker://centos:6
-    steps:
-      - uses: actions/checkout@v1
-      - run: |
-          ls -l /etc/yum.repos.d/
-          sed -i 's/mirrorlist=/#mirrorlist=/' /etc/yum.repos.d/CentOS-Base.repo
-          sed -i 's/http:\/\/mirror.centos.org/https:\/\/vault.centos.org/' /etc/yum.repos.d/CentOS-Base.repo
-          sed -i 's/#baseurl=/baseurl=/' /etc/yum.repos.d/CentOS-Base.repo 
-          yum install -yq wget which make gcc automake autoconf file
-          yum install -yq ncurses-devel X11-devel SDL-devel SDL2-devel
-          yum install -yq SDL_ttf-devel SDL2_ttf-devel || true
-          rm -f *.AppImage
-          export ARCH=x86_64
-          export VERSION=1.5.3
-          wget https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-${ARCH}.AppImage
-          chmod +x ./*.AppImage
-          export LINUX_DEPLOY="$(pwd)/linuxdeploy-${ARCH}.AppImage --appimage-extract-and-run"
-          dist/appimage/appit.sh --without-x11 --with-gcu --with-sdl
-          cp "MAngbandClient-${VERSION}.AppImage" "MAngbandClient-${VERSION}-${ARCH}.AppImage"
+#   appimage_amd64:
+#     runs-on: ubuntu-latest
+#     container:
+#       image: docker://centos:6
+#     steps:
+#       - uses: actions/checkout@v1
+#       - run: |
+#           ls -l /etc/yum.repos.d/
+#           sed -i 's/mirrorlist=/#mirrorlist=/' /etc/yum.repos.d/CentOS-Base.repo
+#           sed -i 's/http:\/\/mirror.centos.org/https:\/\/vault.centos.org/' /etc/yum.repos.d/CentOS-Base.repo
+#           sed -i 's/#baseurl=/baseurl=/' /etc/yum.repos.d/CentOS-Base.repo 
+#           yum install -yq wget which make gcc automake autoconf file
+#           yum install -yq ncurses-devel X11-devel SDL-devel SDL2-devel
+#           yum install -yq SDL_ttf-devel SDL2_ttf-devel || true
+#           rm -f *.AppImage
+#           export ARCH=x86_64
+#           export VERSION=1.5.3
+#           wget https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-${ARCH}.AppImage
+#           chmod +x ./*.AppImage
+#           export LINUX_DEPLOY="$(pwd)/linuxdeploy-${ARCH}.AppImage --appimage-extract-and-run"
+#           dist/appimage/appit.sh --without-x11 --with-gcu --with-sdl
+#           cp "MAngbandClient-${VERSION}.AppImage" "MAngbandClient-${VERSION}-${ARCH}.AppImage"
