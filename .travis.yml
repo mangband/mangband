@@ -73,7 +73,7 @@ matrix:
         - rm -rf mangclient # kill temp files
         - ./.travis-gh.sh > ../../index.html
 
-    - language: objective-c
+    - language: generic
       os: osx
       osx_image: xcode9.4
       compiler: ""
@@ -125,6 +125,7 @@ addons:
     branch_pattern: coverity_scan
 
 before_install:
+  - export HOMEBREW_FORCE_BREWED_CURL=1 
 #  - if [[ "$TRAVIS_OS_NAME" == "osx" ]] && [[ "$SDL" == "1" ]]; then brew update     ; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]] && [[ "$SDL" == "1" ]]; then HOMEBREW_NO_AUTO_UPDATE=1 brew install sdl; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]] && [[ "$SDL" == "1" ]]; then HOMEBREW_NO_AUTO_UPDATE=1 brew install sdl_ttf; fi
