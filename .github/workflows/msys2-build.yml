@@ -172,6 +172,8 @@ jobs:
       - run: |
           export ARCH=x86_64
           export VERSION=1.5.3
+          yum -y remove centos-release-SCL
+          yum -y install centos-release-scl
           yum install -yq wget which make gcc automake autoconf file
           yum install -yq ncurses-devel X11-devel SDL-devel SDL2-devel
           yum install -yq SDL_ttf-devel SDL2_ttf-devel || true
