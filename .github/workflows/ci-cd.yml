@@ -49,6 +49,7 @@ jobs:
         run: |
           cp /mingw64/bin/SDL*.dll .
           cp /mingw64/bin/*freetype*.dll .
+          cp /mingw64/bin/zlib*.dll .
           ls -l /mingw64/bin/*.dll
           ls -l
 #       - uses: suisei-cn/actions-download-file@v1
@@ -240,3 +241,4 @@ jobs:
           export LINUX_DEPLOY="$(pwd)/linuxdeploy-${ARCH}.AppImage --appimage-extract-and-run"
           dist/appimage/appit.sh --without-x11 --with-gcu --with-sdl
           cp "MAngbandClient-${VERSION}.AppImage" "MAngbandClient-${VERSION}-${ARCH}.AppImage"
+          ls -l
