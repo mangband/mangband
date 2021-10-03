@@ -168,7 +168,7 @@ jobs:
     container:
       image: docker://centos:6
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v1
       - run: |
           dist/appimage/appit.sh
           export VERSION=1.5.3
