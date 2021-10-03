@@ -7,12 +7,33 @@ jobs:
       version: ${{steps.get_version.outputs.version}}
     steps:
       - uses: actions/checkout@v2
+      - id: get_version
+        shell: msys2 {0}
+        run: |
+          VERSION=`grep "AC_INIT" configure.ac | sed -e s/AC_INIT\(mangband,\ //g -e s/,\ team@mangband.org\)//g`
+          echo "::set-output name=version::$VERSION"
       - name: Set up Homebrew
         id: set-up-homebrew
         uses: Homebrew/actions/setup-homebrew@master
       - run: |
           brew install sdl sdl_ttf
           brew install sdl2 sdl2_ttf
+      - name: "Build SDL1.2 client"
+        shell: msys2 {0}
+        run: |
+          ./autogen.sh -n
+          ./configure --with-sdl --without-sdl2 --without-gcu
+          make clean
+          make mangclient
+          cp mangclient mangclient-sdl
+      - name: "Build SDL2 client"
+        shell: msys2 {0}
+        run: |
+          ./autogen.sh -n
+          ./configure --with-sdl --without-sdl2 --without-gcu
+          make clean
+          make mangclient
+          cp mangclient mangclient-sdl2
   win64:
     runs-on: windows-2016
     outputs:
