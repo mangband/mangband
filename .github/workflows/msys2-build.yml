@@ -15,8 +15,28 @@ jobs:
             mingw-w64-x86_64-gcc
             mingw-w64-x86_64-SDL
             mingw-w64-x86_64-SDL_ttf
+      # SDL1.2 client
       - shell: msys2 {0}
         run: |
           ./autogen.sh -n
-          ./configure
+          ./configure --with-sdl --without-gcu --enable-win
           make
+          cp mangclient.exe mangclient-sdl.exe
+      # WinAPI client
+      - shell: msys2 {0}
+        run: |
+          ./autogen.sh -n
+          ./configure --without-sdl --without-gcu --enable-win
+          make
+      # InnoSetup
+      - uses: nuget/setup-nuget@v1
+        with:
+          nuget-version: '5.x'
+      - run: nuget install Tools.InnoSetup -Version 6.2.0
+      # Prepare installers
+      - shell: cmd
+        run: |
+          dir
+          "C:\Program Files (x86)\Inno Setup 5\ISCC.exe" "dist\exe\installer-client-win.iss" "/Q"
+          "C:\Program Files (x86)\Inno Setup 5\ISCC.exe" "dist\exe\installer-server-win.iss" "/Q"
+nuget install <Package-Name>
