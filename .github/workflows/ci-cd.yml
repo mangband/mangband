@@ -70,6 +70,8 @@ jobs:
         run: |
           ISCC.exe "dist\exe\installer-client-win.iss" "/Q"
           ISCC.exe "dist\exe\installer-server-win.iss" "/Q"
+      - shell: msys2 {0}
+        run: ls -l *.exe
       - uses: actions/upload-artifact@v2
         with:
           name: mangband-client-setup.exe
