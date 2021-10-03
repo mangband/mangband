@@ -184,7 +184,11 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - run: |
-          yum upgrade
+          yum clean
+          ls -l /etc/yum.repos.d/
+          sed -i 's/mirrorlist=/#mirrorlist=/' /etc/yum.repos.d/CentOS-Base.repo
+          sed -i 's/http:\/\/mirror.centos.org/https:\/\/vault.centos.org/' /etc/yum.repos.d/CentOS-Base.repo
+          sed -i 's/#baseurl=/baseurl=/' /etc/yum.repos.d/CentOS-Base.repo 
           yum install -yq wget which make gcc automake autoconf file
           yum install -yq ncurses-devel X11-devel SDL-devel SDL2-devel
           yum install -yq SDL_ttf-devel SDL2_ttf-devel || true
