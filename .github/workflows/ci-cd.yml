@@ -228,7 +228,10 @@ jobs:
           apt-get install -yqq dpkg-dev # needed on Ubuntu14 >/dev/null
           apt-get install -yqq libncurses5-dev libsdl1.2-dev libsdl2-dev >/dev/null
           apt-get install -yqq libsdl-ttf2.0-dev libsdl2-ttf-dev >/dev/null
-          apt-get install -yqq libX11-dev >/dev/null || apt-get install -y libx11-dev >/dev/null 
+          apt-get install -yqq libX11-dev >/dev/null || apt-get install -y libx11-dev >/dev/null
+          ./autogen.sh -n
+          ./configure --with-gcu --with-sdl --without-x11
+          make
           rm -f *.AppImage
           export ARCH=x86_64
           export VERSION=1.5.3
