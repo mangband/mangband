@@ -2373,7 +2373,7 @@ static void init_windows(void)
 	stretch_chat_ctrl();
 
 	SendMessage(editmsg, EM_LIMITTEXT, 590, 0L);
-	lpfnOldWndProc = (WNDPROC)SetWindowLongPtr(editmsg, GWL_WNDPROC, (DWORD) SubClassFunc);
+	lpfnOldWndProc = (WNDPROC)SetWindowLongPtr(editmsg, GWLP_WNDPROC, (DWORD) SubClassFunc);
 
 	/* Activate the screen window */
 	SetActiveWindow(win_data[0].w);
