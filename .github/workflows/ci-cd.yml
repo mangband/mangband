@@ -3,8 +3,14 @@ on: [push]
 jobs:
   win64:
     runs-on: windows-2016
+    outputs:
+      version: ${{steps.get_version.outputs.version}}
     steps:
       - uses: actions/checkout@v2
+      - id: get_version
+        run: |
+          VERSION=`grep "AC_INIT" /configure.ac | sed -e s/AC_INIT\(mangband,\ //g -e s/,\ team@mangband.org\)//g`
+          echo "::set-output name=version::$VERSION"
       - uses: msys2/setup-msys2@v2
         with:
           update: true
@@ -75,11 +81,11 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: mangband-client-setup.exe
-          path: dist/exe/mangband-client-setup-v1.5.3.exe
+          path: dist/exe/mangband-client-setup-v${{steps.get_version.outputs.version}}.exe
       - uses: actions/upload-artifact@v2
         with:
           name: mangband-server-setup.exe
-          path: dist/exe/mangband-server-setup-v1.5.3.exe
+          path: dist/exe/mangband-server-setup-v${{steps.get_version.outputs.version}}.exe
   upload_win64:
     runs-on: ubuntu-latest
     needs: win64 
@@ -97,13 +103,19 @@ jobs:
           name: develop-windows
           tag_name: develop-windows
           files: |
-            mangband-client-setup-v1.5.3.exe
-            mangband-server-setup-v1.5.3.exe
+            mangband-client-setup-v${{needs.win64.outputs.version}}.exe
+            mangband-server-setup-v${{needs.win64.outputs.version}}.exe
 
   android:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{steps.get_version.outputs.version}}
     steps:
       - uses: actions/checkout@v1
+      - id: get_version
+        run: |
+          VERSION=`grep "AC_INIT" /configure.ac | sed -e s/AC_INIT\(mangband,\ //g -e s/,\ team@mangband.org\)//g`
+          echo "::set-output name=version::$VERSION"
       - uses: actions/setup-java@v1
         with:
           java-version: 8
@@ -179,23 +191,7 @@ jobs:
             mangclient-release-unsigned.apk
             index.html
 
-#   appimage_x86:
-#     runs-on: docker://i386/centos:6
-#     steps:
-#       - run: |
-#           dist/appimage/appit.sh
-#           export VERSION=1.5.3
-#           cp "MAngbandClient-${VERSION}.AppImage" "MAngbandClient-${VERSION}-i386.AppImage"
-#       - uses: actions/upload-artifact@v2
-#         with:
-#           name: mangclient-i386-appimage
-#           path: MAngbandClient-1.5.3-i386.AppImage
-#       - uses: actions/upload-artifact@v2
-#         with:
-#           name: mangclient-x86_64-appimage
-#           path: MAngbandClient-1.5.3-x86_64.AppImage
-     
-#   appimage_amd64:
+#   appimage_centos:
 #     runs-on: ubuntu-latest
 #     container:
 #       image: docker://centos:6
@@ -227,14 +223,14 @@ jobs:
           - { image: "i386/debian:9", arch: "i386" }
     runs-on: ubuntu-latest
     container:
-      image: docker://${{ matrix.image }}
+      image: docker://${{matrix.image}}
     outputs:
-      version: ${{ steps.get_version.outputs.version }}
+      version: ${{steps.get_version.outputs.version}}
     steps:
       - uses: actions/checkout@v1
       - id: get_version
         run: |
-          VERSION=`grep "AC_INIT" ${BASEDIR}/configure.ac | sed -e s/AC_INIT\(mangband,\ //g -e s/,\ team@mangband.org\)//g`
+          VERSION=`grep "AC_INIT" /configure.ac | sed -e s/AC_INIT\(mangband,\ //g -e s/,\ team@mangband.org\)//g`
           echo "::set-output name=version::$VERSION"
       - run: |
           apt-get update -qq
