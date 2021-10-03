@@ -66,7 +66,7 @@ jobs:
         # if: startsWith(github.ref, 'refs/tags/')
         with:
           name: develop-win64
-          tag: develop-win64
+          tag_name: develop-win64
           files: |
             mangband-client-setup-v1.5.3.exe
             mangband-server-setup-v1.5.3.exe
@@ -107,10 +107,6 @@ jobs:
           configuration-cache-enabled: true
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
-      - name: Run tests
-        run: ./gradlew test
-        env:
-          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
       - shell: bash
         run: |
           cp mangclient/build/outputs/apk/debug/mangclient-debug.apk ../../.
@@ -144,3 +140,12 @@ jobs:
             mangclient-release-unsigned.apk
             index.html
 
+  appimage_x86:
+    runs-on: docker://i386/centos:6
+    steps:
+     - run: dist/appimage/appit.sh
+     
+ appimage_amd64:
+    runs-on: docker://centos:6
+    steps:
+     - run: dist/appimage/appit.sh
