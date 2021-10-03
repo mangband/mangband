@@ -43,6 +43,7 @@ mangclient.app: mangclient
 				echo "sub_dylib: $$subdylib -> $$SUBNAME" ; \
 				cp $$subdylib mangclient.app/Contents/MacOS/ ; \
 				chmod +w mangclient.app/Contents/MacOS/$$SUBNAME ; \
+				ls -l mangclient.app/Contents/MacOS/ ; \
 				install_name_tool -change $$subdylib @executable_path/$$SUBNAME mangclient.app/Contents/MacOS/$$NAME; \
 				chmod -w mangclient.app/Contents/MacOS/$$SUBNAME ; \
 			fi ; \
