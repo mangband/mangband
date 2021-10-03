@@ -82,11 +82,11 @@ matrix:
         - export SDL_VERSION="2.0.12"
         - export SDL_TTF_VERSION="2.0.15"
         - cd ..
-        - curl -O https://libsdl.org/release/SDL2-${SDL_VERSION}.tar.gz
+        - curl -k -O https://libsdl.org/release/SDL2-${SDL_VERSION}.tar.gz
         - tar -xzf SDL2-${SDL_VERSION}.tar.gz
         # Our xcode project expects to find "SDL" dir, not "SDL2-2.X.Y"
         - mv SDL2-${SDL_VERSION} SDL
-        - curl -O https://libsdl.org/tmp/SDL_ttf/release/SDL2_ttf-${SDL_TTF_VERSION}.tar.gz
+        - curl -k -O https://libsdl.org/tmp/SDL_ttf/release/SDL2_ttf-${SDL_TTF_VERSION}.tar.gz
         - tar -xzf SDL2_ttf-${SDL_TTF_VERSION}.tar.gz
         # Same for SDL2_ttf, let's strip away version number
         - mv SDL2_ttf-${SDL_TTF_VERSION} SDL2_ttf
