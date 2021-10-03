@@ -8,12 +8,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - id: get_version
-        shell: msys2 {0}
+        shell: bash
         run: |
           VERSION=`grep "AC_INIT" configure.ac | sed -e s/AC_INIT\(mangband,\ //g -e s/,\ team@mangband.org\)//g`
           echo "::set-output name=version::$VERSION"
-      - name: Set up Homebrew
-        id: set-up-homebrew
+      - name: setup Homebrew
         uses: Homebrew/actions/setup-homebrew@master
       - run: |
           brew install sdl sdl_ttf
@@ -80,7 +79,7 @@ jobs:
           ./configure --without-sdl --without-sdl2 --without-gcu --enable-win
           make clean
           make
-      - name: "nuget InnoSetup"
+      - name: "setup NuGet"
         uses: nuget/setup-nuget@v1
         with:
           nuget-version: '5.x'
@@ -266,13 +265,16 @@ jobs:
         run: |
           VERSION=`grep "AC_INIT" configure.ac | sed -e s/AC_INIT\(mangband,\ //g -e s/,\ team@mangband.org\)//g`
           echo "::set-output name=version::$VERSION"
-      - run: |
+      - name: apt-get install build deps
+        run: |
           apt-get update -qq
           apt-get install -yqq make gcc autoconf automake dh-make wget >/dev/null
           apt-get install -yqq dpkg-dev # needed on Ubuntu14 >/dev/null
           apt-get install -yqq libncurses5-dev libsdl1.2-dev libsdl2-dev >/dev/null
           apt-get install -yqq libsdl-ttf2.0-dev libsdl2-ttf-dev >/dev/null
           apt-get install -yqq libX11-dev >/dev/null || apt-get install -y libx11-dev >/dev/null
+      - name: Build SDL1.2 + GCU client
+        run: |
           ./autogen.sh -n
           ./configure --with-gcu --with-sdl --without-x11
           make
