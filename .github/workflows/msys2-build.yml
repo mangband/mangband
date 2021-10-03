@@ -1,4 +1,4 @@
-name: msys2-build
+name: ci-cd
 on: [push]
 jobs:
   win64:
@@ -23,7 +23,7 @@ jobs:
           ./autogen.sh -n
           ./configure --with-sdl --without-sdl2 --without-gcu --enable-win
           make clean
-          make
+          make mangclient
           cp mangclient.exe mangclient-sdl.exe
       - name: "Build SDL2 client"
         shell: msys2 {0}
@@ -31,9 +31,9 @@ jobs:
           ./autogen.sh -n
           ./configure --with-sdl --without-sdl2 --without-gcu --enable-win
           make clean
-          make
+          make mangclient
           cp mangclient.exe mangclient-sdl.exe
-      - name: "Build WIN32 client"
+      - name: "Build WIN32 client and server"
         shell: msys2 {0}
         run: |
           ./autogen.sh -n
@@ -66,6 +66,32 @@ jobs:
         # if: startsWith(github.ref, 'refs/tags/')
         with:
           name: develop-win64
+          tag: develop-win64
           files: |
             mangband-client-setup-v1.5.3.exe
             mangband-server-setup-v1.5.3.exe
+
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-java@v1
+        with:
+          java-version: 8
+      - uses: nttld/setup-ndk@v1
+        id: setup-ndk
+        with:
+          ndk-version: r21e
+          add-to-path: false
+      - uses: eskatos/gradle-command-action@v1
+        with:
+          arguments: build connectedCheck assembleDebug assembleRelease
+          wrapper-cache-enabled: true
+          dependencies-cache-enabled: true
+          configuration-cache-enabled: true
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+      - name: Run tests
+        run: ./gradlew test
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
