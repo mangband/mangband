@@ -49,7 +49,7 @@ jobs:
         with:
           url: "https://libsdl.org/release/SDL-devel-1.2.15-VC.zip"
       - shell: cmd
-        run: 7z x "SDL-devel-1.2.15-VC.zip" -oC:\ > NUL:
+        run: '7z x "SDL-devel-1.2.15-VC.zip" -oC:\ > NUL:'
       - uses: suisei-cn/actions-download-file@v1
         with:
           url: "https://libsdl.org/release/SDL_ttf-devel-2.0.11-VC.zip"
