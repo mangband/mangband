@@ -48,6 +48,8 @@ jobs:
       - uses: suisei-cn/actions-download-file@v1
         with:
           url: "https://libsdl.org/release/SDL-devel-1.2.15-VC.zip"
+      - shell: cmd
+        run: 7z x "SDL-devel-1.2.15-VC.zip" -oC:\ > NUL:
       - uses: suisei-cn/actions-download-file@v1
         with:
           url: "https://libsdl.org/release/SDL_ttf-devel-2.0.11-VC.zip"
@@ -182,13 +184,13 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - run: |
-          export ARCH=x86_64
-          export VERSION=1.5.3
           yum upgrade
           yum install -yq wget which make gcc automake autoconf file
           yum install -yq ncurses-devel X11-devel SDL-devel SDL2-devel
           yum install -yq SDL_ttf-devel SDL2_ttf-devel || true
           rm -f *.AppImage
+          export ARCH=x86_64
+          export VERSION=1.5.3
           wget https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-${ARCH}.AppImage
           chmod +x ./*.AppImage
           export LINUX_DEPLOY="$(pwd)/linuxdeploy-${ARCH}.AppImage --appimage-extract-and-run"
