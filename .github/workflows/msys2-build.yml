@@ -12,9 +12,10 @@ jobs:
             base-devel
             automake
             autoconf
-            gcc
-            SDL
-            SDL_ttf
+            make
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-SDL
+            mingw-w64-x86_64-SDL_ttf
 #            pacman -S automake autoconf make mingw-w64-x86_64-gcc mingw-w64-x86_64-gdb mingw-w64-x86_64-SDL mingw-w64-x86_64-SDL_ttf
       - shell: msys2 {0}
         run: |
