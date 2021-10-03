@@ -23,7 +23,7 @@ jobs:
           ./autogen.sh -n
           ./configure --with-sdl --without-sdl2 --without-gcu --enable-win
           make clean
-          make mangclient
+          make mangclient.exe
           cp mangclient.exe mangclient-sdl.exe
       - name: "Build SDL2 client"
         shell: msys2 {0}
@@ -31,7 +31,7 @@ jobs:
           ./autogen.sh -n
           ./configure --with-sdl --without-sdl2 --without-gcu --enable-win
           make clean
-          make mangclient
+          make mangclient.exe
           cp mangclient.exe mangclient-sdl.exe
       - name: "Build WIN32 client and server"
         shell: msys2 {0}
@@ -83,6 +83,20 @@ jobs:
         with:
           ndk-version: r21e
           add-to-path: false
+      - name: "Vendor-drop SDL2 and ln -s assets folder"
+      - shell: bash
+        run: |
+         export SDL_VERSION="2.0.10"
+         export SDL_TTF_VERSION="2.0.15"
+         cd build/asgradle
+         wget https://libsdl.org/release/SDL2-${SDL_VERSION}.tar.gz
+         tar -xzf SDL2-${SDL_VERSION}.tar.gz
+         cp -r SDL2-${SDL_VERSION}/android-project/gradle .
+         mv SDL2-${SDL_VERSION} mangclient/jni/SDL2
+         wget https://libsdl.org/tmp/SDL_ttf/release/SDL2_ttf-${SDL_TTF_VERSION}.tar.gz
+         tar -xzf SDL2_ttf-${SDL_TTF_VERSION}.tar.gz
+         mv SDL2_ttf-${SDL_TTF_VERSION} mangclient/jni/SDL2_ttf
+         ln -s ../../../../../../lib mangclient/src/main/assets/lib
       - uses: eskatos/gradle-command-action@v1
         with:
           arguments: build connectedCheck assembleDebug assembleRelease
@@ -95,3 +109,36 @@ jobs:
         run: ./gradlew test
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+      - shell: bash
+        run: |
+          cp mangclient/build/outputs/apk/debug/mangclient-debug.apk ../../.
+          cp mangclient/build/outputs/apk/release/mangclient-release-unsigned.apk ../../.
+          rm -rf mangclient # kill temp files
+          ./.travis-gh.sh > ../../index.html
+      - uses: actions/upload-artifact@v2
+        with:
+          name: mangclient-debug
+          path: mangclient-debug.apk
+      - uses: actions/upload-artifact@v2
+        with:
+          name: mangclient-release-unsigned
+          path: mangclient-release-unsigned.apk
+      - uses: actions/upload-artifact@v2
+        with:
+          name: index
+          path: index.html
+  upload_android:
+    runs-on: ubuntu-latest
+    needs: android
+    steps:
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        # if: startsWith(github.ref, 'refs/tags/')
+        with:
+          name: develop-android
+          tag: develop-android
+          files: |
+            mangclient-debug.apk
+            mangclient-release-unsigned.apk
+            index.html
+
