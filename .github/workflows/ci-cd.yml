@@ -287,7 +287,7 @@ jobs:
           export LINUX_DEPLOY="$(pwd)/linuxdeploy-${ARCH}.AppImage --appimage-extract-and-run"
           dist/appimage/appit.sh --without-x11 --with-gcu --with-sdl
           ls -l *.AppImage
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v1
         with:
           name: MAngbandClient-${{matrix.arch}}.AppImage
           path: MAngbandClient-${{steps.get_version.outputs.version}}.AppImage
