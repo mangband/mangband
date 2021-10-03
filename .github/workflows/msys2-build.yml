@@ -145,7 +145,7 @@ jobs:
     steps:
      - run: dist/appimage/appit.sh
      
- appimage_amd64:
+  appimage_amd64:
     runs-on: docker://centos:6
     steps:
      - run: dist/appimage/appit.sh
