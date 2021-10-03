@@ -15,28 +15,47 @@ jobs:
             mingw-w64-x86_64-gcc
             mingw-w64-x86_64-SDL
             mingw-w64-x86_64-SDL_ttf
-      # SDL1.2 client
-      - shell: msys2 {0}
+            mingw-w64-x86_64-SDL2
+            mingw-w64-x86_64-SDL2_ttf
+      - name: "Build SDL1.2 client"
+        shell: msys2 {0}
         run: |
           ./autogen.sh -n
-          ./configure --with-sdl --without-gcu --enable-win
+          ./configure --with-sdl --without-sdl2 --without-gcu --enable-win
+          make clean
           make
           cp mangclient.exe mangclient-sdl.exe
-      # WinAPI client
-      - shell: msys2 {0}
+      - name: "Build SDL2 client"
+        shell: msys2 {0}
         run: |
           ./autogen.sh -n
-          ./configure --without-sdl --without-gcu --enable-win
+          ./configure --with-sdl --without-sdl2 --without-gcu --enable-win
+          make clean
           make
-      # InnoSetup
-      - uses: nuget/setup-nuget@v1
+          cp mangclient.exe mangclient-sdl.exe
+      - name: "Build WIN32 client"
+        shell: msys2 {0}
+        run: |
+          ./autogen.sh -n
+          ./configure --without-sdl --without-sdl2 --without-gcu --enable-win
+          make clean
+          make
+      - name: "nuget InnoSetup"
+        uses: nuget/setup-nuget@v1
         with:
           nuget-version: '5.x'
       - run: nuget install Tools.InnoSetup -Version 6.2.0
       # Prepare installers
       - shell: cmd
         run: |
-          ISCC.exe
-          dir
-          "C:\Program Files (x86)\Inno Setup 5\ISCC.exe" "dist\exe\installer-client-win.iss" "/Q"
-          "C:\Program Files (x86)\Inno Setup 5\ISCC.exe" "dist\exe\installer-server-win.iss" "/Q"
+          ISCC.exe "dist\exe\installer-client-win.iss" "/Q"
+          ISCC.exe "dist\exe\installer-server-win.iss" "/Q"
+      # Release
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          name: develop-win64
+          files: |
+            mangband-client-setup-v1.5.3.exe
+            mangband-server-setup-v1.5.3.exe
