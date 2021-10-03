@@ -15,6 +15,7 @@ jobs:
       - name: setup Homebrew
         uses: Homebrew/actions/setup-homebrew@master
       - run: |
+          brew install automake autoconf
           brew install sdl sdl_ttf
           brew install sdl2 sdl2_ttf
       - name: "Build SDL1.2 client"
