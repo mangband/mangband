@@ -224,7 +224,7 @@ jobs:
       - uses: actions/checkout@v1
       - run: |
           apt-get update -qq
-          apt-get install -yqq make gcc autoconf automake dh-make >/dev/null
+          apt-get install -yqq make gcc autoconf automake dh-make wget >/dev/null
           apt-get install -yqq dpkg-dev # needed on Ubuntu14 >/dev/null
           apt-get install -yqq libncurses5-dev libsdl1.2-dev libsdl2-dev >/dev/null
           apt-get install -yqq libsdl-ttf2.0-dev libsdl2-ttf-dev >/dev/null
