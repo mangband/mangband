@@ -45,6 +45,18 @@ jobs:
         with:
           nuget-version: '5.x'
       - run: nuget install Tools.InnoSetup -Version 6.2.0
+      - uses: suisei-cn/actions-download-file@v1
+        with:
+          url: "https://libsdl.org/release/SDL-devel-1.2.15-VC.zip"
+      - uses: suisei-cn/actions-download-file@v1
+        with:
+          url: "https://libsdl.org/release/SDL_ttf-devel-2.0.11-VC.zip"
+      - uses: suisei-cn/actions-download-file@v1
+        with:
+          url: "https://libsdl.org/release/SDL2-devel-2.0.9-VC.zip"
+      - uses: suisei-cn/actions-download-file@v1
+        with:
+          url: "https://www.libsdl.org/projects/SDL_ttf/release/SDL2_ttf-devel-2.0.15-VC.zip"
       - shell: cmd
         run: |
           ISCC.exe "dist\exe\installer-client-win.iss" "/Q"
@@ -172,8 +184,7 @@ jobs:
       - run: |
           export ARCH=x86_64
           export VERSION=1.5.3
-          yum -y remove centos-release-SCL
-          yum -y install centos-release-scl
+          yum upgrade
           yum install -yq wget which make gcc automake autoconf file
           yum install -yq ncurses-devel X11-devel SDL-devel SDL2-devel
           yum install -yq SDL_ttf-devel SDL2_ttf-devel || true
