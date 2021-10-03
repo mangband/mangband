@@ -1,7 +1,7 @@
 name: msys2-build
 on: [push]
 jobs:
-  check-bats-version:
+  win64:
     runs-on: windows-2016
     steps:
       - uses: actions/checkout@v2
@@ -9,17 +9,14 @@ jobs:
         with:
           update: true
           install: >-
-            base-devel
             automake
             autoconf
             make
             mingw-w64-x86_64-gcc
             mingw-w64-x86_64-SDL
             mingw-w64-x86_64-SDL_ttf
-#            pacman -S automake autoconf make mingw-w64-x86_64-gcc mingw-w64-x86_64-gdb mingw-w64-x86_64-SDL mingw-w64-x86_64-SDL_ttf
       - shell: msys2 {0}
         run: |
-          uname -a
-          ./autogen.sh
+          ./autogen.sh -n
           ./configure
           make
