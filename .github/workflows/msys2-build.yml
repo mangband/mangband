@@ -48,7 +48,8 @@ jobs:
       - shell: msys2 {0}
         run: |
           cp /mingw64/bin/SDL*.dll .
-          cp /mingw64/bin/libfreetype*.dll .
+          cp /mingw64/bin/*freetype*.dll .
+          ls -l /mingw64/bin/*.dll
           ls -l
 #       - uses: suisei-cn/actions-download-file@v1
 #         with:
@@ -213,3 +214,26 @@ jobs:
 #           export LINUX_DEPLOY="$(pwd)/linuxdeploy-${ARCH}.AppImage --appimage-extract-and-run"
 #           dist/appimage/appit.sh --without-x11 --with-gcu --with-sdl
 #           cp "MAngbandClient-${VERSION}.AppImage" "MAngbandClient-${VERSION}-${ARCH}.AppImage"
+
+
+  appimage_amd64:
+    runs-on: ubuntu-latest
+    container:
+      image: docker://debian:9
+    steps:
+      - uses: actions/checkout@v1
+      - run: |
+          apt-get update -qq
+          apt-get install -yqq make gcc autoconf automake dh-make >/dev/null
+          apt-get install -yqq dpkg-dev # needed on Ubuntu14 >/dev/null
+          apt-get install -yqq libncurses5-dev libsdl1.2-dev libsdl2-dev >/dev/null
+          apt-get install -yqq libsdl-ttf2.0-dev libsdl2-ttf-dev >/dev/null
+          apt-get install -yqq libX11-dev >/dev/null || apt-get install -y libx11-dev >/dev/null 
+          rm -f *.AppImage
+          export ARCH=x86_64
+          export VERSION=1.5.3
+          wget https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-${ARCH}.AppImage
+          chmod +x ./*.AppImage
+          export LINUX_DEPLOY="$(pwd)/linuxdeploy-${ARCH}.AppImage --appimage-extract-and-run"
+          dist/appimage/appit.sh --without-x11 --with-gcu --with-sdl
+          cp "MAngbandClient-${VERSION}.AppImage" "MAngbandClient-${VERSION}-${ARCH}.AppImage"
