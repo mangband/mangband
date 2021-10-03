@@ -184,7 +184,6 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - run: |
-          yum clean
           ls -l /etc/yum.repos.d/
           sed -i 's/mirrorlist=/#mirrorlist=/' /etc/yum.repos.d/CentOS-Base.repo
           sed -i 's/http:\/\/mirror.centos.org/https:\/\/vault.centos.org/' /etc/yum.repos.d/CentOS-Base.repo
