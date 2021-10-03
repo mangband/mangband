@@ -165,9 +165,10 @@ jobs:
      
   appimage_amd64:
     runs-on: ubuntu-latest
+    container:
+      image: docker://centos:6
     steps:
-     - uses: docker://centos:6
-       with: |
+     - run: |
          dist/appimage/appit.sh
          export VERSION=1.5.3
          cp "MAngbandClient-${VERSION}.AppImage" "MAngbandClient-${VERSION}-x86_64.AppImage"
