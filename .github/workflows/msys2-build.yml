@@ -58,6 +58,7 @@ jobs:
           name: mangband-server-setup
           path: mangband-server-setup-v1.5.3.exe
   upload_win64:
+    runs-on: ubuntu-latest
     needs: win64 
     steps:
       - name: Release
