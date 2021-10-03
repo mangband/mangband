@@ -84,7 +84,7 @@ jobs:
           ndk-version: r21e
           add-to-path: false
       - name: "Vendor-drop SDL2 and ln -s assets folder"
-      - shell: bash
+        shell: bash
         run: |
          export SDL_VERSION="2.0.10"
          export SDL_TTF_VERSION="2.0.15"
