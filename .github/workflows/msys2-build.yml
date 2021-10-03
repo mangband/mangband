@@ -36,7 +36,7 @@ jobs:
       # Prepare installers
       - shell: cmd
         run: |
+          ISCC.exe
           dir
           "C:\Program Files (x86)\Inno Setup 5\ISCC.exe" "dist\exe\installer-client-win.iss" "/Q"
           "C:\Program Files (x86)\Inno Setup 5\ISCC.exe" "dist\exe\installer-server-win.iss" "/Q"
-nuget install <Package-Name>
