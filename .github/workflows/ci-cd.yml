@@ -41,7 +41,6 @@ jobs:
         shell: bash
         run: |
           ./dist/dmg/dmgit.sh MAngbandClient${VERSION}-SDL2.app
-          ./dist/dmg/dmgserv.sh 
       - name: "DMG server"
         shell: bash
         run: |
@@ -331,7 +330,7 @@ jobs:
           ls -l *.AppImage
       - uses: actions/upload-artifact@v1
         with:
-          name: MAngbandClient-${{matrix.arch}}.AppImage
+          name: MAngbandClient-${{steps.get_version.outputs.version}}-${{matrix.arch}}.AppImage
           path: MAngbandClient-${{steps.get_version.outputs.version}}-${{matrix.arch}}.AppImage
   upload_appimage:
     runs-on: ubuntu-latest
