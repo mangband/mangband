@@ -1,10 +1,20 @@
 name: ci-cd
-on: [push]
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - develop
+  release:
+    types:
+      - created
 jobs:
   osx64:
     runs-on: macos-10.15
     outputs:
       version: ${{steps.get_version.outputs.version}}
+      ref_short: ${{steps.get_version.outputs.ref_short}}
     steps:
       - uses: actions/checkout@v2
       - id: get_version
@@ -12,6 +22,7 @@ jobs:
         run: |
           VERSION=`grep "AC_INIT" configure.ac | sed -e s/AC_INIT\(mangband,\ //g -e s/,\ team@mangband.org\)//g`
           echo "::set-output name=version::$VERSION"
+          echo "::set-output ref_short=${GITHUB_REF#refs/heads/}"
       - name: setup Homebrew
         uses: Homebrew/actions/setup-homebrew@master
       - run: |
@@ -66,12 +77,13 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: mangclient-${{needs.osx64.outputs.version}}-osx-intel.dmg
-      - name: Release
+      - name: Upload
+        if: ${{ github.event_name == 'push' }}
         uses: softprops/action-gh-release@v1
         # if: startsWith(github.ref, 'refs/tags/')
         with:
-          name: develop-osx
-          tag_name: develop-osx
+          name: ${{needs.osx64.outputs.ref_short}}-osx
+          tag_name: ${{needs.osx64.outputs.ref_short}}-osx
           files: |
             mangband-${{needs.osx64.outputs.version}}-osx-intel.dmg
             mangclient-${{needs.osx64.outputs.version}}-osx-intel.dmg
@@ -80,6 +92,7 @@ jobs:
     runs-on: windows-2016
     outputs:
       version: ${{steps.get_version.outputs.version}}
+      ref_short: ${{steps.get_version.outputs.ref_short}}
     steps:
       - uses: actions/checkout@v2
       - uses: msys2/setup-msys2@v2
@@ -99,6 +112,7 @@ jobs:
         run: |
           VERSION=`grep "AC_INIT" configure.ac | sed -e s/AC_INIT\(mangband,\ //g -e s/,\ team@mangband.org\)//g`
           echo "::set-output name=version::$VERSION"
+          echo "::set-output ref_short=${GITHUB_REF#refs/heads/}"
       - name: "Build SDL1.2 client"
         shell: msys2 {0}
         run: |
@@ -174,12 +188,13 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: mangband-client-setup.exe
-      - name: Release
+      - name: Upload
+        if: ${{ github.event_name == 'push' }}
         uses: softprops/action-gh-release@v1
         # if: startsWith(github.ref, 'refs/tags/')
         with:
-          name: develop-windows
-          tag_name: develop-windows
+          name: ${{needs.win64.outputs.ref_short}}-windows
+          tag_name: ${{needs.win64.outputs.ref_short}}-windows
           files: |
             mangband-client-setup-v${{needs.win64.outputs.version}}.exe
             mangband-server-setup-v${{needs.win64.outputs.version}}.exe
@@ -188,12 +203,14 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{steps.get_version.outputs.version}}
+      ref_short: ${{steps.get_version.outputs.ref_short}}
     steps:
       - uses: actions/checkout@v1
       - id: get_version
         run: |
           VERSION=`grep "AC_INIT" configure.ac | sed -e s/AC_INIT\(mangband,\ //g -e s/,\ team@mangband.org\)//g`
           echo "::set-output name=version::$VERSION"
+          echo "::set-output ref_short=${GITHUB_REF#refs/heads/}"
       - uses: actions/setup-java@v1
         with:
           java-version: 8
@@ -260,12 +277,13 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: index.html
-      - name: Release
+      - name: Upload
+        if: ${{ github.event_name == 'push' }}
         uses: softprops/action-gh-release@v1
         # if: startsWith(github.ref, 'refs/tags/')
         with:
-          name: develop-android
-          tag_name: develop-android
+          name: ${{needs.android.outputs.ref_short}}-android
+          tag_name: ${{needs.android.outputs.ref_short}}-android
           files: |
             mangclient-debug.apk
             mangclient-release-unsigned.apk
@@ -306,12 +324,14 @@ jobs:
       image: docker://${{matrix.image}}
     outputs:
       version: ${{steps.get_version.outputs.version}}
+      ref_short: ${{steps.get_version.outputs.ref_short}}
     steps:
       - uses: actions/checkout@v1
       - id: get_version
         run: |
           VERSION=`grep "AC_INIT" configure.ac | sed -e s/AC_INIT\(mangband,\ //g -e s/,\ team@mangband.org\)//g`
           echo "::set-output name=version::$VERSION"
+          echo "::set-output ref_short=${GITHUB_REF#refs/heads/}"
       - name: apt-get install build deps
         run: |
           apt-get update -qq
@@ -351,12 +371,13 @@ jobs:
           name: MAngbandClient-${{needs.appimage.outputs.version}}-x86_64.AppImage
       - run: |
           ls -lR
-      - name: Release
+      - name: Upload
+        if: ${{ github.event_name == 'push' }}
         uses: softprops/action-gh-release@v1
         # if: startsWith(github.ref, 'refs/tags/')
         with:
-          name: develop-appimage
-          tag_name: develop-appimage
+          name: ${{needs.appimage.outputs.ref_short}}-appimage
+          tag_name: ${{needs.appimage.outputs.ref_short}}-appimage
           files: |
             MAngbandClient-${{needs.appimage.outputs.version}}-i386.AppImage
             MAngbandClient-${{needs.appimage.outputs.version}}-x86_64.AppImage
