@@ -343,7 +343,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: appimage
     steps:
-      - uses: actions/download-artifact@v1
+      - uses: actions/download-artifact@v2
         with:
           name: MAngbandClient-${{needs.appimage.outputs.version}}-i386.AppImage
       - uses: actions/download-artifact@v2
