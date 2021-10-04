@@ -302,6 +302,7 @@ jobs:
         with:
           name: MAngbandClient-x86_64.AppImage
       - run: |
+          ls -lR
           cp MAngbandClient-i386.AppImage MAngbandClient-${{needs.appimage.outputs.version}}-i386.AppImage
           cp MAngbandClient-x86_64.AppImage MAngbandClient-${{needs.appimage.outputs.version}}-x86_64.AppImage
       - name: Release
