@@ -18,14 +18,6 @@ jobs:
           brew install automake autoconf
           brew install sdl sdl_ttf
           brew install sdl2 sdl2_ttf
-      - name: "Build SDL1.2 client"
-        shell: bash
-        run: |
-          ./autogen.sh -n
-          ./configure --with-sdl --without-sdl2 --without-gcu --without-crb
-          make clean
-          make mangclient.app
-          cp -r mangclient.app mangclient-sdl.app
       - name: "Build SDL2 client"
         shell: bash
         run: |
@@ -33,7 +25,27 @@ jobs:
           ./configure --without-sdl --with-sdl2 --without-gcu --without-crb
           make clean
           make mangclient.app
-          cp -r mangclient.app mangclient-sdl2.app
+          cp -r mangclient.app MAngbandClient${VERSION}-SDL2.app
+      - name: "Build SDL1.2 client"
+        shell: bash
+        run: |
+          ./autogen.sh -n
+          ./configure --with-sdl --without-sdl2 --without-gcu --without-crb
+          make clean
+          make mangclient.app
+      - name: "Build server"
+        shell: bash
+        run: |
+          make mangband
+      - name: "DMG client"
+        shell: bash
+        run: |
+          ./dist/dmg/dmgit.sh MAngbandClient${VERSION}-SDL2.app
+          ./dist/dmg/dmgserv.sh 
+      - name: "DMG server"
+        shell: bash
+        run: |
+          ./dist/dmg/dmgserv.sh 
   win64:
     runs-on: windows-2016
     outputs:
