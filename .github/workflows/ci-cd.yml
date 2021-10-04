@@ -50,10 +50,12 @@ jobs:
         with:
           name: mangclient-${{steps.get_version.outputs.version}}-osx-intel.dmg
           path: mangclient-${{steps.get_version.outputs.version}}-osx-intel.dmg
+          if-no-files-found: error
       - uses: actions/upload-artifact@v2
         with:
           name: mangband-${{steps.get_version.outputs.version}}-osx-intel.dmg
           path: mangband-${{steps.get_version.outputs.version}}-osx-intel.dmg
+          if-no-files-found: error
   upload_osx64:
     runs-on: ubuntu-latest
     needs: osx64
@@ -156,10 +158,12 @@ jobs:
         with:
           name: mangband-client-setup.exe
           path: dist/exe/mangband-client-setup-v${{steps.get_version.outputs.version}}.exe
+          if-no-files-found: error
       - uses: actions/upload-artifact@v2
         with:
           name: mangband-server-setup.exe
           path: dist/exe/mangband-server-setup-v${{steps.get_version.outputs.version}}.exe
+          if-no-files-found: error
   upload_win64:
     runs-on: ubuntu-latest
     needs: win64
@@ -233,10 +237,12 @@ jobs:
         with:
           name: mangclient-debug.apk
           path: mangclient-debug.apk
+          if-no-files-found: error
       - uses: actions/upload-artifact@v2
         with:
           name: mangclient-release-unsigned.apk
           path: mangclient-release-unsigned.apk
+          if-no-files-found: error
       - uses: actions/upload-artifact@v2
         with:
           name: index.html
@@ -332,6 +338,7 @@ jobs:
         with:
           name: MAngbandClient-${{steps.get_version.outputs.version}}-${{matrix.arch}}.AppImage
           path: MAngbandClient-${{steps.get_version.outputs.version}}-${{matrix.arch}}.AppImage
+          if-no-files-found: error
   upload_appimage:
     runs-on: ubuntu-latest
     needs: appimage
