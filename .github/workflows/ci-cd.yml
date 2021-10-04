@@ -45,7 +45,36 @@ jobs:
       - name: "DMG server"
         shell: bash
         run: |
-          ./dist/dmg/dmgserv.sh 
+          ./dist/dmg/dmgserv.sh
+      - run: ls -lR
+      - uses: actions/upload-artifact@v2
+        with:
+          name: mangband-client.dmg
+          path: dist/exe/mangband-client.dmg
+      - uses: actions/upload-artifact@v2
+        with:
+          name: mangband-server.dmg
+          path: dist/exe/mangband-server.dmg
+  upload_osx64:
+    runs-on: ubuntu-latest
+    needs: osx64
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: mangband-server.dmg
+      - uses: actions/download-artifact@v2
+        with:
+          name: mangband-client.dmg
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        # if: startsWith(github.ref, 'refs/tags/')
+        with:
+          name: develop-osx
+          tag_name: develop-osx
+          files: |
+            mangband-client-setup-v${{needs.osx64.outputs.version}}.dmg
+            mangband-server-setup-v${{needs.osx64.outputs.version}}.dmg
+
   win64:
     runs-on: windows-2016
     outputs:
