@@ -39,7 +39,7 @@ matrix:
       env: CONFIGURE_FLAGS="--with-gcu --without-x11 --without-sdl --with-sdl2" SDL="2"
   include:
     - language: android
-      dist: xenial
+      dist: trusty
       jdk: oraclejdk8
       compiler: "" # Remove desktop compiler
       env: BUILDING_FOR_ANDROID="YES" SDL="2"
@@ -56,11 +56,11 @@ matrix:
         - export SDL_VERSION="2.0.10"
         - export SDL_TTF_VERSION="2.0.15"
         - cd build/asgradle
-        - wget https://libsdl.org/release/SDL2-${SDL_VERSION}.tar.gz
+        - wget --no-check-certificate https://libsdl.org/release/SDL2-${SDL_VERSION}.tar.gz
         - tar -xzf SDL2-${SDL_VERSION}.tar.gz
         - cp -r SDL2-${SDL_VERSION}/android-project/gradle .
         - mv SDL2-${SDL_VERSION} mangclient/jni/SDL2
-        - wget https://libsdl.org/tmp/SDL_ttf/release/SDL2_ttf-${SDL_TTF_VERSION}.tar.gz
+        - wget --no-check-certificate https://libsdl.org/tmp/SDL_ttf/release/SDL2_ttf-${SDL_TTF_VERSION}.tar.gz
         - tar -xzf SDL2_ttf-${SDL_TTF_VERSION}.tar.gz
         - mv SDL2_ttf-${SDL_TTF_VERSION} mangclient/jni/SDL2_ttf
         - ln -s ../../../../../../lib mangclient/src/main/assets/lib
