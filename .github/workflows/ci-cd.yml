@@ -57,7 +57,8 @@ jobs:
           REF_SHORT=${REF_SHORT#refs/tags/}
           echo "::set-output name=version::$VERSION"
           echo "::set-output name=ref_short::$REF_SHORT"
-          echo "::set-output name=ref_hash::$REF_SHORT-${GITHUB_SHA::7}"
+          #echo "::set-output name=ref_hash::${REF_SHORT}-${GITHUB_SHA::7}"
+          echo "::set-output name=ref_hash::${GITHUB_SHA::7}"
       - name: "Build SDL1.2 client"
         shell: msys2 {0}
         run: |
@@ -164,7 +165,8 @@ jobs:
           REF_SHORT=${REF_SHORT#refs/tags/}
           echo "::set-output name=version::$VERSION"
           echo "::set-output name=ref_short::$REF_SHORT"
-          echo "::set-output name=ref_hash::${REF_SHORT}-${GITHUB_SHA::7}"
+          #echo "::set-output name=ref_hash::${REF_SHORT}-${GITHUB_SHA::7}"
+          echo "::set-output name=ref_hash::${GITHUB_SHA::7}"
       - name: setup Homebrew
         uses: Homebrew/actions/setup-homebrew@master
       - run: |
@@ -260,7 +262,8 @@ jobs:
           REF_SHORT=${REF_SHORT#refs/tags/}
           echo "::set-output name=version::$VERSION"
           echo "::set-output name=ref_short::$REF_SHORT"
-          echo "::set-output name=ref_hash::${REF_SHORT}-${GITHUB_SHA::7}"
+          #echo "::set-output name=ref_hash::${REF_SHORT}-${GITHUB_SHA::7}"
+          echo "::set-output name=ref_hash::${GITHUB_SHA::7}"
       - run: |
           export SDL_VERSION="2.0.16"
           export SDL_TTF_VERSION="2.0.15"
@@ -291,7 +294,8 @@ jobs:
           REF_SHORT=${REF_SHORT#refs/tags/}
           echo "::set-output name=version::$VERSION"
           echo "::set-output name=ref_short::$REF_SHORT"
-          echo "::set-output name=ref_hash::${REF_SHORT}-${GITHUB_SHA::7}"
+          #echo "::set-output name=ref_hash::${REF_SHORT}-${GITHUB_SHA::7}"
+          echo "::set-output name=ref_hash::${GITHUB_SHA::7}"
       - run: |
           export SDL_VERSION="2.0.16"
           export SDL_TTF_VERSION="2.0.15"
@@ -327,7 +331,8 @@ jobs:
           REF_SHORT=${REF_SHORT#refs/tags/}
           echo "::set-output name=version::$VERSION"
           echo "::set-output name=ref_short::$REF_SHORT"
-          echo "::set-output name=ref_hash::${REF_SHORT}-${GITHUB_SHA::7}"
+          #echo "::set-output name=ref_hash::${REF_SHORT}-${GITHUB_SHA::7}"
+          echo "::set-output name=ref_hash::${GITHUB_SHA::7}"
       - uses: actions/setup-java@v1
         with:
           java-version: 8
@@ -438,7 +443,8 @@ jobs:
           REF_SHORT=${REF_SHORT#refs/tags/}
           echo "::set-output name=version::$VERSION"
           echo "::set-output name=ref_short::$REF_SHORT"
-          echo "::set-output name=ref_hash::${REF_SHORT}-${GITHUB_SHA}"
+          #echo "::set-output name=ref_hash::${REF_SHORT}-${GITHUB_SHA}"
+          echo "::set-output name=ref_hash::${GITHUB_SHA}"
       - name: apt-get install build deps
         run: |
           apt-get update -qq
@@ -527,7 +533,8 @@ jobs:
           REF_SHORT=${REF_SHORT#refs/tags/}
           echo "::set-output name=version::$VERSION"
           echo "::set-output name=ref_short::$REF_SHORT"
-          echo "::set-output name=ref_hash::${REF_SHORT}-${GITHUB_SHA::7}"
+          #echo "::set-output name=ref_hash::${REF_SHORT}-${GITHUB_SHA::7}"
+          echo "::set-output name=ref_hash::${GITHUB_SHA::7}"
       - name: apt-get install build deps
         run: |
           sudo apt-get update -qq
@@ -559,7 +566,8 @@ jobs:
           REF_SHORT=${REF_SHORT#refs/tags/}
           echo "::set-output name=version::$VERSION"
           echo "::set-output name=ref_short::$REF_SHORT"
-          echo "::set-output name=ref_hash::${REF_SHORT}-${GITHUB_SHA::7}"
+          #echo "::set-output name=ref_hash::${REF_SHORT}-${GITHUB_SHA::7}"
+          echo "::set-output name=ref_hash::${GITHUB_SHA::7}"
       - name: apt-get install build deps
         run: |
           sudo apt-get update -qq
