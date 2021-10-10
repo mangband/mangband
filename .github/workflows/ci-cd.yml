@@ -1,0 +1,582 @@
+name: ci-cd
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - develop
+  release:
+    types:
+      - created
+jobs:
+  vs2017:
+    runs-on: windows-2016
+    steps:
+      - uses: actions/checkout@v2
+      - uses: microsoft/setup-msbuild@v1.0.2
+      - name: Install Windows 8.1 SDK
+        shell: powershell
+        run: |
+          Invoke-WebRequest -Method Get -Uri https://go.microsoft.com/fwlink/p/?LinkId=323507 -OutFile sdksetup.exe -UseBasicParsing
+          Start-Process -Wait sdksetup.exe -ArgumentList "/q", "/norestart", "/features", "OptionId.WindowsDesktopSoftwareDevelopmentKit", "OptionId.NetFxSoftwareDevelopmentKit"
+      - run: |
+          msbuild build/vs2017/mangband.sln
+
+  win32:
+    strategy:
+      matrix:
+        include:
+        # - { sys: mingw64, env: x86_64 }
+          - { sys: mingw32, env: i686 }
+    runs-on: windows-2016
+    outputs:
+      version: ${{steps.get_version.outputs.version}}
+      ref_short: ${{steps.get_version.outputs.ref_short}}
+      ref_hash: ${{steps.get_version.outputs.ref_hash}}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          msystem: ${{matrix.sys}}
+          install: >-
+            automake
+            autoconf
+            make
+            mingw-w64-${{matrix.env}}-gcc
+            mingw-w64-${{matrix.env}}-SDL
+            mingw-w64-${{matrix.env}}-SDL_ttf
+            mingw-w64-${{matrix.env}}-SDL2
+            mingw-w64-${{matrix.env}}-SDL2_ttf
+      - id: get_version
+        shell: msys2 {0}
+        run: |
+          VERSION=`grep "AC_INIT" configure.ac | sed -e s/AC_INIT\(mangband,\ //g -e s/,\ team@mangband.org\)//g`
+          REF_SHORT=${GITHUB_REF#refs/heads/}
+          REF_SHORT=${REF_SHORT#refs/tags/}
+          echo "::set-output name=version::$VERSION"
+          echo "::set-output name=ref_short::$REF_SHORT"
+          #echo "::set-output name=ref_hash::${REF_SHORT}-${GITHUB_SHA::7}"
+          echo "::set-output name=ref_hash::${GITHUB_SHA::7}"
+      - name: "Build SDL1.2 client"
+        shell: msys2 {0}
+        run: |
+          ./autogen.sh -n
+          ./configure --with-sdl --without-sdl2 --without-gcu --enable-win
+          make clean
+          make mangclient.exe
+          cp mangclient.exe mangclient-sdl.exe
+      - name: "Build SDL2 client"
+        shell: msys2 {0}
+        run: |
+          ./autogen.sh -n
+          ./configure --with-sdl --without-sdl2 --without-gcu --enable-win
+          make clean
+          make mangclient.exe
+          cp mangclient.exe mangclient-sdl2.exe
+      - name: "Build WIN32 client and server"
+        shell: msys2 {0}
+        run: |
+          ./autogen.sh -n
+          ./configure --without-sdl --without-sdl2 --without-gcu --enable-win
+          make clean
+          make
+      - name: "setup NuGet"
+        uses: nuget/setup-nuget@v1
+        with:
+          nuget-version: '5.x'
+      - run: nuget install Tools.InnoSetup -Version 6.2.0
+      - shell: msys2 {0}
+        run: |
+          ls -l /${{matrix.sys}}/bin/*.dll
+          cp /${{matrix.sys}}/bin/SDL*.dll .
+          cp /${{matrix.sys}}/bin/*freetype*.dll .
+          cp /${{matrix.sys}}/bin/zlib*.dll .
+          ls -l
+      - shell: cmd
+        run: |
+          ISCC.exe "dist\exe\installer-client-win.iss" "/Q"
+          ISCC.exe "dist\exe\installer-server-win.iss" "/Q"
+      - shell: msys2 {0}
+        run: ls -l *.exe
+      - uses: actions/upload-artifact@v2
+        with:
+          name: mangband-client-${{steps.get_version.outputs.ref_hash}}-setup.exe
+          path: dist/exe/mangband-client-setup-v${{steps.get_version.outputs.version}}.exe
+          if-no-files-found: error
+        if: matrix.env == 'i686'
+      - uses: actions/upload-artifact@v2
+        with:
+          name: mangband-server-${{steps.get_version.outputs.ref_hash}}-setup.exe
+          path: dist/exe/mangband-server-setup-v${{steps.get_version.outputs.version}}.exe
+          if-no-files-found: error
+        if: matrix.env == 'i686'
+  upload_win32:
+    if: ${{ github.event_name == 'push' || github.event_name == 'release' }}
+    runs-on: ubuntu-latest
+    needs: win32
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: mangband-server-${{needs.win32.outputs.ref_hash}}-setup.exe
+      - uses: actions/download-artifact@v2
+        with:
+          name: mangband-client-${{needs.win32.outputs.ref_hash}}-setup.exe
+      - name: Rename for upload
+        if: ${{ github.event_name == 'push' }}
+        run: |
+           mv mangband-client-setup-v${{needs.win32.outputs.version}}.exe mangband-client-setup-${{needs.win32.outputs.ref_hash}}.exe
+           mv mangband-server-setup-v${{needs.win32.outputs.version}}.exe mangband-server-setup-${{needs.win32.outputs.ref_hash}}.exe
+           ls -l
+      - name: Upload
+        if: ${{ github.event_name == 'push' }}
+        uses: softprops/action-gh-release@v1
+        # if: startsWith(github.ref, 'refs/tags/')
+        with:
+          repository: ${{github.repository_owner}}/mangband-builds
+          token: ${{secrets.BOT_GITHUB_TOKEN}}
+          name: ${{needs.win32.outputs.ref_short}}-windows
+          tag_name: ${{needs.win32.outputs.ref_short}}-windows
+          files: |
+            mangband-client-setup-${{needs.win32.outputs.ref_hash}}.exe
+            mangband-server-setup-${{needs.win32.outputs.ref_hash}}.exe
+      - name: Release
+        if: ${{ github.event_name == 'release' }}
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            mangband-client-setup-v${{needs.win64.outputs.version}}.exe
+            mangband-server-setup-v${{needs.win64.outputs.version}}.exe
+
+  osx64:
+    runs-on: macos-10.15
+    outputs:
+      version: ${{steps.get_version.outputs.version}}
+      ref_short: ${{steps.get_version.outputs.ref_short}}
+      ref_hash: ${{steps.get_version.outputs.ref_hash}}
+    steps:
+      - uses: actions/checkout@v2
+      - id: get_version
+        shell: bash
+        run: |
+          VERSION=`grep "AC_INIT" configure.ac | sed -e s/AC_INIT\(mangband,\ //g -e s/,\ team@mangband.org\)//g`
+          REF_SHORT=${GITHUB_REF#refs/heads/}
+          REF_SHORT=${REF_SHORT#refs/tags/}
+          echo "::set-output name=version::$VERSION"
+          echo "::set-output name=ref_short::$REF_SHORT"
+          #echo "::set-output name=ref_hash::${REF_SHORT}-${GITHUB_SHA::7}"
+          echo "::set-output name=ref_hash::${GITHUB_SHA::7}"
+      - name: setup Homebrew
+        uses: Homebrew/actions/setup-homebrew@master
+      - run: |
+          brew install automake autoconf
+          brew install sdl sdl_ttf
+          brew install sdl2 sdl2_ttf
+      - name: "Build SDL2 client"
+        shell: bash
+        run: |
+          ./autogen.sh -n
+          ./configure --without-sdl --with-sdl2 --without-gcu --without-crb
+          make clean
+          make mangclient.app
+          cp -r mangclient.app MAngbandClient${VERSION}-SDL2.app
+      - name: "Build SDL1.2 client"
+        shell: bash
+        run: |
+          ./autogen.sh -n
+          ./configure --with-sdl --without-sdl2 --without-gcu --without-crb
+          make clean
+          make mangclient.app
+      - name: "Build server"
+        shell: bash
+        run: |
+          make mangband
+      - name: "DMG client"
+        shell: bash
+        run: |
+          ./dist/dmg/dmgit.sh MAngbandClient${VERSION}-SDL2.app
+      - name: "DMG server"
+        shell: bash
+        run: |
+          ./dist/dmg/dmgserv.sh
+      - run: ls -lR
+      - uses: actions/upload-artifact@v2
+        with:
+          name: mangclient-${{steps.get_version.outputs.version}}-osx-intel.dmg
+          path: mangclient-${{steps.get_version.outputs.version}}-osx-intel.dmg
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v2
+        with:
+          name: mangband-${{steps.get_version.outputs.version}}-osx-intel.dmg
+          path: mangband-${{steps.get_version.outputs.version}}-osx-intel.dmg
+          if-no-files-found: error
+  upload_osx64:
+    if: ${{ github.event_name == 'push' || github.event_name == 'release' }}
+    runs-on: ubuntu-latest
+    needs: osx64
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: mangband-${{needs.osx64.outputs.version}}-osx-intel.dmg
+      - uses: actions/download-artifact@v2
+        with:
+          name: mangclient-${{needs.osx64.outputs.version}}-osx-intel.dmg
+      - name: Rename for upload
+        if: ${{ github.event_name == 'push' }}
+        run: |
+          mv mangband-${{needs.osx64.outputs.version}}-osx-intel.dmg mangband-${{needs.osx64.outputs.ref_hash}}-osx-intel.dmg
+          mv mangclient-${{needs.osx64.outputs.version}}-osx-intel.dmg mangclient-${{needs.osx64.outputs.ref_hash}}-osx-intel.dmg
+      - name: Upload
+        if: ${{ github.event_name == 'push' }}
+        uses: softprops/action-gh-release@v1
+        # if: startsWith(github.ref, 'refs/tags/')
+        with:
+          repository: ${{github.repository_owner}}/mangband-builds
+          token: ${{secrets.BOT_GITHUB_TOKEN}}
+          name: ${{needs.osx64.outputs.ref_short}}-osx
+          tag_name: ${{needs.osx64.outputs.ref_short}}-osx
+          files: |
+            mangband-${{needs.osx64.outputs.ref_hash}}-osx-intel.dmg
+            mangclient-${{needs.osx64.outputs.ref_hash}}-osx-intel.dmg
+      - name: Release
+        if: ${{ github.event_name == 'release' }}
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            mangband-${{needs.osx64.outputs.version}}-osx-intel.dmg
+            mangclient-${{needs.osx64.outputs.version}}-osx-intel.dmg
+  xcode:
+    runs-on: macos-10.15
+    outputs:
+      version: ${{steps.get_version.outputs.version}}
+      ref_short: ${{steps.get_version.outputs.ref_short}}
+      ref_hash: ${{steps.get_version.outputs.ref_hash}}
+    steps:
+      - uses: actions/checkout@v2
+      - id: get_version
+        shell: bash
+        run: |
+          VERSION=`grep "AC_INIT" configure.ac | sed -e s/AC_INIT\(mangband,\ //g -e s/,\ team@mangband.org\)//g`
+          REF_SHORT=${GITHUB_REF#refs/heads/}
+          REF_SHORT=${REF_SHORT#refs/tags/}
+          echo "::set-output name=version::$VERSION"
+          echo "::set-output name=ref_short::$REF_SHORT"
+          #echo "::set-output name=ref_hash::${REF_SHORT}-${GITHUB_SHA::7}"
+          echo "::set-output name=ref_hash::${GITHUB_SHA::7}"
+      - run: |
+          export SDL_VERSION="2.0.16"
+          export SDL_TTF_VERSION="2.0.15"
+          curl -O http://libsdl.org/release/SDL2-${SDL_VERSION}.dmg
+          curl -O https://www.libsdl.org/tmp/SDL_ttf/release/SDL2_ttf-${SDL_TTF_VERSION}.dmg
+          hdiutil attach SDL2-${SDL_VERSION}.dmg
+          hdiutil attach SDL2_ttf-${SDL_TTF_VERSION}.dmg
+          cp -r /Volumes/SDL2/SDL2.framework build/xcode/.
+          cp -r /Volumes/SDL2_ttf/SDL2_ttf.framework build/xcode/.
+      - run: |
+          cd build/xcode
+          xcodebuild -project mangclient.xcodeproj -scheme "mangclient" build CONFIGURATION_BUILD_DIR="./build/Release-macos" CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED="NO" CODE_SIGN_ENTITLEMENTS="" CODE_SIGNING_ALLOWED="NO"
+
+
+  ios:
+    runs-on: macos-10.15
+    outputs:
+      version: ${{steps.get_version.outputs.version}}
+      ref_short: ${{steps.get_version.outputs.ref_short}}
+      ref_hash: ${{steps.get_version.outputs.ref_hash}}
+    steps:
+      - uses: actions/checkout@v2
+      - id: get_version
+        shell: bash
+        run: |
+          VERSION=`grep "AC_INIT" configure.ac | sed -e s/AC_INIT\(mangband,\ //g -e s/,\ team@mangband.org\)//g`
+          REF_SHORT=${GITHUB_REF#refs/heads/}
+          REF_SHORT=${REF_SHORT#refs/tags/}
+          echo "::set-output name=version::$VERSION"
+          echo "::set-output name=ref_short::$REF_SHORT"
+          #echo "::set-output name=ref_hash::${REF_SHORT}-${GITHUB_SHA::7}"
+          echo "::set-output name=ref_hash::${GITHUB_SHA::7}"
+      - run: |
+          export SDL_VERSION="2.0.16"
+          export SDL_TTF_VERSION="2.0.15"
+          cd ..
+          curl -O https://libsdl.org/release/SDL2-${SDL_VERSION}.tar.gz
+          tar -xzf SDL2-${SDL_VERSION}.tar.gz
+          # Our xcode project expects to find "SDL" dir, not "SDL2-2.X.Y"
+          mv SDL2-${SDL_VERSION} SDL
+          curl -O https://libsdl.org/tmp/SDL_ttf/release/SDL2_ttf-${SDL_TTF_VERSION}.tar.gz
+          tar -xzf SDL2_ttf-${SDL_TTF_VERSION}.tar.gz
+          # Same for SDL2_ttf, let's strip away version number
+          mv SDL2_ttf-${SDL_TTF_VERSION} SDL2_ttf
+          # list possible schemes/targets
+          xcodebuild -project SDL/Xcode/SDL/SDL.xcodeproj -list
+      - run: |
+          cd build/xcode12-ios
+          xcodebuild -project mangclient-ios.xcodeproj -list
+          xcodebuild -project mangclient-ios.xcodeproj -scheme "Static Library-iOS" CONFIGURATION_BUILD_DIR="./build/Debug" -configuration Debug ONLY_ACTIVE_ARCH="YES"
+          xcodebuild -project mangclient-ios.xcodeproj -scheme "libSDL_ttf-iOS" CONFIGURATION_BUILD_DIR="./build/Debug-iphoneos" -configuration Debug ONLY_ACTIVE_ARCH="YES" -destination generic/platform=iOS
+          xcodebuild -project mangclient-ios.xcodeproj build CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED="NO" CODE_SIGN_ENTITLEMENTS="" CODE_SIGNING_ALLOWED="NO" -configuration Debug ONLY_ACTIVE_ARCH="YES"
+  android:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{steps.get_version.outputs.version}}
+      ref_short: ${{steps.get_version.outputs.ref_short}}
+      ref_hash: ${{steps.get_version.outputs.ref_hash}}
+    steps:
+      - uses: actions/checkout@v1
+      - id: get_version
+        run: |
+          VERSION=`grep "AC_INIT" configure.ac | sed -e s/AC_INIT\(mangband,\ //g -e s/,\ team@mangband.org\)//g`
+          REF_SHORT=${GITHUB_REF#refs/heads/}
+          REF_SHORT=${REF_SHORT#refs/tags/}
+          echo "::set-output name=version::$VERSION"
+          echo "::set-output name=ref_short::$REF_SHORT"
+          #echo "::set-output name=ref_hash::${REF_SHORT}-${GITHUB_SHA::7}"
+          echo "::set-output name=ref_hash::${GITHUB_SHA::7}"
+      - uses: actions/setup-java@v1
+        with:
+          java-version: 8
+      - uses: nttld/setup-ndk@v1
+        id: setup-ndk
+        with:
+          ndk-version: r21e
+          add-to-path: false
+      - name: "Vendor-drop SDL2 and ln -s assets folder"
+        shell: bash
+        run: |
+         export SDL_VERSION="2.0.10"
+         export SDL_TTF_VERSION="2.0.15"
+         cd build/asgradle
+         wget https://libsdl.org/release/SDL2-${SDL_VERSION}.tar.gz
+         tar -xzf SDL2-${SDL_VERSION}.tar.gz
+         cp -r SDL2-${SDL_VERSION}/android-project/gradle .
+         mv SDL2-${SDL_VERSION} mangclient/jni/SDL2
+         wget https://libsdl.org/tmp/SDL_ttf/release/SDL2_ttf-${SDL_TTF_VERSION}.tar.gz
+         tar -xzf SDL2_ttf-${SDL_TTF_VERSION}.tar.gz
+         mv SDL2_ttf-${SDL_TTF_VERSION} mangclient/jni/SDL2_ttf
+         ln -s ../../../../../../lib mangclient/src/main/assets/lib
+      - uses: eskatos/gradle-command-action@v1
+        with:
+          arguments: build connectedCheck assembleDebug assembleRelease
+          build-root-directory: build/asgradle
+          gradle-executable: build/asgradle/gradlew
+          distributions-cache-enabled: true
+          dependencies-cache-enabled: true
+          configuration-cache-enabled: true
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+      - shell: bash
+        run: |
+          cd build/asgradle
+          cp mangclient/build/outputs/apk/debug/mangclient-debug.apk ../../.
+          cp mangclient/build/outputs/apk/release/mangclient-release-unsigned.apk ../../.
+          rm -rf mangclient # kill temp files
+          ./.travis-gh.sh > ../../index.html
+      - uses: actions/upload-artifact@v2
+        with:
+          name: mangclient-debug.apk
+          path: mangclient-debug.apk
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v2
+        with:
+          name: mangclient-release-unsigned.apk
+          path: mangclient-release-unsigned.apk
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v2
+        with:
+          name: index.html
+          path: index.html
+  upload_android:
+    if: ${{ github.event_name == 'push' || github.event_name == 'release' }}
+    runs-on: ubuntu-latest
+    needs: android
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: mangclient-debug.apk
+      - uses: actions/download-artifact@v2
+        with:
+          name: mangclient-release-unsigned.apk
+      - uses: actions/download-artifact@v2
+        with:
+          name: index.html
+      - name: Upload
+        if: ${{ github.event_name == 'push' }}
+        uses: softprops/action-gh-release@v1
+        # if: startsWith(github.ref, 'refs/tags/')
+        with:
+          repository: ${{github.repository_owner}}/mangband-builds
+          token: ${{secrets.BOT_GITHUB_TOKEN}}
+          name: ${{needs.android.outputs.ref_short}}-android
+          tag_name: ${{needs.android.outputs.ref_short}}-android
+          files: |
+            mangclient-debug.apk
+            mangclient-release-unsigned.apk
+            index.html
+      - name: Release
+        if: ${{ github.event_name == 'release' }}
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            mangclient-debug.apk
+            mangclient-release-unsigned.apk
+  # debian-based appimage build. would've preferred centos6.
+  appimage:
+    strategy:
+      matrix:
+        include:
+          - { image: "debian:9", arch: "x86_64" }
+          - { image: "i386/debian:9", arch: "i386" }
+    runs-on: ubuntu-latest
+    container:
+      image: docker://${{matrix.image}}
+    outputs:
+      version: ${{steps.get_version.outputs.version}}
+      ref_short: ${{steps.get_version.outputs.ref_short}}
+      ref_hash: ${{steps.get_version.outputs.ref_hash}}
+    steps:
+      - uses: actions/checkout@v1
+      - id: get_version
+        run: |
+          VERSION=`grep "AC_INIT" configure.ac | sed -e s/AC_INIT\(mangband,\ //g -e s/,\ team@mangband.org\)//g`
+          REF_SHORT=${GITHUB_REF#refs/heads/}
+          REF_SHORT=${REF_SHORT#refs/tags/}
+          echo "::set-output name=version::$VERSION"
+          echo "::set-output name=ref_short::$REF_SHORT"
+          #echo "::set-output name=ref_hash::${REF_SHORT}-${GITHUB_SHA}"
+          echo "::set-output name=ref_hash::${GITHUB_SHA}"
+      - name: apt-get install build deps
+        run: |
+          apt-get update -qq
+          apt-get install -yqq make gcc autoconf automake dh-make wget >/dev/null
+          apt-get install -yqq dpkg-dev # needed on Ubuntu14 >/dev/null
+          apt-get install -yqq libncurses5-dev libsdl1.2-dev libsdl2-dev >/dev/null
+          apt-get install -yqq libsdl-ttf2.0-dev libsdl2-ttf-dev >/dev/null
+          apt-get install -yqq libX11-dev >/dev/null || apt-get install -y libx11-dev >/dev/null
+      - name: Build SDL1.2 + GCU client
+        run: |
+          ./autogen.sh -n
+          ./configure --with-gcu --with-sdl --without-x11
+          make
+          rm -f *.AppImage
+          export ARCH=${{matrix.arch}}
+          export VERSION=${{steps.get_version.outputs.version}}
+          wget https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-${ARCH}.AppImage
+          chmod +x ./*.AppImage
+          export LINUX_DEPLOY="$(pwd)/linuxdeploy-${ARCH}.AppImage --appimage-extract-and-run"
+          dist/appimage/appit.sh --without-x11 --with-gcu --with-sdl
+          mv MAngbandClient-${VERSION}.AppImage MAngbandClient-${VERSION}-${{matrix.arch}}.AppImage
+          ls -l *.AppImage
+      - uses: actions/upload-artifact@v1
+        with:
+          name: MAngbandClient-${{steps.get_version.outputs.ref_hash}}-${{matrix.arch}}.AppImage
+          path: MAngbandClient-${{steps.get_version.outputs.version}}-${{matrix.arch}}.AppImage
+          if-no-files-found: error
+  upload_appimage:
+    if: ${{ github.event_name == 'push' || github.event_name == 'release' }}
+    runs-on: ubuntu-latest
+    needs: appimage
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: MAngbandClient-${{needs.appimage.outputs.ref_hash}}-i386.AppImage
+      - uses: actions/download-artifact@v2
+        with:
+          name: MAngbandClient-${{needs.appimage.outputs.ref_hash}}-x86_64.AppImage
+      - run: |
+          ls -lR
+      - run: |
+          echo ${{needs.appimage.outputs.ref_short}}
+      - name: Rename for upload
+        if: ${{ github.event_name == 'push' }}
+        run: |
+           mv MAngbandClient-${{needs.appimage.outputs.version}}-i386.AppImage MAngbandClient-${{needs.appimage.outputs.ref_hash}}-i386.AppImage
+           mv MAngbandClient-${{needs.appimage.outputs.version}}-x86_64.AppImage MAngbandClient-${{needs.appimage.outputs.ref_hash}}-x86_64.AppImage
+      - name: Upload
+        if: ${{ github.event_name == 'push' }}
+        uses: softprops/action-gh-release@v1
+        with:
+          repository: ${{github.repository_owner}}/mangband-builds
+          token: ${{secrets.BOT_GITHUB_TOKEN}}
+          name: ${{needs.appimage.outputs.ref_short}}-appimage
+          tag_name: ${{needs.appimage.outputs.ref_short}}-appimage
+          files: |
+            MAngbandClient-${{needs.appimage.outputs.ref_hash}}-i386.AppImage
+            MAngbandClient-${{needs.appimage.outputs.ref_hash}}-x86_64.AppImage
+      - name: Release
+        if: ${{ github.event_name == 'release' }}
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            MAngbandClient-${{needs.appimage.outputs.version}}-i386.AppImage
+            MAngbandClient-${{needs.appimage.outputs.version}}-x86_64.AppImage
+
+  linux:
+    strategy:
+      matrix:
+        include:
+          - { name: "GCU",   cfg: "--with-gcu --without-x11 --without-sdl --without-sdl2" }
+          - { name: "X11",   cfg: "--without-gcu --with-x11 --without-sdl --without-sdl2" }
+          - { name: "SDL1.2",cfg: "--without-gcu --without-x11 --with-sdl --without-sdl2" }
+          - { name: "SDL2",  cfg: "--without-gcu --without-x11 --without-sdl --with-sdl2" }
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{steps.get_version.outputs.version}}
+      ref_short: ${{steps.get_version.outputs.ref_short}}
+      ref_hash: ${{steps.get_version.outputs.ref_hash}}
+    steps:
+      - uses: actions/checkout@v1
+      - id: get_version
+        run: |
+          VERSION=`grep "AC_INIT" configure.ac | sed -e s/AC_INIT\(mangband,\ //g -e s/,\ team@mangband.org\)//g`
+          REF_SHORT=${GITHUB_REF#refs/heads/}
+          REF_SHORT=${REF_SHORT#refs/tags/}
+          echo "::set-output name=version::$VERSION"
+          echo "::set-output name=ref_short::$REF_SHORT"
+          #echo "::set-output name=ref_hash::${REF_SHORT}-${GITHUB_SHA::7}"
+          echo "::set-output name=ref_hash::${GITHUB_SHA::7}"
+      - name: apt-get install build deps
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -yqq make gcc autoconf automake dh-make wget >/dev/null
+          sudo apt-get install -yqq dpkg-dev # needed on Ubuntu14 >/dev/null
+          sudo apt-get install -yqq libncurses5-dev libsdl1.2-dev libsdl2-dev >/dev/null
+          sudo apt-get install -yqq libsdl-ttf2.0-dev libsdl2-ttf-dev >/dev/null
+          sudo apt-get install -yqq libX11-dev >/dev/null || sudo apt-get install -y libx11-dev >/dev/null
+      - name: Build ${{matrix.name}}
+        shell: bash
+        run: |
+          ./autogen.sh -n
+          ./configure ${{matrix.cfg}}
+          make clean
+          make mangclient
+
+  source:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{steps.get_version.outputs.version}}
+      ref_short: ${{steps.get_version.outputs.ref_short}}
+      ref_hash: ${{steps.get_version.outputs.ref_hash}}
+    steps:
+      - uses: actions/checkout@v1
+      - id: get_version
+        run: |
+          VERSION=`grep "AC_INIT" configure.ac | sed -e s/AC_INIT\(mangband,\ //g -e s/,\ team@mangband.org\)//g`
+          REF_SHORT=${GITHUB_REF#refs/heads/}
+          REF_SHORT=${REF_SHORT#refs/tags/}
+          echo "::set-output name=version::$VERSION"
+          echo "::set-output name=ref_short::$REF_SHORT"
+          #echo "::set-output name=ref_hash::${REF_SHORT}-${GITHUB_SHA::7}"
+          echo "::set-output name=ref_hash::${GITHUB_SHA::7}"
+      - name: apt-get install build deps
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -yqq make gcc autoconf automake dh-make wget >/dev/null
+          sudo apt-get install -yqq dpkg-dev # needed on Ubuntu14 >/dev/null
+      - name: make dist
+        shell: bash
+        run: |
+          ./autogen.sh -n
+          ./configure
+          make dist
+

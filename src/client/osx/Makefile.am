@@ -48,7 +48,7 @@ mangclient.app: mangclient
 			fi ; \
 		done ; \
 	done
-	@chmod -w mangclient.app/Contents/MacOS/*.dylib ; \
+	@chmod -w mangclient.app/Contents/MacOS/*.dylib
 	@cp src/client/osx/launch_mangclient.sh mangclient.app/Contents/MacOS
 	@cp src/client/osx/mangclient.icns mangclient.app/Contents/Resources
 	@cp src/client/osx/Info.plist mangclient.app/Contents
