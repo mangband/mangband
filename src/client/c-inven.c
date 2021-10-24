@@ -630,6 +630,7 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor_)
 				if (!inven || !equip)
 				{
 					bell();
+					if (executing_macro) done = TRUE;
 					break;
 				}
 
@@ -676,6 +677,7 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor_)
 				if (!get_tag(&k, which))
 				{
 					bell();
+					if (executing_macro) done = TRUE;
 					break;
 				}
 
@@ -683,6 +685,7 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor_)
 				if ((k < INVEN_WIELD) ? !inven : !equip)
 				{
 					bell();
+					if (executing_macro) done = TRUE;
 					break;
 				}
 
@@ -690,6 +693,7 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor_)
 				if (!get_item_okay(k))
 				{
 					bell();
+					if (executing_macro) done = TRUE;
 					break;
 				}
 
@@ -727,6 +731,7 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor_)
 				if (!get_item_okay(k))
 				{
 					bell();
+					if (executing_macro) done = TRUE;
 					break;
 				}
 
@@ -784,6 +789,7 @@ bool c_get_item(int *cp, cptr pmt, bool equip, bool inven, bool floor_)
 				if (!get_item_okay(k))
 				{
 					bell();
+					if (executing_macro) done = TRUE;
 					break;
 				}
 

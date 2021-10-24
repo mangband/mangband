@@ -13,6 +13,8 @@ static bool strip_chars = FALSE;
 
 #define flush_later inkey_xtra
 
+#define suppress_flush executing_macro
+
 static byte macro__use[256];
 
 static char octify(uint i)
@@ -39,6 +41,7 @@ void flush_now(void)
 {
 	/* Clear various flags */
 	flush_later = FALSE;
+	suppress_flush = FALSE;
 
 	/* Cancel "macro" info */
 	parse_macro = after_macro = FALSE;
@@ -324,6 +327,23 @@ static event_type inkey_aux(void)
 	/* Cancel queue clearing */
 	if (ch == '\f' && parse_macro) { first_escape = FALSE; return (ke0); }
 
+	/* Hack -- Ignore aborted macros */
+	if (command_aborted && parse_macro)
+	{
+		/* UNLESS we see logcal AND ('0x0E')... */
+		if (ch == 0x0E)	command_aborted = 2;
+		/* ... we allow logical OR ('0x0F') to un-abort */
+		else if (command_aborted < 2 && ch == 0x0F)
+			command_aborted = FALSE; /* UN-abort macro */
+		return (ke0);
+	}
+	/* Hack -- Pretend we aborted a macro on logical OR ('0x0F') */
+	else if (parse_macro && !command_aborted && ch == 0x0F)
+	{
+		command_aborted = 2;
+		return (ke0);
+	}
+
 	/* Do not check macro actions */
 	if (parse_macro) return (ke);
 
@@ -449,6 +469,9 @@ static event_type inkey_aux(void)
 	/* Push the macro "action" onto the key queue */
 	while (n > 0)
 	{
+		/* Evil Hack -- if we see logical OR (ascii '0x0F'), suppress flush! */
+		if (act[n-1] == '\x0F') suppress_flush = TRUE;
+
 		/* Push the key, notice over-flow */
 		if (Term_key_push(act[--n])) return (ke0);
 	}
@@ -602,6 +625,10 @@ event_type inkey_ex(void)
 		/* Cancel arcane flags */
 		parse_slash = after_macro = FALSE;
 		strip_chars = FALSE;
+
+		/* Cancel "new" evil flags */
+		suppress_flush = FALSE;
+		command_aborted = FALSE;
 
 		/* Forget old keypresses */
 		Term_flush();
@@ -778,6 +805,9 @@ event_type inkey_ex(void)
 		
 			/* End "macro trigger" */
 			parse_under = FALSE;
+
+			/* Macro has ended, stop ignoring commands */
+			command_aborted = FALSE;
 
 			/* Stop stripping */
 			strip_chars = FALSE;
@@ -1027,6 +1057,13 @@ void bell(void)
 
 	/* Make a bell noise (if allowed) */
 	if (ring_bell) Term_xtra(TERM_XTRA_NOISE, 0);
+
+	/* Mark command as aborted */
+	command_aborted = TRUE;
+
+	/* MEGA-Hack: DO NOT flush WHOLE input, let
+	 * "command_abort" mechanism take care of it. */
+	if (suppress_flush) return;
 
 	/* Flush the input (later!) */
 	flush();
@@ -2901,11 +2938,15 @@ void ascii_to_text(char *buf, size_t len, cptr str)
 			*s++ = '\\';
 			*s++ = '\\';
 		}
+
 		else if (i == '\f')
 		{
 			*s++ = '\\';
 			*s++ = 'f';
 		}
+		/* MAngband-specific: AND and OR "operators" */
+		else if (i == '\x0E') {	*s++ = '\\'; *s++ = '&'; }
+		else if (i == '\x0F') {	*s++ = '\\'; *s++ = '|'; }
 
 		/* Macro Trigger */
 		else if (i == 31)
