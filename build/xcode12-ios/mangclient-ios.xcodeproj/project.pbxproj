@@ -71,19 +71,54 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		2EA25FBD27DD252500230357 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2EB0B0122306F644003B13E7 /* SDL_ttf.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = BE48FD6707AFA17000BB41DA;
+			remoteInfo = Framework;
+		};
+		2EA25FBF27DD252500230357 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2EB0B0122306F644003B13E7 /* SDL_ttf.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = A75FDAF323E3582C00529352;
+			remoteInfo = "Framework-iOS";
+		};
+		2EA25FC127DD252500230357 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2EB0B0122306F644003B13E7 /* SDL_ttf.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = A75FDB0A23E36B4300529352;
+			remoteInfo = "Framework-tvOS";
+		};
+		2EA25FC327DD252500230357 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2EB0B0122306F644003B13E7 /* SDL_ttf.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = A75FDB2E23E3825200529352;
+			remoteInfo = "Static Library-iOS";
+		};
+		2EA25FC527DD252500230357 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2EB0B0122306F644003B13E7 /* SDL_ttf.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = A75FDB3923E3827100529352;
+			remoteInfo = "Static Library-tvOS";
+		};
+		2EA25FC727DD252500230357 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2EB0B0122306F644003B13E7 /* SDL_ttf.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = BE48FD7207AFA17000BB41DA;
+			remoteInfo = "Create DMG";
+		};
 		2EA8D70F230D557800EBF4A1 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 2EB0B0122306F644003B13E7 /* SDL_ttf.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = BE48FD6E07AFA17000BB41DA;
 			remoteInfo = "libSDL_ttf-iOS";
-		};
-		2EA8D711230D557800EBF4A1 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 2EB0B0122306F644003B13E7 /* SDL_ttf.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = AA53152E1FE1016F0025C9BE;
-			remoteInfo = "libSDL_ttf-tvOS";
 		};
 		2ED702E327121F5F00222FEA /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -282,7 +317,7 @@
 		2E9B333F2405A116003E24BD /* base64encode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = base64encode.h; path = ../../src/common/base64encode.h; sourceTree = "<group>"; };
 		2E9B33402405A116003E24BD /* sha1.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = sha1.c; path = ../../src/common/sha1.c; sourceTree = "<group>"; };
 		2E9B33412405A116003E24BD /* base64encode.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = base64encode.c; path = ../../src/common/base64encode.c; sourceTree = "<group>"; };
-		2EB0B0122306F644003B13E7 /* SDL_ttf.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SDL_ttf.xcodeproj; path = "../../../SDL2_ttf/Xcode-iOS/SDL_ttf.xcodeproj"; sourceTree = "<group>"; };
+		2EB0B0122306F644003B13E7 /* SDL_ttf.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SDL_ttf.xcodeproj; path = ../../../SDL2_ttf/Xcode/SDL_ttf.xcodeproj; sourceTree = "<group>"; };
 		2EB388B8230401E6007B7A33 /* appl-dir.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "appl-dir.m"; path = "../../src/client/osx/appl-dir.m"; sourceTree = "<group>"; };
 		2EB388B9230401E6007B7A33 /* appl-dir.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "appl-dir.h"; path = "../../src/client/osx/appl-dir.h"; sourceTree = "<group>"; };
 		2EB388BB23040212007B7A33 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -493,8 +528,13 @@
 		2EA8D6FF230D557700EBF4A1 /* Products */ = {
 			isa = PBXGroup;
 			children = (
+				2EA25FBE27DD252500230357 /* SDL2_ttf.framework */,
+				2EA25FC027DD252500230357 /* SDL2_ttf.framework */,
+				2EA25FC227DD252500230357 /* SDL2_ttf.framework */,
 				2EA8D710230D557800EBF4A1 /* libSDL2_ttf.a */,
-				2EA8D712230D557800EBF4A1 /* libSDL2_ttf.a */,
+				2EA25FC427DD252500230357 /* libSDL2_ttf.a */,
+				2EA25FC627DD252500230357 /* libSDL2_ttf.a */,
+				2EA25FC827DD252500230357 /* Create DMG */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -562,18 +602,53 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
+		2EA25FBE27DD252500230357 /* SDL2_ttf.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = SDL2_ttf.framework;
+			remoteRef = 2EA25FBD27DD252500230357 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		2EA25FC027DD252500230357 /* SDL2_ttf.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = SDL2_ttf.framework;
+			remoteRef = 2EA25FBF27DD252500230357 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		2EA25FC227DD252500230357 /* SDL2_ttf.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = SDL2_ttf.framework;
+			remoteRef = 2EA25FC127DD252500230357 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		2EA25FC427DD252500230357 /* libSDL2_ttf.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libSDL2_ttf.a;
+			remoteRef = 2EA25FC327DD252500230357 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		2EA25FC627DD252500230357 /* libSDL2_ttf.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libSDL2_ttf.a;
+			remoteRef = 2EA25FC527DD252500230357 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		2EA25FC827DD252500230357 /* Create DMG */ = {
+			isa = PBXReferenceProxy;
+			fileType = "compiled.mach-o.executable";
+			path = "Create DMG";
+			remoteRef = 2EA25FC727DD252500230357 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
 		2EA8D710230D557800EBF4A1 /* libSDL2_ttf.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
 			path = libSDL2_ttf.a;
 			remoteRef = 2EA8D70F230D557800EBF4A1 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		2EA8D712230D557800EBF4A1 /* libSDL2_ttf.a */ = {
-			isa = PBXReferenceProxy;
-			fileType = archive.ar;
-			path = libSDL2_ttf.a;
-			remoteRef = 2EA8D711230D557800EBF4A1 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		2ED702E427121F5F00222FEA /* libSDLmain.a */ = {
@@ -769,6 +844,7 @@
 				INFOPLIST_FILE = ../../src/client/ios/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 12.1;
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				"OTHER_LDFLAGS[arch=*]" = "-lc++";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.mangband.client-sdl2";
 				PRODUCT_NAME = "mangclient-ios";
 				SYSTEM_HEADER_SEARCH_PATHS = "../../../SDL/include ../../../SDL2_ttf";
@@ -794,6 +870,7 @@
 				INFOPLIST_FILE = ../../src/client/ios/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 12.1;
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				"OTHER_LDFLAGS[arch=*]" = "-lc++";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.mangband.client-sdl2";
 				PRODUCT_NAME = "mangclient-ios";
 				SYSTEM_HEADER_SEARCH_PATHS = "../../../SDL/include ../../../SDL2_ttf";
