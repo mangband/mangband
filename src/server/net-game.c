@@ -2120,6 +2120,14 @@ static int recv_custom_command(player_type *p_ptr)
 	/* Does it cost energy? */
 	if (custom_commands[i].energy_cost)
 	{
+		u32b energy_cost = level_speed(p_ptr->dun_depth) / custom_commands[i].energy_cost;
+
+		/* HACK! Reduce energy cost for 'fire' command, based on shots-per-round. */
+		if (custom_commands[i].m_catch == 'f' && p_ptr->num_fire > 0)
+		{
+			energy_cost = energy_cost / p_ptr->num_fire;
+		}
+
 		/* MAngband-specific: if we've JUST started running, pretend we don't have enough energy */
 		if ((custom_commands[i].pkt == PKT_RUN) && p_ptr->running && p_ptr->ran_tiles == 0)
 		{
@@ -2127,7 +2135,7 @@ static int recv_custom_command(player_type *p_ptr)
 			return 0;
 		}
 		/* Not enough! ABORT! */
-		if (p_ptr->energy < level_speed(p_ptr->dun_depth) / custom_commands[i].energy_cost)
+		if (p_ptr->energy < energy_cost)
 		{
 			/* Report lack of energy */
 			return 0;
