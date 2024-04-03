@@ -382,6 +382,10 @@ void text_to_ascii(char *buf, size_t max, cptr str)
 			/* MAngband-specific: feed queue */
 			else if (*str == 'f') *s++ = '\f';
 
+			/* MAngband-specific: AND and OR "operators" */
+			else if (*str == '&') *s++ = '\x0E';
+			else if (*str == '|') *s++ = '\x0F';
+
 			/* Octal-mode */
 			else if (*str == '0')
 			{

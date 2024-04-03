@@ -281,6 +281,7 @@ void cmd_custom(byte i)
 void process_command()
 {
 	byte i;
+	command_aborted = FALSE;
 	for (i = 0; i < custom_commands; i++) 
 	{
 		if (custom_command[i].flag & COMMAND_STORE) continue;
