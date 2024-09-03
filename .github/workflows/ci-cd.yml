@@ -117,10 +117,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: win32
     steps:
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4.1.7
         with:
           name: mangband-server-${{needs.win32.outputs.ref_hash}}-setup.exe
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4.1.7
         with:
           name: mangband-client-${{needs.win32.outputs.ref_hash}}-setup.exe
       - name: Rename for upload
@@ -216,10 +216,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: osx64
     steps:
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4.1.7
         with:
           name: mangband-${{needs.osx64.outputs.version}}-osx-intel.dmg
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4.1.7
         with:
           name: mangclient-${{needs.osx64.outputs.version}}-osx-intel.dmg
       - name: Rename for upload
@@ -392,13 +392,13 @@ jobs:
     runs-on: ubuntu-latest
     needs: android
     steps:
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4.1.7
         with:
           name: mangclient-debug.apk
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4.1.7
         with:
           name: mangclient-release-unsigned.apk
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4.1.7
         with:
           name: index.html
       - name: Upload
@@ -478,10 +478,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: appimage
     steps:
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4.1.7
         with:
           name: MAngbandClient-${{needs.appimage.outputs.ref_hash}}-i386.AppImage
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4.1.7
         with:
           name: MAngbandClient-${{needs.appimage.outputs.ref_hash}}-x86_64.AppImage
       - run: |
